@@ -233,6 +233,8 @@ void USARTMode(void)
             }
             
             if(OutPNT > 0) StartUSBTransmit();
+            
+            //Test if pushing will work
         }
     }
 }
