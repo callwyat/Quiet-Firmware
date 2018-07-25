@@ -516,6 +516,13 @@ unsigned QyA_Command(unsigned char input)
         break;
             
     case ReadSettings:
+        //Test if the description of the setting is wanted
+        if(Argument.All == 0)
+        {
+            ReadSettingsDescription();
+            return;
+        }
+        
         if(!Argument.B3) //Test if a read all command
         {
             if(CommandCount <= 1) 
@@ -543,14 +550,14 @@ unsigned QyA_Command(unsigned char input)
         
         switch(Argument.All)
         {
-            case 0:     //Read the settings from RAM
+            case 1:     //Read the settings from RAM
                 Read_RAM_Settings:
                 for(unsigned char count = 0; count < Length.Lower; count++)
                 {
                     OutBuff[OutPNT++] = Settings.Byte[count + LengthPNT];
                 }
                 break;
-            case 1:     //Read the settings from Flash
+            case 2:     //Read the settings from Flash
                 if((HardSettingsLocation - 1) < BaseSettingsLocation) goto Read_RAM_Settings;
                 
                 Flash_Read((HardSettingsLocation + LengthPNT), &OutBuff[OutPNT], Length.Lower);
@@ -583,6 +590,31 @@ unsigned QyA_Command(unsigned char input)
     //Return reporting no extra data to read
     return false;
 }
+
+void ReadSettingsDescription(void)
+{
+    unsigned End = 0;
+    unsigned char FilePNT = 0;
+    unsigned char count;
+    unsigned char* buffPNT;
+    
+    while (!End)
+    {
+        Flash_Read((int)(&XMLDescription + FilePNT), &OutBuff[0], 64);  
+        
+         buffPNT = &OutBuff[0];
+        
+        for (count = 0; count < OutBuffSize; count++)
+        {
+            if (*buffPNT++ == 0xFF)
+            {
+                End = 1;
+                break;
+            }
+        }
+    }
+}
+
 
 //If this routine is hit, that means that an error happened, which is bad.
 void Q_Error(unsigned int ErrorCode)
