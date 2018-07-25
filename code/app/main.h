@@ -10,6 +10,8 @@ void SPIMode(void);
 
 void I2CMode(void);
 
+void Send(unsigned char input)
+
 
 
 

@@ -41,8 +41,6 @@
 #include "Qy@/Communications/qUSART.h"
 
 uint8_t InBuff[CDC_DATA_IN_EP_SIZE];
-uint8_t OutBuff[CDC_DATA_OUT_EP_SIZE];
-unsigned char OutPNT = 0;
 
 //Stores the settings
 extern QyA_Settings Settings;
@@ -194,20 +192,6 @@ void USBMode(void)
     }
 }
 
-int StartUSBTransmit(void)
-{
-    if((USBUSARTIsTxTrfReady()) && (OutPNT > 0))
-    {
-        putUSBUSART(OutBuff, OutPNT);
-        OutPNT = 0;
-
-        return 1;
-    }
-
-    return 0;
-}
-
-
 void USARTMode(void)
 {
     /* This code will never be going back (except for a reset) so clean up the 
@@ -260,6 +244,49 @@ void I2CMode(void)
         
     }
 }
+
+uint8_t OutBuff[CDC_DATA_OUT_EP_SIZE];
+unsigned char OutPNT = 0;
+
+void Send(unsigned char input)
+{
+    switch(TXMode)
+    {
+        case USB:
+            OutBuff[OutPNT++] = input;
+            if (OutPNT >= CDC_DATA_OUT_EP_SIZE)
+                StartUSBTransmit();
+            break;
+        case USART:
+            
+            break;
+        case SPI:
+            
+            break;
+        case I2C:
+            
+            break;
+        default:
+            
+            break;     
+    }
+    
+    return;
+}
+
+int StartUSBTransmit(void)
+{
+    if((USBUSARTIsTxTrfReady()) && (OutPNT > 0))
+    {
+        putUSBUSART(OutBuff, OutPNT);
+        OutPNT = 0;
+
+        return 1;
+    }
+
+    return 0;
+}
+
 
 bool USER_USB_CALLBACK_EVENT_HANDLER(USB_EVENT event, void *pdata, uint16_t size)
 {
