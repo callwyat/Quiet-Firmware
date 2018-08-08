@@ -206,30 +206,30 @@ typedef union{
     };
 } QyA_Settings;
 
-const char XMLDescription = "<?xml version = \"1.0\"?>"
-"<UserID>char[8]<\\UserID>\n"
-"<Discrete>\n"
-"<CHARS>DIN,DOUT<\\CHARS>\n"
-"<Mode>\n"
-"<BITS>"
-"PWM7,PWM8,PWM9,PWM10,-,"
-"Servo1,Servo2,Servo3,Servo4,Servo5,Servo6,Servo7,Servo8,Servo9,Servo10"
-"<\\BITS>"
-"<\\Mode>\n"
-"<\\Discrete>\n"
-"<->char[2]<\\->\n"
-"<USART>\n"
-"<CHARS>TXSTA,RCSTA,BAUDCON,SPBRG,SPBRGH<\\CHARS>\n"
-"<\\USART>\n"
-"<CHARS>2<\\CHARS>\n"
-"<SPI>CHARS=SPICON1,SPICON2<\\SPI>\n"
-"<CHARS>6<\\CHARS>\n"
-"<I2C>CHARS=I2CCON1,I2CCON2,I2CADR<\\I2C>\n"
-"<CHARS>12<\\CHARS>\n"
-"<BOOT>\n"
-"<BITS>USB Enable,USART Slave,SPI Slave,I2C Slave,"
-"-,USB Reset,Idle Reset,Watchdog<\\BITS>\n"
-"<\\BOOT>\xFF";
+const char *XMLDescription = "<?xml version = \"1.0\"?>\
+<UserID>char[8]<\\UserID>\n\
+<Discrete>\n\
+<CHARS>DIN,DOUT<\\CHARS>\n\
+<Mode>\n\
+<BITS>\
+PWM7,PWM8,PWM9,PWM10,-,\
+Servo1,Servo2,Servo3,Servo4,Servo5,Servo6,Servo7,Servo8,Servo9,Servo10\
+<\\BITS>\
+<\\Mode>\n\
+<\\Discrete>\n\
+<->char[2]<\\->\n\
+<USART>\n\
+<CHARS>TXSTA,RCSTA,BAUDCON,SPBRG,SPBRGH<\\CHARS>\n\
+<\\USART>\n\
+<CHARS>2<\\CHARS>\n\
+<SPI>CHARS=SPICON1,SPICON2<\\SPI>\n\
+<CHARS>6<\\CHARS>\n\
+<I2C>CHARS=I2CCON1,I2CCON2,I2CADR<\\I2C>\n\
+<CHARS>12<\\CHARS>\n\
+<BOOT>\n\
+<BITS>USB Enable,USART Slave,SPI Slave,I2C Slave,\
+-,USB Reset,Idle Reset,Watchdog<\\BITS>\n\
+<\\BOOT>\xFF";
 
 
 typedef enum

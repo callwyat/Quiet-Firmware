@@ -42,6 +42,8 @@
 
 uint8_t InBuff[CDC_DATA_IN_EP_SIZE];
 
+uint8_t OutPNT;
+
 //Stores the settings
 extern QyA_Settings Settings;
 
@@ -175,13 +177,11 @@ void USBMode(void)
             unsigned char readPNT = 0;
             
             while(readPNT < readCount)
-            {
                 QyA_Command(InBuff[readPNT++]);
-                
-                if(OutPNT >= CDC_DATA_OUT_EP_SIZE) StartUSBTransmit();
-            }
             
-            if(OutPNT > 0) StartUSBTransmit();
+            //After all the commands have been processed, send the result (if any))
+            if(OutPNT > 0) 
+                StartUSBTransmit();
         }
         
         //Handles the Transmission Service 
@@ -210,13 +210,8 @@ void USARTMode(void)
             unsigned char readPNT = 0;
             
             while(readPNT < readCount)
-            {
                 QyA_Command(InBuff[readPNT++]);
-                
-                if(OutPNT >= CDC_DATA_OUT_EP_SIZE) StartUSBTransmit();
-            }
             
-            if(OutPNT > 0) StartUSBTransmit();
         }
     }
 }
@@ -257,15 +252,20 @@ void Send(unsigned char input)
             if (OutPNT >= CDC_DATA_OUT_EP_SIZE)
                 StartUSBTransmit();
             break;
+            
         case USART:
-            
+            //Write the data, check if the buffer is full
+            USARTWrite(input, true);
             break;
+            
         case SPI:
-            
+            SPIWrite(input);
             break;
+            
         case I2C:
             
             break;
+            
         default:
             
             break;     
@@ -274,7 +274,7 @@ void Send(unsigned char input)
     return;
 }
 
-int StartUSBTransmit(void)
+unsigned StartUSBTransmit(void)
 {
     if((USBUSARTIsTxTrfReady()) && (OutPNT > 0))
     {

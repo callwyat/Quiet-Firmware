@@ -11,6 +11,7 @@
 #include "Subroutines.h"
 #include "QyA_Code.h"
 #include "Interrupts.h"
+#include "../main.h"
 
 #include "Analog.h"
 #include "Communications/qUSART.h"
@@ -26,9 +27,6 @@ unsigned int HardSettingsLocation;
 //Defines the size of a "Large" data packet
 #define LargeSize 24
 
-#define OutBuffSize CDC_DATA_OUT_EP_SIZE
-//Declared in Main.C  Stores any outgoing data
-extern uint8_t OutBuff[OutBuffSize];
 //Declared in Main.C Stores the current position in the output_buffer
 extern char OutPNT;
 
@@ -134,34 +132,34 @@ unsigned QyA_Command(unsigned char input)
                     Q_Status.I2C_Active = SSP1STATbits.BF;
                     
                     //Send the status
-                    OutBuff[OutPNT++] = Q_Status.All;
+                    Send(Q_Status.All);
                     break;
                 
                 case 13:    //Read User ID
                     for(unsigned char count = 0; count < 8; count++)
                     {
-                        OutBuff[OutPNT++] = Settings.UserID[count];
+                        Send(Settings.UserID[count]);
                     }
                     break;
                     
                 case 14:    //Read Serial Number
                     for(unsigned char count = 0; count < 8; count++)
                     {
-                        OutBuff[OutPNT++] = Settings.SN[count];
+                        Send(Settings.SN[count]);
                     }
                     break;
                     
                 case 15:    //Read Firmware Revision                +++++++++++++Firmware Identification+++++++++++
-                    OutBuff[OutPNT++] = 'Q';
-                    OutBuff[OutPNT++] = 'y';
-                    OutBuff[OutPNT++] = '@';
-                    OutBuff[OutPNT++] = ' ';
-                    OutBuff[OutPNT++] = '3';
-                    OutBuff[OutPNT++] = '.';
-                    OutBuff[OutPNT++] = '0';
-                    OutBuff[OutPNT++] = '.';
-                    OutBuff[OutPNT++] = '0';
-                    OutBuff[OutPNT++] = '\n';
+                    Send('Q');
+                    Send('y');
+                    Send('@');
+                    Send(' ');
+                    Send('3');
+                    Send('.');
+                    Send('0');
+                    Send('.');
+                    Send('0');
+                    Send('\n');
                     break;
             }
 
@@ -184,7 +182,7 @@ unsigned QyA_Command(unsigned char input)
         case ReadDigital:                                               //Read Digital
             if(CommandCount == 0)
             {   //Process the Argument
-                OutBuff[OutPNT++] = DigitalInput;
+                Send(DigitalInput);
                 CurrentCommand = Null_Command;
             }
             else
@@ -274,8 +272,8 @@ unsigned QyA_Command(unsigned char input)
                     Argument.All = Argument.All >> 1;
                     if(STATUSbits.C == 1)       //if the LSB was set, then grab the analog data
                     {
-                        OutBuff[OutPNT++] = Analog_Buffers[count].Higher;
-                        OutBuff[OutPNT++] = Analog_Buffers[count].Lower;
+                        Send(Analog_Buffers[count].Higher);
+                        Send(Analog_Buffers[count].Lower);
                     }
                 }
 
@@ -306,30 +304,22 @@ unsigned QyA_Command(unsigned char input)
         break;
         
     case ReadUSART:     //Read the USART Receive Buffer 
-        if(CommandCount == 0)
-        {
+
         //Get the amount of data that can be read
         Length.Lower = USARTDataAvalible();
-        
+
         //Report the number of bytes that were read
-        OutBuff[OutPNT++] = Length.Lower;
+        Send(Length.Lower);
+        
+        //While there is data to be read, send it.
+        while (Length.Lower-- > 0)
+        {
+            USARTRead(&tempByte)
+            Send(tempByte);
         }
         
-        //Calculate how much data can be put in the buffer this go.
-        tempByte = (OutBuffSize < Length.Lower ? OutBuffSize : Length.Lower); 
-        if(tempByte + OutPNT > OutBuffSize) tempByte -= OutPNT;
+        CurrentCommand = Null_Command;
         
-        /*Fill up as much data as possible. Subtract the amount of data copied 
-        from what can be copied*/
-        tempByte = USARTRead(&OutBuff[OutPNT], tempByte);
-        
-        //Move the output pointer
-        OutPNT += tempByte;
-        
-        Length.Lower -= tempByte;
-        
-        //Test if all the data has been read
-        if(Length.Lower <= 0) CurrentCommand = Null_Command;
         break;
         
     //TODO: Maybe add a flag to send all 0xFF or 0x00 with B3 and B3 of Argument
@@ -362,27 +352,21 @@ unsigned QyA_Command(unsigned char input)
      break;
             
     case ReadSPI:
-        if(CommandCount == 0)
-        {
         //Get the amount of data that can be read
         Length.All = SPIDataAvalible();
         
         //Report the number of bytes that were read
-        OutBuff[OutPNT++] = Length.Higher;
-        OutBuff[OutPNT++] = Length.Lower;
+        Send(Length.Higher);
+        Send(Length.Lower);
+        
+        //While there is data to be read, send it.
+        while (Length.All-- > 0)
+        {
+            SPIRead(&tempByte)
+            Send(tempByte);
         }
         
-        //Calculate how much data can be put in the buffer this go.
-        tempByte = (OutBuffSize > Length.All ? OutBuffSize : Length.Lower); 
-        if(tempByte + OutPNT > OutBuffSize) tempByte -= OutPNT;
-        
-        /*Fill up as much data as possible. Subtract the amount of data copied 
-        from what can be copied*/
-        Length.All -= SPIRead(&OutBuff[OutPNT], tempByte);
-        
-        //Test if all the data has been read
-        if(Length.All <= 0) CurrentCommand = Null_Command;
-        break;
+        CurrentCommand = Null_Command;
             
     case WriteI2C:
         break;
@@ -498,12 +482,12 @@ unsigned QyA_Command(unsigned char input)
                 if(Flash_Write(HardSettingsLocation, &Settings.Byte[0], 64))
                 {   //Test if the user wanted an ack
                     if(Argument.All <= 13) DigitalOutput = 0xFF;
-                    if(Argument.All <= 14) OutBuff[OutPNT++] = 0xFF;
+                    if(Argument.All <= 14) Send(0xFF);
                 }
                 else
                 {
                     if(Argument.All <= 13) DigitalOutput = 0x81;
-                    if(Argument.All <= 14) OutBuff[OutPNT++] = 0x00;
+                    if(Argument.All <= 14) Send(0x00);
                 }
                 
                 CurrentCommand = Null_Command;
@@ -554,7 +538,7 @@ unsigned QyA_Command(unsigned char input)
                 Read_RAM_Settings:
                 for(unsigned char count = 0; count < Length.Lower; count++)
                 {
-                    OutBuff[OutPNT++] = Settings.Byte[count + LengthPNT];
+                    Send(Settings.Byte[count + LengthPNT]);
                 }
                 break;
             case 2:     //Read the settings from Flash
@@ -573,7 +557,7 @@ unsigned QyA_Command(unsigned char input)
                 break;
                 
             default:    //Send back a generic read value
-                OutBuff[OutPNT++] = 0xFF;
+                Send(0xFF);
                 break;
         }
         
