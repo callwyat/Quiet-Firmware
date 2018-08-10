@@ -39,6 +39,8 @@
 #include    "Qy@/QyA_Code.h"
 
 #include "Qy@/Communications/qUSART.h"
+#include "Qy@/Communications/qSPI.h"
+#include "Qy@/Communications/qI2C.h"
 
 uint8_t InBuff[CDC_DATA_IN_EP_SIZE];
 
@@ -199,8 +201,7 @@ void USARTMode(void)
     asm("POP");
     
     while(1)
-    {
-        
+    {      
         //Copy the Data from the USB Buffer 
         unsigned char readCount = USARTRead(&InBuff[0], CDC_DATA_IN_EP_SIZE);
         
@@ -224,7 +225,18 @@ void SPIMode(void)
     
     while(1)
     {
+        //Copy the Data from the USB Buffer 
+        unsigned int readCount = SPIRead(&InBuff[0], (int)CDC_DATA_IN_EP_SIZE);
         
+        //If more then 0 bytes were read, then it is time to execute some commands!
+        if(readCount > 0)
+        {
+            unsigned char readPNT = 0;
+            
+            while(readPNT < readCount)
+                QyA_Command(InBuff[readPNT++]);
+            
+        }
     }
 }
 

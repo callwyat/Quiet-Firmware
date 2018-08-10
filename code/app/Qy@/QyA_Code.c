@@ -314,7 +314,7 @@ unsigned QyA_Command(unsigned char input)
         //While there is data to be read, send it.
         while (Length.Lower-- > 0)
         {
-            USARTRead(&tempByte)
+            USARTRead(&tempByte, 1);
             Send(tempByte);
         }
         
@@ -362,7 +362,7 @@ unsigned QyA_Command(unsigned char input)
         //While there is data to be read, send it.
         while (Length.All-- > 0)
         {
-            SPIRead(&tempByte)
+            SPIRead(&tempByte, 1);
             Send(tempByte);
         }
         
@@ -504,65 +504,66 @@ unsigned QyA_Command(unsigned char input)
         if(Argument.All == 0)
         {
             ReadSettingsDescription();
-            return;
-        }
-        
-        if(!Argument.B3) //Test if a read all command
-        {
-            if(CommandCount <= 1) 
-            {//Make sure the pointer stays in the array
-                LengthPNT = (input <= SettingsLength ? input : SettingsLength);
-                break;
-            }
-            else
-            {   //Make sure there isn't an overflow
-                Length.Lower = (input <= SettingsLength - LengthPNT ? input : SettingsLength - LengthPNT);
-                //              ^ This is a conditional statement ^
-                
-                LengthPNT += 8;  //Offset to account for User ID
-            }      
         }
         else
         {
-            if(Argument.All != 12)      //Check that this isn't the ALL command
+            if(!Argument.B3) //Test if a read all command
             {
-                LengthPNT = 0;              //Set the to start of settings array
-                Length.Lower = SettingsLength;    //Set to read all of the settings
-                Argument.B3 = 0;            //Clear the read all command
-            }
-        }
-        
-        switch(Argument.All)
-        {
-            case 1:     //Read the settings from RAM
-                Read_RAM_Settings:
-                for(unsigned char count = 0; count < Length.Lower; count++)
-                {
-                    Send(Settings.Byte[count + LengthPNT]);
+                if(CommandCount <= 1) 
+                {//Make sure the pointer stays in the array
+                    LengthPNT = (input <= SettingsLength ? input : SettingsLength);
+                    break;
                 }
-                break;
-            case 2:     //Read the settings from Flash
-                if((HardSettingsLocation - 1) < BaseSettingsLocation) goto Read_RAM_Settings;
-                
-                Flash_Read((HardSettingsLocation + LengthPNT), &OutBuff[OutPNT], Length.Lower);
-                    
-                OutPNT += Length.Lower;
-                break;
-                
-            case 12:     //Read all settings including Device ID and Serial Number
-                         //Regardless of if Settings have been saved or not.
-                Flash_Read(HardSettingsLocation, &OutBuff[OutPNT], 64);
-                    
-                OutPNT += 64;
-                break;
-                
-            default:    //Send back a generic read value
-                Send(0xFF);
-                break;
+                else
+                {   //Make sure there isn't an overflow
+                    Length.Lower = (input <= SettingsLength - LengthPNT ? input : SettingsLength - LengthPNT);
+                    //                    ^           This is a conditional statement              ^
+
+                    LengthPNT += 8;  //Offset to account for User ID
+                }      
+            }
+            else
+            {
+                if(Argument.All != 12)      //Check that this isn't the ALL command
+                {
+                    LengthPNT = 0;              //Set the to start of settings array
+                    Length.Lower = SettingsLength;    //Set to read all of the settings
+                    Argument.B3 = 0;            //Clear the read all command
+                }
+            }
+
+            switch(Argument.All)
+            {
+                case 1:     //Read the settings from RAM
+                    Read_RAM_Settings:
+                    for(unsigned char count = 0; count < Length.Lower; count++)
+                    {
+                        Send(Settings.Byte[count + LengthPNT]);
+                    }
+                    break;
+                case 2:     //Read the settings from Flash
+                    if((HardSettingsLocation - 1) < BaseSettingsLocation) goto Read_RAM_Settings;
+
+                    SendFromFlash((HardSettingsLocation + LengthPNT), Length.Lower);
+
+                    OutPNT += Length.Lower;
+                    break;
+
+                case 12:     //Read all settings including Device ID and Serial Number
+                             //Regardless of if Settings have been saved or not.
+                    SendFromFlash(HardSettingsLocation, 64);
+
+                    OutPNT += 64;
+                    break;
+
+                default:    //Send back a generic read value
+                    Send(0xFF);
+                    break;
+            }
+
+            //End of command
+            CurrentCommand = Null_Command;
         }
-        
-        //End of command
-        CurrentCommand = Null_Command;
         break;
         
     default:
@@ -575,20 +576,35 @@ unsigned QyA_Command(unsigned char input)
     return false;
 }
 
+void SendFromFlash(unsigned int Address, unsigned int Length)
+{
+    unsigned char readBuffer[64];
+    unsigned char* buffPNT = &readBuffer[0];
+    
+    Flash_Read(Address, &readBuffer[0], Length);
+    
+    unsigned char count;
+    for (count = 0; count < Length; count++)
+        Send(*buffPNT++);
+    
+}
+
 void ReadSettingsDescription(void)
 {
-    unsigned End = 0;
-    unsigned char FilePNT = 0;
-    unsigned char count;
+    unsigned char readBuffer[64];
     unsigned char* buffPNT;
     
+    unsigned End = 0;
+    unsigned char FilePNT = 0;
+    
+    unsigned int count;
     while (!End)
     {
-        Flash_Read((int)(&XMLDescription + FilePNT), &OutBuff[0], 64);  
+        Flash_Read((int)(&XMLDescription + FilePNT), &readBuffer[0], 64);  
         
-         buffPNT = &OutBuff[0];
+        buffPNT = &readBuffer[0];
         
-        for (count = 0; count < OutBuffSize; count++)
+        for (count = 0; count < 64; count++)
         {
             if (*buffPNT++ == 0xFF)
             {

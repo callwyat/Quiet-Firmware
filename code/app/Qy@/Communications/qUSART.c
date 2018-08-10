@@ -69,7 +69,7 @@ unsigned char USARTDataAvalible(void)
 }
 
 //Returns the number of bytes read
-unsigned char USARTRead(unsigned char* BuffPNT, unsigned char Length = 1)
+unsigned char USARTRead(unsigned char* BuffPNT, unsigned char Length)
 {
     //Read in the max amount of data that could be read
     unsigned char rLen = USARTDataAvalible();

@@ -15,6 +15,9 @@ unsigned QyA_Command(unsigned char input);
 
 void ReadSettingsDescription(void);
 
+void SendFromFlash(unsigned int Address, unsigned int Length);
+
+
 //Define the status byte bits
 typedef union {
     struct 

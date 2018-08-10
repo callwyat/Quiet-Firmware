@@ -53,7 +53,7 @@ unsigned int SPIDataAvalible(void)
 //  BuffPNT:    Pointer to the buffer that the user wants filled
 //  Length:     The max amount of data the user can accept
 //  Returns:    Amount of data that was read
-unsigned int SPIRead(unsigned char* BuffPNT, unsigned int Length = 1)
+unsigned int SPIRead(unsigned char* BuffPNT, unsigned int Length)
 {   //Get the amount of data that can be read from the SPI Buffer
     unsigned int rLen = SPIDataAvalible();
     
