@@ -37,7 +37,7 @@
 #pragma config IESO = OFF           //Two-Speed Start-up disabled
 #pragma config WDTPS = 512          //1:512 (528mS)
 #pragma config DSWDTOSC = INTOSCREF //DSWDT uses INTOSC/INTRC as clock
-#pragma config RTCOSC = T1OSCREF    //RTCC uses T1OSC/T1CKI as clock
+#pragma config RTCOSC = INTOSCREF   //RTCC Clock Select (RTCC uses INTRC)
 #pragma config DSBOREN = OFF        //Zero-Power BOR disabled in Deep Sleep
 #pragma config DSWDTEN = OFF        //Disabled
 #pragma config DSWDTPS = 8192       //1:8,192 (8.5 seconds)

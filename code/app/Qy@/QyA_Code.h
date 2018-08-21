@@ -5,6 +5,7 @@
  * Created on May 21, 2018, 7:59 PM
  */
 
+#define CoreConfigLocation 0xFFF8
 #define BaseSettingsLocation 0xF900
 #define SettingsLength 48
 
