@@ -187,58 +187,82 @@ void FirstRun(void)
     unsigned char NewConfig[9];
     
     NewConfig[0] = 0;   //Mark this as not the first time ever.
+            
+    //Read in the current configuration
+    Flash_Read(CoreConfigLocation, &NewConfig[1], 8);
     
-    //Clear any unwanted flags
-    PIR3 = 0;
-    PIR1 = 0;
-    
-    //Setup a timer that will use the system clock
-    PR2 = 250;
-    T2CON = 0x52;
-    
-    //Setup a timer to track one second of time
-    ALRMCFGbits.AMASK = 0x1;
-    ALRMCFGbits.ALRMEN = 1;
-    
-    EECON2 = 0x55;              //Pump Charge!!
-    EECON2 = 0xAA;
-    RTCCFGbits.RTCWREN = 1;
-    RTCCFGbits.RTCEN = 1;
-    
-    T2CONbits.TMR2ON = 1;
-    
-    unsigned char ticks = 0;
-    TRISB = 0x00;
-    
-    //Wait for the Real Time Clock to raise it's flag
-    while (!PIR3bits.RTCCIF)
+    //Test if auto clock detections is enabled (CFGPLLEN = 1 and PLLDIV = 7)
+    if ((NewConfig[1] & 0x1E) == 0x1E)
     {
-        if (PIR1bits.TMR2IF)
+        //Clear any unwanted flags
+        PIR3 = 0;
+        PIR1 = 0;
+
+        //Setup a timer that will use the system clock
+        PR2 = 250;
+        T2CON = 0x32;
+
+        //Setup a timer to track one second of time
+        ALRMCFGbits.AMASK = 0x1;
+        ALRMCFGbits.ALRMEN = 1;
+
+        EECON2 = 0x55;              //Pump Charge!!
+        EECON2 = 0xAA;
+        RTCCFGbits.RTCWREN = 1;
+        RTCCFGbits.RTCEN = 1;
+
+        T2CONbits.TMR2ON = 1;
+
+        unsigned char ticks = 0;
+        TRISB = 0x00;
+
+        //Wait for the Real Time Clock to raise it's flag
+        while (!PIR3bits.RTCCIF)
         {
-            ticks++;
-                    
-            DigitalOutput = ticks;
-            PIR1bits.TMR2IF = 0;
-        }    
-    }
-    
-    //If more then 100 ticks were recorded, we must be using  faster crystal
-    if (ticks > 105)
-    {
-        //Read in the current configuration
-        Flash_Read(CoreConfigLocation, &NewConfig[1], 8);
-        
-        NewConfig[1] &= 0xF1;
-        NewConfig[1] |= 0xA6;
-        
-        Flash_Erase(CoreConfigLocation);
-        Flash_Write(CoreConfigLocation - 1, &NewConfig[0], 3);
-        
-        while(1);
-        asm("RESET");
+            if (PIR1bits.TMR2IF)
+            {
+                ticks++;
+
+                DigitalOutput = ticks;
+                PIR1bits.TMR2IF = 0;
+            }    
+        }
+
+        NewConfig[1] &= 0xE1;
+
+        /* For this to work CONFIG1L needs to be b???1 111? so that a flash 
+         * without erase can clear the needed bits. The equation for the number 
+         * of ticks is:
+         * 
+         * FOSC / (   3   * 4 *   16   *  250 *     6  )
+         * FOSC / (CPUDIV * 4 * T2CKPS *  PR2 * T2OUTPS)                      */
+
+        if (ticks > 60)    //(Greater then 16MHz)
+        {   
+            NewConfig[1] |= 0x16;
+        }
+        else
+        {   
+            NewConfig[1] |= 0x18;
+        }
+
+        //Flash_Erase(CoreConfigLocation);
+        Flash_Write(CoreConfigLocation - 1, &NewConfig[0], 2);
+
+        //Test if the PIC is not in DEBUG Mode
+        if (NewConfig[1] & 0x80)
+            while(1);
+        else
+            asm("RESET");
     }
     else
-    {   //Nope everything was fine :)
+    {
         Flash_Write(CoreConfigLocation - 1, &NewConfig[0], 1);
     }
 }
+
+
+
+
+
+

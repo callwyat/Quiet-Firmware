@@ -27,7 +27,7 @@
 
 /** CONFIGURATION Bits **********************************************/
 #pragma config WDTEN = OFF          //WDT disabled (enabled by SWDTEN bit)
-#pragma config PLLDIV = 5           //Divide by 4 (16 MHz oscillator input)
+#pragma config PLLDIV = 1           //Divide by 4 (16 MHz oscillator input)
 #pragma config STVREN = ON          //stack overflow/underflow reset enabled
 #pragma config XINST = OFF          //Extended instruction set disabled
 #pragma config CPUDIV = OSC3_PLL3// CPU System Clock Postscaler (CPU system clock divide by 3)
@@ -47,7 +47,7 @@
 #pragma config WPEND = PAGE_0       //Start protection at page 0
 #pragma config WPCFG = OFF          //Write/Erase last page protect Disabled
 #pragma config WPDIS = OFF          //WPFP[5:0], WPEND, and WPCFG bits ignored
-#pragma config CFGPLLEN = ON
+#pragma config CFGPLLEN = OFF
  
 /*********************************************************************
 * Function: void SYSTEM_Initialize( SYSTEM_STATE state )
