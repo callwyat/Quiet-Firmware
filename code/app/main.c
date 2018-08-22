@@ -181,9 +181,8 @@ void USBMode(void)
             while(readPNT < readCount)
                 QyA_Command(InBuff[readPNT++]);
             
-            //After all the commands have been processed, send the result (if any))
-            if(OutPNT > 0) 
-                StartUSBTransmit();
+            //After all the commands have been processed, send the result
+            StartUSBTransmit();
         }
         
         //Handles the Transmission Service 
@@ -288,11 +287,19 @@ void Send(unsigned char input)
 
 unsigned StartUSBTransmit(void)
 {
-    if((USBUSARTIsTxTrfReady()) && (OutPNT > 0))
+    while (!USBUSARTIsTxTrfReady())
+    {
+        //Handles the Transmission Service 
+        CDCTxService();
+    }
+    
+    if(OutPNT > 0)
     {
         putUSBUSART(OutBuff, OutPNT);
         OutPNT = 0;
 
+        //Handles the Transmission Service 
+        CDCTxService();
         return 1;
     }
 

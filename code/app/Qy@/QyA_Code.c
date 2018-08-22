@@ -559,11 +559,11 @@ unsigned QyA_Command(unsigned char input)
                 default:    //Send back a generic read value
                     Send(0xFF);
                     break;
-            }
-
-            //End of command
-            CurrentCommand = Null_Command;
+            }    
         }
+        
+        //End of command
+        CurrentCommand = Null_Command;
         break;
         
     default:
@@ -595,23 +595,27 @@ void ReadSettingsDescription(void)
     unsigned char* buffPNT;
     
     unsigned End = 0;
-    unsigned char FilePNT = 0;
+    unsigned int FilePNT = 0;
     
     unsigned int count;
     while (!End)
     {
-        Flash_Read((int)(&XMLDescription + FilePNT), &readBuffer[0], 64);  
+        //Since XMLDescription is a pointer the & is not needed
+        Flash_Read((int)(XMLDescription + FilePNT), &readBuffer[0], 64);  
         
         buffPNT = &readBuffer[0];
         
         for (count = 0; count < 64; count++)
         {
+            Send(*buffPNT);
             if (*buffPNT++ == 0xFF)
             {
                 End = 1;
                 break;
             }
         }
+        
+        FilePNT += 64;
     }
 }
 

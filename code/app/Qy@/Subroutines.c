@@ -19,8 +19,7 @@ void Flash_Read(unsigned int Address, unsigned char* DataPnt, unsigned int Lengt
     {
         asm("TBLRD*+");    //Load the Low Byte into the TABLAT
 
-        *DataPnt = TABLAT;      //Save Byte
-        DataPnt++;
+        *DataPnt++ = TABLAT;      //Save Byte
     }
     
     return;
