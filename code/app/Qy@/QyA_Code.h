@@ -210,30 +210,59 @@ typedef union{
     };
 } QyA_Settings;
 
-const char *XMLDescription = "<?xml version = \"1.0\"?>\
-<UserID>char[8]<\\UserID>\n\
-<Discrete>\n\
-<CHARS>DIN,DOUT<\\CHARS>\n\
-<Mode>\n\
-<BITS>\
-PWM7,PWM8,PWM9,PWM10,-,\
-Servo1,Servo2,Servo3,Servo4,Servo5,Servo6,Servo7,Servo8,Servo9,Servo10\
-<\\BITS>\
-<\\Mode>\n\
-<\\Discrete>\n\
-<->char[2]<\\->\n\
-<USART>\n\
-<CHARS>TXSTA,RCSTA,BAUDCON,SPBRG,SPBRGH<\\CHARS>\n\
-<\\USART>\n\
-<CHARS>2<\\CHARS>\n\
-<SPI>CHARS=SPICON1,SPICON2<\\SPI>\n\
-<CHARS>6<\\CHARS>\n\
-<I2C>CHARS=I2CCON1,I2CCON2,I2CADR<\\I2C>\n\
-<CHARS>12<\\CHARS>\n\
-<BOOT>\n\
-<BITS>USB Enable,USART Slave,SPI Slave,I2C Slave,\
--,USB Reset,Idle Reset,Watchdog<\\BITS>\n\
-<\\BOOT>\
+const char *XMLDescription = "\
+TAB-Definition\n\
+Group,Char,Bit\n\
+UserID\n\
+\t8\n\
+Discrete\n\
+\tDOUT\n\
+\tDIN\n\
+\tMODEL\n\
+\t\tPWM7\n\
+\t\tPWM8\n\
+\t\tPWM9\n\
+\t\tPWM10\n\
+\t\t-\n\
+\t\t-\n\
+\t\tServo1\n\
+\t\tServo2\n\
+\tMODEH\n\
+\t\tServo3\n\
+\t\tServo4\n\
+\t\tServo5\n\
+\t\tServo6\n\
+\t\tServo7\n\
+\t\tServo8\n\
+\t\tServo9\n\
+\t\tServo10\n\
+\t2\n\
+USART\n\
+\tTXSTA\n\
+\tRCSTA\n\
+\tBAUDCON\n\
+\tSPBRG\n\
+\tSPBRGH\n\
+\t3\n\
+SPI\n\
+\tSPICON1\n\
+\tSPICON2\n\
+\t6\n\
+I2C\n\
+\tI2CCON1\n\
+\tI2CCON2\n\
+\tI2CADR\n\
+\t12\n\
+BOOT\n\
+\tBOOT Settings\n\
+\t\tUSB Enable\n\
+\t\tUSART Slave\n\
+\t\tSPI Slave\n\
+\t\tI2C Slave\n\
+\t\t-\n\
+\t\tUSB Reset\n\
+\t\tIdle Reset\n\
+\t\tWatchdog\n\
 \
 \
 \xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\
