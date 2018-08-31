@@ -542,7 +542,8 @@ unsigned QyA_Command(unsigned char input)
                     }
                     break;
                 case 2:     //Read the settings from Flash
-                    if((HardSettingsLocation - 1) < BaseSettingsLocation) goto Read_RAM_Settings;
+                    if((HardSettingsLocation - 1) < BaseSettingsLocation) 
+                        goto Read_RAM_Settings;
 
                     SendFromFlash((HardSettingsLocation + LengthPNT), Length.Lower);
 

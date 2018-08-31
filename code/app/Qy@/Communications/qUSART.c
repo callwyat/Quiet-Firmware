@@ -30,7 +30,7 @@ void USARTSetup(void)
     RCSTA2 = Settings.RCSTA;
     
     IPR3bits.RC2IP = 1;
-    PIE3bits.RC2IE = 1;
+    //PIE3bits.RC2IE = 1;
 }
 
 void SetBaud(unsigned int BaudRate) 
@@ -38,8 +38,8 @@ void SetBaud(unsigned int BaudRate)
     q_int baudRate;
     baudRate.All = BaudRate;
     
-    SPBRG2 = baudRate.Lower;
-    SPBRGH2 = baudRate.Higher;     	// 0x0271 for 48MHz -> 19200 baud
+    SPBRG1 = baudRate.Lower;
+    SPBRGH1 = baudRate.Higher;     	// 0x0271 for 48MHz -> 19200 baud
     
     asm ("MOVF      SPBRG1,W");
     asm ("MULLW     3");

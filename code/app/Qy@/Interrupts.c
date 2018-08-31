@@ -34,7 +34,7 @@ void HighInterrupt(void)
         AnalogInt();
     }
     
-    if(PIR3bits.RC2IF)      //Test if a byte has been received
+    if(PIR3bits.RC2IF && PIE3bits.RC2IE)      //Test if a byte has been received
     {
         PIR3bits.RC2IF = 0; //Clear the flag
         
@@ -54,7 +54,8 @@ void HighInterrupt(void)
         FSR1L = ShadowFSR.Lower;
         
         Q_Status.URC_DataAvailable = 1;      //Mark that data is available
-        if(UR_PNTS.In == UR_PNTS.Out) Q_Status.URC_OverFill = 1;
+        if(UR_PNTS.In == UR_PNTS.Out) 
+            Q_Status.URC_OverFill = 1;
         
     }
     
