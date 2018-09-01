@@ -84,8 +84,6 @@
 
 void Setup(unsigned ReadHardSettings);
 
-void InterruptSetup();
-
 void SetupPort(unsigned char *PortPnt, unsigned char Value, unsigned char TriState);
 
 void FirstRun(void);

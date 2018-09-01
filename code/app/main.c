@@ -89,19 +89,21 @@ MAIN_RETURN main(void)
         USBDeviceInit();
         USBDeviceAttach();
     }
-
-    //PIE3bits.RC2IE = 1;
-    USART_Initialize();
-
+        
+    LATEbits.LATE1 = 0;
+    
     do
-    {   //Test if a USB device is attached
+    {   
+        //Test if a USB device is attached
+        TRISEbits.TRISE1 = 0;       //Pull extra energy down before reading.
+        TRISEbits.TRISE1 = 1;
         if (PORTEbits.RE1)
         {
             TXMode = USB;
             USBMode();
         }
         //Test for USART activity
-        if (PIR3bits.RC2IF)
+        if (USARTDataAvalible() > 0)
         {
             TXMode = USART;
             USARTMode();
@@ -126,8 +128,6 @@ void USBMode(void)
     /* This code will never be going back (except for a reset) so clean up the 
      * stack by popping off the value that got us here*/
     asm("POP");
-    InterruptSetup();
-    //USART_Initialize();
          
     //Set the USB indicator LED off
     TRISEbits.TRISE1 = 0;
@@ -198,7 +198,6 @@ void USARTMode(void)
     /* This code will never be going back (except for a reset) so clean up the 
      * stack by popping off the value that got us here*/
     asm("POP");
-    InterruptSetup();
     
     while(1)
     {      
@@ -222,7 +221,6 @@ void SPIMode(void)
     /* This code will never be going back (except for a reset) so clean up the 
      * stack by popping off the value that got us here*/
     asm("POP");
-    InterruptSetup();
     
     while(1)
     {
@@ -246,7 +244,6 @@ void I2CMode(void)
     /* This code will never be going back (except for a reset) so clean up the 
      * stack by popping off the value that got us here*/
     asm("POP");
-    InterruptSetup();
     
     while(1)
     {

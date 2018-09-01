@@ -30,7 +30,7 @@ void USARTSetup(void)
     RCSTA2 = Settings.RCSTA;
     
     IPR3bits.RC2IP = 1;
-    //PIE3bits.RC2IE = 1;
+    PIE3bits.RC2IE = 1;
 }
 
 void SetBaud(unsigned int BaudRate) 

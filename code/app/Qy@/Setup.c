@@ -79,7 +79,6 @@ void Setup(unsigned ReadHardSettings)
             Settings.SPBRG.All = 0x00CF;    //Default Baud is 19200
             Settings.TXSTA = 0x24;       	// TX enable, BRGH = 1
             Settings.BAUDCON = 0x08;     	// BRG16 = 1
-            Settings.TXSTA = 0x04;          //TX Disabled, BRGH = 1
             Settings.RCSTA = 0x90;          //Enable Module, Continuous Receive
             
             //Enable the default slave ports
@@ -171,11 +170,6 @@ void Setup(unsigned ReadHardSettings)
     // Interrupt Setup----------------------------------
     
     return;
-}
-
-void InterruptSetup()
-{
-    PIE3bits.RC2IE = 1;
 }
 
 void SetupPort(unsigned char *PortPnt, unsigned char Value, unsigned char TriState)
