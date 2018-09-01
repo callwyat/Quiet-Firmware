@@ -97,7 +97,8 @@ MAIN_RETURN main(void)
         //Test if a USB device is attached
         TRISEbits.TRISE1 = 0;       //Pull extra energy down before reading.
         TRISEbits.TRISE1 = 1;
-        if (PORTEbits.RE1)
+        if (PORTEbits.RE1 && USBGetDeviceState() >= CONFIGURED_STATE && 
+                !USBIsDeviceSuspended() )
         {
             TXMode = USB;
             USBMode();
