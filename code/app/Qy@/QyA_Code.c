@@ -64,8 +64,6 @@ unsigned QyA_Command(unsigned char input)
     static q_char Argument;
     //Store the Number of times the current commands has been called
     static unsigned char CommandCount = 0;
-    //Set to indicate the current command will take more then 24 bytes of Data
-    unsigned LargeData = 0;
     //Switches won't let me declare vars inside them, so this helps with that.
     static unsigned char tempByte;
     
@@ -79,8 +77,6 @@ unsigned QyA_Command(unsigned char input)
       
     //Increment the number of times the current command has be executed
     CommandCount++;
-    //If the CommandCount gets out of hand, then something went wrong. Reset the Command
-    if(CommandCount > 25 && !LargeData) CurrentCommand = 0;
     
     //Define the start of the command switch (Called from the null case)
     CommandStart:
@@ -94,8 +90,6 @@ unsigned QyA_Command(unsigned char input)
             Argument.All = input & 0x0F;
             //Clear the command count
             CommandCount = 0;
-            //Clear the Large Data bit
-            LargeData = 0;
             //If the Null command was not given, then run the loop again for the
             //Argument to be processed
             if(CurrentCommand > 0) goto CommandStart;
@@ -154,9 +148,9 @@ unsigned QyA_Command(unsigned char input)
                     Send('y');
                     Send('@');
                     Send(' ');
-                    Send('3');
+                    Send('2');
                     Send('.');
-                    Send('0');
+                    Send('5');
                     Send('.');
                     Send('0');
                     Send('\n');
@@ -431,8 +425,7 @@ unsigned QyA_Command(unsigned char input)
                     if(input == 0) CurrentCommand = Null_Command;
                     
                     Length.Lower = input + 7;
-                    //Suppress the Data Reset if needed
-                    if(Length.Lower >= LargeSize + 7) LargeData = 1; 
+
                     CommandCount = 7;   //Jump to 8 (7 + 1) to account for USER ID
                 }
                 break;
@@ -442,7 +435,7 @@ unsigned QyA_Command(unsigned char input)
                 {
                     LengthPNT = 0;
                     Length.Lower = SettingsLength + 7;
-                    LargeData = 1;      //Suppress the Data Reset
+
                     CommandCount = 7;   //Jump to 8 (7 + 1) to account for USER ID
                 }
                 

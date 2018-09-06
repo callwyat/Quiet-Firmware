@@ -210,59 +210,80 @@ typedef union{
     };
 } QyA_Settings;
 
+//TAB-Definition Definition
+/*  The concept behind tab definition to make an easy to read grouping of
+ *  settings.
+ * 
+ * The top level, or the levels with no tabs, defines the highest grouping, then
+ * anything indented indented from there can further describe the group.
+ * 
+ * For example the first group is UserID=C8 so the first groups name is UserID
+ * and the data is contained in 8 Chars.
+ * 
+ * A deeper example is Discrete=B16. This group is described by 16 Bytes. Inside
+ * this group there is more detail. MODEL=B1 defines the 3rd Byte of the Discrete 
+ * group as the Low byte of the Mode, and this byte is further defined with its
+ * bits such as PWM7=b1
+ * 
+ * 
+ * Current Data Type definitions
+ * 
+ * C = Char
+ * B = Byte
+ * b = bit
+ * I = Integer (Big Ended)
+ * 
+ * [ ] = Array (e.g. [B8] is an array of eight bytes
+ */
+
+
 const char *XMLDescription = "\
 TAB-Definition\n\
-Group,Char,Bit\n\
-UserID\n\
-\t8\n\
-Discrete\n\
-\tDOUT\n\
-\tDIN\n\
-\tMODEL\n\
-\t\tPWM7\n\
-\t\tPWM8\n\
-\t\tPWM9\n\
-\t\tPWM10\n\
-\t\t-\n\
-\t\t-\n\
-\t\tServo1\n\
-\t\tServo2\n\
-\tMODEH\n\
-\t\tServo3\n\
-\t\tServo4\n\
-\t\tServo5\n\
-\t\tServo6\n\
-\t\tServo7\n\
-\t\tServo8\n\
-\t\tServo9\n\
-\t\tServo10\n\
-\t2\n\
-USART\n\
-\tTXSTA\n\
-\tRCSTA\n\
-\tBAUDCON\n\
-\tSPBRG\n\
-\tSPBRGH\n\
-\t3\n\
-SPI\n\
-\tSPICON1\n\
-\tSPICON2\n\
-\t6\n\
-I2C\n\
-\tI2CCON1\n\
-\tI2CCON2\n\
-\tI2CADR\n\
-\t12\n\
-BOOT\n\
-\tBOOT Settings\n\
-\t\tUSB Enable\n\
-\t\tUSART Slave\n\
-\t\tSPI Slave\n\
-\t\tI2C Slave\n\
-\t\t-\n\
-\t\tUSB Reset\n\
-\t\tIdle Reset\n\
-\t\tWatchdog\n\
+UserID=C8\n\
+Discrete=B16\n\
+\tDOUT=B1\n\
+\tDIN=B1\n\
+\tMODEL=B1\n\
+\t\tPWM7=b1\n\
+\t\tPWM8=b1\n\
+\t\tPWM9=b1\n\
+\t\tPWM10=b1\n\
+\t\t-=b1\n\
+\t\t-=b1\n\
+\t\tServo1=b1\n\
+\t\tServo2=b1\n\
+\tMODEH=B1\n\
+\t\tServo3=b1\n\
+\t\tServo4=b1\n\
+\t\tServo5=b1\n\
+\t\tServo6=b1\n\
+\t\tServo7=b1\n\
+\t\tServo8=b1\n\
+\t\tServo9=b1\n\
+\t\tServo10=b1\n\
+\tPWMBOOT=B10\
+USART=B8\n\
+\tTXSTA=B1\n\
+\tRCSTA=B1\n\
+\tBAUDCON=B1\n\
+\tSPBRG=I1\n\
+SPI=B8\n\
+\tSPICON1=B1\n\
+\tSPICON2=B1\n\
+I2C=15\n\
+\tI2CCON1=B1\n\
+\tI2CCON2=B1\n\
+\tI2CADR=B1\n\
+BOOT=B1\n\
+\tBOOT Settings=B1\n\
+\t\tUSB Enable=b1\n\
+\t\tUSART Slave=b1\n\
+\t\tSPI Slave=b1\n\
+\t\tI2C Slave=b1\n\
+\t\t-=b1\n\
+\t\tUSB Reset=b1\n\
+\t\tIdle Reset=b1\n\
+\t\tWatchdog=b1\n\
 \
 \
 \xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\
