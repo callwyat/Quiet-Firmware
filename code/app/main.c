@@ -35,12 +35,13 @@
 #include "../framework/usb/usb_device_cdc.h"
 
 #include    "Qy@/Setup.h"
-#//include  "SD Card.h"
+//#include  "SD Card.h"
 #include    "Qy@/QyA_Code.h"
 
 #include "Qy@/Communications/qUSART.h"
 #include "Qy@/Communications/qSPI.h"
 #include "Qy@/Communications/qI2C.h"
+#include "Qy@/Settings.h"
 
 uint8_t InBuff[CDC_DATA_IN_EP_SIZE];
 

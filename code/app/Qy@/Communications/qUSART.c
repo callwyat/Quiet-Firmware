@@ -12,7 +12,7 @@
 
 #include "../Setup.h"
 #include "../QyA_Code.h"
-
+#include "../Settings.h"
 
 extern QyA_Settings Settings;
 

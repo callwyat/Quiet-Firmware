@@ -24,6 +24,7 @@
 #include "Communications/qUSART.h"
 #include "Communications/qSPI.h"
 #include "Communications/qI2C.h"
+#include "Settings.h"
 
 extern QyA_Settings Settings;
 
@@ -101,12 +102,17 @@ void Setup(unsigned ReadHardSettings)
             testByte = 0xFF;
             HardSettingsLocation = BaseSettingsLocation + 1024;
 
-            do{
+            do
+            {
                 HardSettingsLocation -= 64;
                 Flash_Read(HardSettingsLocation, &testByte, 1); 
             } while(testByte == 0xFF);
 
             Flash_Read(HardSettingsLocation, &Settings.Byte[0], 64);
+            
+            //Test if the user "Accidently" disabled all input channels...
+            if ((Settings.BOOT.All & 0x0F) == 0x00)
+                Settings.BOOT.USB_Enable = 1;
         }
     }
     

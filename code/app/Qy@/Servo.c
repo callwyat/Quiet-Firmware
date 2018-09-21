@@ -10,6 +10,7 @@
 #include "QyA_Code.h"
 #include "Servo.h"
 #include "Subroutines.h"
+#include "Settings.h"
 
 //Stores the current output mode
 extern OutModeDefinition OutputMode;

@@ -17,6 +17,7 @@
 #include "Communications/qUSART.h"
 #include "Communications/qSPI.h"
 #include "Communications/qI2C.h"
+#include "Settings.h"
 
 
     //General Memory
@@ -68,7 +69,7 @@ unsigned QyA_Command(unsigned char input)
     static unsigned char tempByte;
     
     //Memory for copying receive buffer data
-    static unsigned char LengthPNT;    //Store the Length Location
+    static char LengthPNT;              //Store the Length Location
     static q_int Length;               //Store the Length of New Data
 
     static unsigned char *WAPnt;     //Stores a pointer to were the data will go
@@ -377,7 +378,8 @@ unsigned QyA_Command(unsigned char input)
     case WriteSettings:
         //If this is the first time though, then there isn't anything to do
         //Unless it's a commit command
-        if(CommandCount <= 0 && (Argument.All < 13 || Argument.All == 0))  break;
+        if(CommandCount <= 0 && (Argument.All < 13 || Argument.All == 0))  
+            break;
         
         switch(Argument.All)
         {
@@ -407,14 +409,18 @@ unsigned QyA_Command(unsigned char input)
                 break;
                 
             case 1:    //Write the next 8 bytes to User ID
-                if(CommandCount > 0) Settings.UserID[CommandCount - 1] = input;
-                if(CommandCount >= 8) CurrentCommand = Null_Command;
+                if(CommandCount > 0) 
+                    Settings.UserID[CommandCount - 1] = input;
+                
+                if(CommandCount >= 8) 
+                    CurrentCommand = Null_Command;
                 break;
                 
             case 6:     //Write to a specific Settings Location
                 //If the Length and Start Index have been filled jump to 
                 //storing the data
-                if(CommandCount > 2) goto Write_Settings;
+                if(CommandCount > 2) 
+                    goto Write_Settings;
 
                 if(CommandCount <= 1)   //Save the Start Index
                 {   
@@ -422,7 +428,8 @@ unsigned QyA_Command(unsigned char input)
                 }
                 else                    //Save the Length of the Data Packet
                 {   //Return if the user will send a zero length data packet?
-                    if(input == 0) CurrentCommand = Null_Command;
+                    if(input == 0) 
+                        CurrentCommand = Null_Command;
                     
                     Length.Lower = input + 7;
 
@@ -442,13 +449,12 @@ unsigned QyA_Command(unsigned char input)
             Write_Settings:
                 //If the user tries to access memory outside of the Settings
                 //bounds, don't allow it.
-                if(CommandCount + LengthPNT < SettingsLength)
-                {
-                    Settings.Byte[CommandCount + LengthPNT] = input;
-                }
+                if(LengthPNT < SettingsLength)
+                    Settings.Byte[LengthPNT++] = input;
                 
                 //Wait for the users data packet to end
-                if(CommandCount >= Length.Lower) CurrentCommand = Null_Command;
+                if(CommandCount >= Length.Lower) 
+                    CurrentCommand = Null_Command;
                 break;
                 
             case 13:    //Commit the new settings with Digital Output and Serial ack
@@ -582,37 +588,6 @@ void SendFromFlash(unsigned int Address, unsigned int Length)
         Send(*buffPNT++);
     
 }
-
-void ReadSettingsDescription(void)
-{
-    unsigned char readBuffer[64];
-    unsigned char* buffPNT;
-    
-    unsigned End = 0;
-    unsigned int FilePNT = 0;
-    
-    unsigned int count;
-    while (!End)
-    {
-        //Since XMLDescription is a pointer the & is not needed
-        Flash_Read((int)(XMLDescription + FilePNT), &readBuffer[0], 64);  
-        
-        buffPNT = &readBuffer[0];
-        
-        for (count = 0; count < 64; count++)
-        {
-            Send(*buffPNT);
-            if (*buffPNT++ == 0xFF)
-            {
-                End = 1;
-                break;
-            }
-        }
-        
-        FilePNT += 64;
-    }
-}
-
 
 //If this routine is hit, that means that an error happened, which is bad.
 void Q_Error(unsigned int ErrorCode)
