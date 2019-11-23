@@ -4,6 +4,37 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <logicalFolder name="MCC Generated Files"
+                     displayName="MCC Generated Files"
+                     projectFiles="true">
+        <logicalFolder name="examples" displayName="examples" projectFiles="true">
+          <itemPath>mcc_generated_files/examples/i2c1_master_example.h</itemPath>
+        </logicalFolder>
+        <logicalFolder name="usb" displayName="usb" projectFiles="true">
+          <itemPath>mcc_generated_files/usb/usb_ch9.h</itemPath>
+          <itemPath>mcc_generated_files/usb/usb_device.h</itemPath>
+          <itemPath>mcc_generated_files/usb/usb_hal_pic18.h</itemPath>
+          <itemPath>mcc_generated_files/usb/usb_device_local.h</itemPath>
+          <itemPath>mcc_generated_files/usb/usb_device_config.h</itemPath>
+          <itemPath>mcc_generated_files/usb/usb.h</itemPath>
+          <itemPath>mcc_generated_files/usb/usb_device_cdc.h</itemPath>
+          <itemPath>mcc_generated_files/usb/usb_common.h</itemPath>
+          <itemPath>mcc_generated_files/usb/usb_hal.h</itemPath>
+        </logicalFolder>
+        <itemPath>mcc_generated_files/interrupt_manager.h</itemPath>
+        <itemPath>mcc_generated_files/eusart2.h</itemPath>
+        <itemPath>mcc_generated_files/eusart1.h</itemPath>
+        <itemPath>mcc_generated_files/epwm2.h</itemPath>
+        <itemPath>mcc_generated_files/epwm1.h</itemPath>
+        <itemPath>mcc_generated_files/spi2.h</itemPath>
+        <itemPath>mcc_generated_files/adc.h</itemPath>
+        <itemPath>mcc_generated_files/mcc.h</itemPath>
+        <itemPath>mcc_generated_files/pin_manager.h</itemPath>
+        <itemPath>mcc_generated_files/i2c1_master.h</itemPath>
+        <itemPath>mcc_generated_files/tmr1.h</itemPath>
+        <itemPath>mcc_generated_files/tmr2.h</itemPath>
+        <itemPath>mcc_generated_files/device_config.h</itemPath>
+      </logicalFolder>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -12,11 +43,40 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <logicalFolder name="MCC Generated Files"
+                     displayName="MCC Generated Files"
+                     projectFiles="true">
+        <logicalFolder name="examples" displayName="examples" projectFiles="true">
+          <itemPath>mcc_generated_files/examples/i2c1_master_example.c</itemPath>
+        </logicalFolder>
+        <logicalFolder name="usb" displayName="usb" projectFiles="true">
+          <itemPath>mcc_generated_files/usb/example_mcc_usb_cdc.c</itemPath>
+          <itemPath>mcc_generated_files/usb/usb_device_events.c</itemPath>
+          <itemPath>mcc_generated_files/usb/usb_device.c</itemPath>
+          <itemPath>mcc_generated_files/usb/usb_descriptors.c</itemPath>
+          <itemPath>mcc_generated_files/usb/usb_device_cdc.c</itemPath>
+        </logicalFolder>
+        <itemPath>mcc_generated_files/spi2.c</itemPath>
+        <itemPath>mcc_generated_files/epwm1.c</itemPath>
+        <itemPath>mcc_generated_files/epwm2.c</itemPath>
+        <itemPath>mcc_generated_files/eusart2.c</itemPath>
+        <itemPath>mcc_generated_files/eusart1.c</itemPath>
+        <itemPath>mcc_generated_files/interrupt_manager.c</itemPath>
+        <itemPath>mcc_generated_files/mcc.c</itemPath>
+        <itemPath>mcc_generated_files/pin_manager.c</itemPath>
+        <itemPath>mcc_generated_files/tmr1.c</itemPath>
+        <itemPath>mcc_generated_files/i2c1_master.c</itemPath>
+        <itemPath>mcc_generated_files/tmr2.c</itemPath>
+        <itemPath>mcc_generated_files/adc.c</itemPath>
+        <itemPath>mcc_generated_files/device_config.c</itemPath>
+      </logicalFolder>
+      <itemPath>main.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
+      <itemPath>Quiet.mc3</itemPath>
     </logicalFolder>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
