@@ -3,8 +3,8 @@
     <type>com.microchip.mplab.nbide.embedded.makeproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
-            <name>Qy@ 2.5 Clean</name>
-            <creation-uuid>516e777d-ad19-473d-bc4f-f7c5d6affe98</creation-uuid>
+            <name>Quiet</name>
+            <creation-uuid>df8b6a1c-e423-4c70-b80d-bbbc60357e97</creation-uuid>
             <make-project-type>0</make-project-type>
             <c-extensions>c</c-extensions>
             <cpp-extensions/>
