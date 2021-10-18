@@ -42,6 +42,56 @@
 */
 
 #include "mcc_generated_files/mcc.h"
+#include "CLI/cli.h"
+
+static CliBuffer usbBuffer;
+
+void USB_CDC_Tasks(void)
+{
+    if( USBGetDeviceState() < CONFIGURED_STATE )
+    {
+        return;
+    }
+
+    if( USBIsDeviceSuspended()== true )
+    {
+        return;
+    }
+
+    if( USBUSARTIsTxTrfReady() == true)
+    {
+        uint8_t i;
+        uint8_t numBytesRead;
+
+        numBytesRead = getsUSBUSART((uint8_t*)usbBuffer.InputBuffer, sizeof(usbBuffer.InputBuffer));
+
+        for(i=0; i<numBytesRead; i++)
+        {
+            switch(usbBuffer.InputBuffer[i])
+            {
+                /* echo line feeds and returns without modification. */
+                case 0x0A:
+                case 0x0D:
+                {
+                    ProcessCLI(&usbBuffer);
+                    
+                    // Figure out how many chars to send
+                    char *c = usbBuffer.OutputBuffer;
+                    while (*c++ != 0x00);
+                    
+                    putUSBUSART((uint8_t*)usbBuffer.OutputBuffer, (uint8_t)(c - usbBuffer.OutputBuffer)); 
+                }
+                    break;
+
+                /* all other characters get +1 (e.g. 'a' -> 'b') */
+                default:
+                    break;
+            }
+        }
+    }
+
+    CDCTxService();
+}
 
 /*
                          Main application
@@ -50,26 +100,27 @@ void main(void)
 {
     // Initialize the device
     SYSTEM_Initialize();
-
+    
+    //USB Setup-------------------------------
     // If using interrupts in PIC18 High/Low Priority Mode you need to enable the Global High and Low Interrupts
     // If using interrupts in PIC Mid-Range Compatibility Mode you need to enable the Global and Peripheral Interrupts
     // Use the following macros to:
 
     // Enable the Global Interrupts
-    //INTERRUPT_GlobalInterruptEnable();
+    INTERRUPT_GlobalInterruptEnable();
 
     // Disable the Global Interrupts
     //INTERRUPT_GlobalInterruptDisable();
 
     // Enable the Peripheral Interrupts
-    //INTERRUPT_PeripheralInterruptEnable();
+    INTERRUPT_PeripheralInterruptEnable();
 
     // Disable the Peripheral Interrupts
     //INTERRUPT_PeripheralInterruptDisable();
 
     while (1)
     {
-        // Add your application code
+        USB_CDC_Tasks();
     }
 }
 /**

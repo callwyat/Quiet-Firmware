@@ -48,7 +48,7 @@
 
 // CONFIG1L
 #pragma config WDTEN = OFF    // Watchdog Timer->Disabled - Controlled by SWDTEN bit
-#pragma config PLLDIV = 4    // PLL Prescaler Selection->Divide by 4 (16 MHz oscillator input)
+#pragma config PLLDIV = 5    // PLL Prescaler Selection->Divide by 5 (20 MHz oscillator input)
 #pragma config CFGPLLEN = ON    // PLL Enable Configuration Bit->PLL Enabled
 #pragma config STVREN = ON    // Stack Overflow/Underflow Reset->Enabled
 #pragma config XINST = OFF    // Extended Instruction Set->Disabled
