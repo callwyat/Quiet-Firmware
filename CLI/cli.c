@@ -1,15 +1,16 @@
 
 
 #include "cli.h"
+#include "../constants.h"
+
+#include "../Commands/standardCommands.h"
+#include "../Commands/digiCommand.h"
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
 #include <xc.h>
-
-#define DIN PORTD
-#define IS_QUERY(buffer) (*buffer->InputPnt == '?')
-
 
 bool CompareStrings(const char *a, char *b, int length)
 {
@@ -64,45 +65,9 @@ void ByteToHexString(char* str, uint8_t b)
     *str = 0x00;
 }
 
-const char* MakeString = "Y@ Technologies";
-const char* ModelString = "Qy@ Board";
-const char* SerialNumberString = "{Serial Number}";
-const char* VersionString = "2.0";
-
-void PrintIDString(CliBuffer *buffer)
-{
-    if (IS_QUERY(buffer))
-    {
-        char *c = buffer->OutputBuffer;
-
-        const char *cc = MakeString;
-        while (*cc != 0x00) *c++ = *cc++;
-        *c++ = ',';
-
-        cc = ModelString;
-        while (*cc != 0x00) *c++ = *cc++;
-        *c++ = ',';
-
-        cc = SerialNumberString;
-        while (*cc != 0x00) *c++ = *cc++;
-        *c++ = ',';
-
-        cc = VersionString;
-        while (*cc != 0x00) *c++ = *cc++;   
-    }
-}
-
-void DigitalInputs(CliBuffer *buffer)
-{
-    if (IS_QUERY(buffer))
-    {
-      ByteToHexString(buffer->OutputBuffer, DIN);
-    }
-}
-
 CommandDefinition commands[] = {
     DEFINE_COMMAND("DIGI", DigitalInputs),
-    DEFINE_COMMAND("*IDN", PrintIDString),
+    DEFINE_COMMAND("*IDN", Identify),
 };
 
 const uint8_t CommandCount = sizeof(commands) / sizeof(commands[0]);

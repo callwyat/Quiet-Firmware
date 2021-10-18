@@ -12,6 +12,10 @@
 extern "C" {
 #endif
     
+#include <stdint.h>
+#include <stdbool.h>
+    
+    
     typedef struct
     {
         char *InputPnt;
@@ -30,13 +34,23 @@ extern "C" {
     } CommandDefinition;
     
 #define DEFINE_COMMAND(command, handle) { \
-            .Command = command,                                   \
-            .Handle = handle,                                     \
+            .Command = command,           \
+            .Handle = handle,             \
         }
+    
+    
+    bool CompareStrings(const char *a, char *b, int length);
+    
+    int CountTillCommandEnd(char *input);
+    
+    void ProcessCommand(CommandDefinition commands[], uint8_t commandsLength, 
+        CliBuffer *buffer);
+    
+    void ByteToHexString(char* str, uint8_t b);
     
     void ProcessCLI(CliBuffer *buffer);
     
-
+#define IS_QUERY(buffer) (*buffer->InputPnt == '?')
 
 #ifdef	__cplusplus
 }
