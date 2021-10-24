@@ -75,11 +75,8 @@ void USB_CDC_Tasks(void)
                 {
                     ProcessCLI(&usbBuffer);
                     
-                    // Figure out how many chars to send
-                    char *c = usbBuffer.OutputBuffer;
-                    while (*c++ != 0x00);
-                    
-                    putUSBUSART((uint8_t*)usbBuffer.OutputBuffer, (uint8_t)(c - usbBuffer.OutputBuffer)); 
+                    putUSBUSART((uint8_t*)usbBuffer.OutputBuffer, 
+                    (uint8_t)(usbBuffer.OutputPnt - usbBuffer.OutputBuffer)); 
                 }
                     break;
 

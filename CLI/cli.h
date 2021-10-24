@@ -20,6 +20,7 @@ extern "C" {
     {
         char *InputPnt;
         char InputBuffer[64];
+        char *OutputPnt;
         char OutputBuffer[64];
     } CliBuffer;
     
@@ -44,7 +45,7 @@ extern "C" {
     int CountTillCommandEnd(char *input);
     
     void ProcessCommand(CommandDefinition commands[], uint8_t commandsLength, 
-        CliBuffer *buffer);
+        CliBuffer *buffer, bool isRoot);
     
     void ByteToHexString(char* str, uint8_t b);
     

@@ -12,13 +12,18 @@
 
 #include <xc.h>
 
-bool CompareStrings(const char *a, char *b, int length)
+bool SCPICompare(const char *reference, char *input)
 {
-    for (int i = 0; i < length; ++i)
-    {
-        if (*a++ != *b++)
+    // Match upto the first 4 chars, or until reference is null
+    for (int i = 0; i < 4; ++i)
+    {        
+        if (*reference++ != *input++)
         {
             return false;
+        }
+        else if (*reference == 0x00)
+        {
+            break;
         }
     }
     
@@ -38,14 +43,31 @@ int CountTillCommandEnd(char *input)
 }
 
 void ProcessCommand(CommandDefinition commands[], uint8_t commandsLength, 
-        CliBuffer *buffer)
+        CliBuffer *buffer, bool isRoot)
 {
     for (int i = 0; i < commandsLength; ++i)
     {
-        if (CompareStrings(commands[i].Command, buffer->InputPnt, 4))
+        CommandDefinition command = commands[i];
+        if (SCPICompare(command.Command, buffer->InputPnt))
         {
             buffer->InputPnt += CountTillCommandEnd(buffer->InputPnt);
-            commands[i].Handle(buffer);
+            command.Handle(buffer);
+            
+            // Check for more commands at this level
+            if (*buffer->InputPnt == ';')
+            {
+                ++buffer->InputPnt;
+                *buffer->OutputPnt++ = ',';
+                i = -1;
+            }
+            
+            // Check if returning to root
+            if (*buffer->InputPnt == ':' && isRoot)
+            {
+                ++buffer->InputPnt;
+                continue;
+            }
+            
             return;
         }
     }
@@ -88,20 +110,17 @@ void ProcessCLI(CliBuffer *buffer)
     }
     
     buffer->InputPnt = buffer->InputBuffer;
+    buffer->OutputPnt = buffer->OutputBuffer;
     
-    buffer->OutputBuffer[0] = 0x00;
+    *buffer->OutputPnt = 0x00;
     
-    ProcessCommand(commands, CommandCount, buffer);
-    
-    pnt = buffer->OutputBuffer;
+    ProcessCommand(commands, CommandCount, buffer, true);
     
     // If something was placed in the output buffer, make sure it is terminated
-    if (*pnt != 0x00)
+    if (buffer->OutputBuffer[0] != 0x00)
     {
-        while (*pnt != 0x00) ++pnt;
-
-        *pnt++ = '\n';
-        *pnt++ = '\r';
-        *pnt++ = '\x00';
+        *buffer->OutputPnt++ = '\n';
+        *buffer->OutputPnt++ = '\r';
+        *buffer->OutputPnt++ = '\x00';
     }
 }
