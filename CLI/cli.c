@@ -5,6 +5,7 @@
 
 #include "../Commands/standardCommands.h"
 #include "../Commands/digiCommand.h"
+#include "../Commands/digoCommand.h"
 #include "../Commands/anaiCommand.h"
 #include "../Commands/anaoCommand.h"
 #include "../Commands/pwmCommand.h"
@@ -254,12 +255,14 @@ int16_t ParseInt(char** str)
     return (int16_t)result;
 }
 
+// Put the commands that have the most branches towards the top
 const CommandDefinition commands[] = {
-    DEFINE_COMMAND("DIGI", DigitalInputs),
     DEFINE_COMMAND("ANAI", AnalogInputs),
     DEFINE_COMMAND("ANAO", AnalogOutputs),
     DEFINE_COMMAND("PWMO", PWMOutputs),
     DEFINE_COMMAND("SERV", ServoOutputs),
+    DEFINE_COMMAND("DIGI", DigitalInputs),
+    DEFINE_COMMAND("DIGO", DigitalOutputs),
     DEFINE_COMMAND("*IDN", Identify),
 };
 

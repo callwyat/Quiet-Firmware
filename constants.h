@@ -21,6 +21,7 @@ const char* VersionString = "2.0";
 
 
 #define DIN PORTD
+#define DOUT LATB
 
 
 #ifdef	__cplusplus

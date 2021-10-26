@@ -11,6 +11,7 @@
         <itemPath>Commands/anaoCommand.h</itemPath>
         <itemPath>Commands/pwmCommand.h</itemPath>
         <itemPath>Commands/servoCommand.h</itemPath>
+        <itemPath>Commands/digoCommand.h</itemPath>
       </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"
@@ -60,6 +61,7 @@
         <itemPath>Commands/anaoCommand.c</itemPath>
         <itemPath>Commands/pwmCommand.c</itemPath>
         <itemPath>Commands/servoCommand.c</itemPath>
+        <itemPath>Commands/digoCommand.c</itemPath>
       </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"
