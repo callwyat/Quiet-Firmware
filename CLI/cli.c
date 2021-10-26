@@ -5,6 +5,7 @@
 
 #include "../Commands/standardCommands.h"
 #include "../Commands/digiCommand.h"
+#include "../Commands/anaiCommand.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -30,41 +31,104 @@ bool SCPICompare(const char *reference, char *input)
     return true;
 }
 
-int CountTillCommandEnd(char *input)
+const char* SCPIPuncuation = ":? ;";
+
+bool IsSCPIPuncuation(char c)
 {
-    char *c = input;
+    if (c == '\x00')
+        return true;
     
-    while (*c != '\x00' && *c != ':' && *c != '?' && *c != ' ')
+    const char *p = SCPIPuncuation;
+    
+    while (*p)
     {
-        ++c;
+        if (c == *p++)
+        {
+            return true;
+        }
     }
     
-    return c - input;
+    return false;
 }
 
-void ProcessCommand(CommandDefinition commands[], uint8_t commandsLength, 
+uint8_t CountTillCommandEnd(char *input)
+{
+    char *c = input;
+
+    while (!IsSCPIPuncuation(*c++));
+    
+    --c;
+    
+    return (uint8_t)(c - input);
+}
+
+void ProcessCommand(const CommandDefinition commands[], uint8_t commandsLength, 
         CliBuffer *buffer, bool isRoot)
 {
     for (int i = 0; i < commandsLength; ++i)
     {
-        CommandDefinition command = commands[i];
-        if (SCPICompare(command.Command, buffer->InputPnt))
+        const CommandDefinition* command = &commands[i];
+        if (SCPICompare(command->Command, buffer->InputPnt))
         {
-            buffer->InputPnt += CountTillCommandEnd(buffer->InputPnt);
-            command.Handle(buffer);
+            if (command->Handle)
+            {
+                buffer->InputPnt += CountTillCommandEnd(buffer->InputPnt);
+                command->Handle(buffer);
+            }
+            else if (command->ChannelHandle)
+            {
+                // Scan until a number is found
+                while (*buffer->InputPnt < '0' || *buffer->InputPnt > '9')
+                {
+                    if (IsSCPIPuncuation(*buffer->InputPnt))
+                    {
+                        // Failed to find a channel number
+                        return;
+                    }
+                    
+                    ++buffer->InputPnt;
+                }
+                
+                // Parse the number
+                uint8_t channel = 0;
+                
+                do
+                {
+                    channel *= 10;
+                    channel = *buffer->InputPnt++ - '0';
+                } while (*buffer->InputPnt >= '0' && *buffer->InputPnt <= '9'); 
+                
+                command->ChannelHandle(buffer, channel);
+            }
+            else
+            {
+                // Developer error, command is missing handle
+                while (true);
+            }
             
             // Check for more commands at this level
             if (*buffer->InputPnt == ';')
             {
                 ++buffer->InputPnt;
+                
+                // Check if returning to root
+                if (*buffer->InputPnt == ':')
+                {
+                    if (isRoot)
+                    {
+                        // Prep to run the next command
+                        ++buffer->InputPnt;
+                    }
+                    else
+                    {
+                        // Back up to the ';'
+                        --buffer->InputPnt;
+                        return;
+                    }
+                }
+                
                 *buffer->OutputPnt++ = ',';
                 i = -1;
-            }
-            
-            // Check if returning to root
-            if (*buffer->InputPnt == ':' && isRoot)
-            {
-                ++buffer->InputPnt;
                 continue;
             }
             
@@ -87,8 +151,45 @@ void ByteToHexString(char* str, uint8_t b)
     *str = 0x00;
 }
 
-CommandDefinition commands[] = {
+bool IsNumber(char c)
+{
+    return c >= '0' && c <= '9';
+}
+
+const uint16_t decades[] = { 10000, 1000, 100, 10, 1 };
+uint8_t IntToString(char* str, uint16_t input)
+{
+    const uint16_t* d = decades;
+    
+    char *s = str;
+    
+    // Figure out when to start
+    while (*d > input)
+    {
+        ++d;
+    }
+    
+    while (d < &decades[5])
+    {
+        char c = '0';
+        
+        while (input >= *d)
+        {
+            input -= *d;
+            ++c;
+        }
+        
+        ++d;
+        *s++ = c;
+    }
+    
+    // Return the number of chars added to the string
+    return (uint8_t)(s - str);
+}
+
+const CommandDefinition commands[] = {
     DEFINE_COMMAND("DIGI", DigitalInputs),
+    DEFINE_COMMAND("ANAI", AnalogInputs),
     DEFINE_COMMAND("*IDN", Identify),
 };
 

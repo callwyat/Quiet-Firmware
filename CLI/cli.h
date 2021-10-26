@@ -26,11 +26,14 @@ extern "C" {
     
     
     typedef void(*CommandHandle)(CliBuffer *buffer);
+    
+    typedef void(*ChannelCommandHandle)(CliBuffer *buffer, uint8_t channel);
         
     typedef struct
     {
         const char Command[4];
         CommandHandle Handle;
+        ChannelCommandHandle ChannelHandle;
         
     } CommandDefinition;
     
@@ -39,15 +42,23 @@ extern "C" {
             .Handle = handle,             \
         }
     
+#define DEFINE_CHANNEL_COMMAND(command, handle) { \
+            .Command = command,           \
+            .ChannelHandle = handle,      \
+        }
     
     bool CompareStrings(const char *a, char *b, int length);
     
-    int CountTillCommandEnd(char *input);
+    uint8_t CountTillCommandEnd(char *input);
     
-    void ProcessCommand(CommandDefinition commands[], uint8_t commandsLength, 
+    void ProcessCommand(const CommandDefinition commands[], uint8_t commandsLength, 
         CliBuffer *buffer, bool isRoot);
     
     void ByteToHexString(char* str, uint8_t b);
+    
+    uint8_t IntToString(char* str, uint16_t i);
+    
+    bool IsNumber(char c);
     
     void ProcessCLI(CliBuffer *buffer);
     

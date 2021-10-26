@@ -6,6 +6,7 @@ void Identify(CliBuffer *buffer)
 {
     if (IS_QUERY(buffer))
     {
+        //Progress the pointer past the query
         ++buffer->InputPnt;
         
         const char *cc = MakeString;

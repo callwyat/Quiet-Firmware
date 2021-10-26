@@ -6,9 +6,10 @@ void DigitalInputs(CliBuffer *buffer)
 {
     if (IS_QUERY(buffer))
     {
-      ++buffer->InputPnt;
-        
-      ByteToHexString(buffer->OutputPnt, DIN);
-      buffer->OutputPnt += 4;
+        //Progress the pointer past the query
+        ++buffer->InputPnt;
+
+        ByteToHexString(buffer->OutputPnt, DIN);
+        buffer->OutputPnt += 4;
     }
 }
