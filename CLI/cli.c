@@ -7,6 +7,8 @@
 #include "../Commands/digiCommand.h"
 #include "../Commands/anaiCommand.h"
 #include "../Commands/anaoCommand.h"
+#include "../Commands/pwmCommand.h"
+#include "../Commands/servoCommand.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -98,7 +100,7 @@ void ProcessCommand(const CommandDefinition commands[], uint8_t commandsLength,
                 do
                 {
                     channel *= 10;
-                    channel = *buffer->InputPnt++ - '0';
+                    channel += *buffer->InputPnt++ - '0';
                 } while (IS_NUMBER(*buffer->InputPnt)); 
                 
                 command->ChannelHandle(buffer, channel);
@@ -256,6 +258,8 @@ const CommandDefinition commands[] = {
     DEFINE_COMMAND("DIGI", DigitalInputs),
     DEFINE_COMMAND("ANAI", AnalogInputs),
     DEFINE_COMMAND("ANAO", AnalogOutputs),
+    DEFINE_COMMAND("PWMO", PWMOutputs),
+    DEFINE_COMMAND("SERV", ServoOutputs),
     DEFINE_COMMAND("*IDN", Identify),
 };
 
