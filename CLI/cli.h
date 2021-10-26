@@ -58,6 +58,8 @@ extern "C" {
     
     uint8_t IntToString(char* str, uint16_t i);
     
+    int16_t ParseInt(char** str);
+    
     bool IsNumber(char c);
     
     void ProcessCLI(CliBuffer *buffer);

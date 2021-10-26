@@ -6,12 +6,15 @@
 #include "../Commands/standardCommands.h"
 #include "../Commands/digiCommand.h"
 #include "../Commands/anaiCommand.h"
+#include "../Commands/anaoCommand.h"
 
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
 #include <xc.h>
+
+#define IS_NUMBER(c) (c >= '0' && c <= '9')
 
 bool SCPICompare(const char *reference, char *input)
 {
@@ -96,7 +99,7 @@ void ProcessCommand(const CommandDefinition commands[], uint8_t commandsLength,
                 {
                     channel *= 10;
                     channel = *buffer->InputPnt++ - '0';
-                } while (*buffer->InputPnt >= '0' && *buffer->InputPnt <= '9'); 
+                } while (IS_NUMBER(*buffer->InputPnt)); 
                 
                 command->ChannelHandle(buffer, channel);
             }
@@ -151,11 +154,6 @@ void ByteToHexString(char* str, uint8_t b)
     *str = 0x00;
 }
 
-bool IsNumber(char c)
-{
-    return c >= '0' && c <= '9';
-}
-
 const uint16_t decades[] = { 10000, 1000, 100, 10, 1 };
 uint8_t IntToString(char* str, uint16_t input)
 {
@@ -187,9 +185,77 @@ uint8_t IntToString(char* str, uint16_t input)
     return (uint8_t)(s - str);
 }
 
+/**
+ * Converts as many chars as possible to numbers
+ * @param str
+ * @return -1 if no numbers were found;
+ */
+int16_t ParseInt(char** str)
+{
+    if (!IS_NUMBER(**str))
+        return -1;
+    
+    uint16_t result = 0;
+    
+    // Check if hex or int
+    if (**str == '0')
+    {
+        ++(*str);
+        
+        if (**str == 'x' || **str == 'X')
+        {
+            ++(*str);
+            // Parse as HEX
+            
+            while (true)
+            {
+                char c = **str;
+                
+                if (IS_NUMBER(c))
+                {
+                    result = (result << 4) | (c - '0');
+                }
+                else
+                {
+                    // ToUpper whatever we have here
+                    char c = c & 0x20;
+                    
+                    if (c >= 'A' && c <= 'F')
+                    {
+                        result = (result << 4) | (c - '7');
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                
+                ++(*str);
+            }            
+        }
+        else
+        {
+            --(*str);
+        }
+    }
+    else
+    {
+        while (IS_NUMBER(**str))
+        {
+            result *= 10;
+            result += **str - '0';
+            
+            ++(*str);
+        }
+    }
+    
+    return (int16_t)result;
+}
+
 const CommandDefinition commands[] = {
     DEFINE_COMMAND("DIGI", DigitalInputs),
     DEFINE_COMMAND("ANAI", AnalogInputs),
+    DEFINE_COMMAND("ANAO", AnalogOutputs),
     DEFINE_COMMAND("*IDN", Identify),
 };
 

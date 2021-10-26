@@ -3,9 +3,9 @@
 #include "../CLI/cli.h"
 #include <stdint.h>
 
-void GetChannelValue(CliBuffer *buffer, uint8_t channel)
+void PrintAnalogInput(CliBuffer *buffer, uint8_t channel)
 {
-    if (channel >= 0 && channel <= 4)
+    if (channel >= 1 && channel <= 4)
     {
         if (*buffer->InputPnt == '?')
         {
@@ -21,7 +21,7 @@ void GetChannelValue(CliBuffer *buffer, uint8_t channel)
 }
 
 const CommandDefinition anaiCommands[] = {
-  DEFINE_CHANNEL_COMMAND("CH", GetChannelValue),  
+  DEFINE_CHANNEL_COMMAND("CH", PrintAnalogInput),  
 };
 
 const uint8_t anaiCommandCount = sizeof(anaiCommands) / sizeof(anaiCommands[0]);

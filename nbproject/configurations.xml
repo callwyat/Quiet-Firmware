@@ -8,6 +8,7 @@
         <itemPath>Commands/digiCommand.h</itemPath>
         <itemPath>Commands/standardCommands.h</itemPath>
         <itemPath>Commands/anaiCommand.h</itemPath>
+        <itemPath>Commands/anaoCommand.h</itemPath>
       </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"
@@ -54,6 +55,7 @@
         <itemPath>Commands/digiCommand.c</itemPath>
         <itemPath>Commands/standardCommands.c</itemPath>
         <itemPath>Commands/anaiCommand.c</itemPath>
+        <itemPath>Commands/anaoCommand.c</itemPath>
       </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"
