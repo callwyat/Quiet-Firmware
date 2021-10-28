@@ -47,7 +47,7 @@ extern "C" {
             .ChannelHandle = handle,      \
         }
     
-    bool CompareStrings(const char *a, char *b, int length);
+    bool SCPICompare(const char *reference, char *input);
     
     uint8_t CountTillCommandEnd(char *input);
     
@@ -61,6 +61,8 @@ extern "C" {
     int16_t ParseInt(char** str);
     
     bool IsNumber(char c);
+    
+    void CopyWordToOutBuffer(CliBuffer *buffer, const char* word);
     
     void ProcessCLI(CliBuffer *buffer);
     

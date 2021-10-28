@@ -46,6 +46,7 @@
       </logicalFolder>
       <itemPath>CLI/cli.h</itemPath>
       <itemPath>constants.h</itemPath>
+      <itemPath>outputs.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -92,6 +93,7 @@
       </logicalFolder>
       <itemPath>main.c</itemPath>
       <itemPath>CLI/cli.c</itemPath>
+      <itemPath>outputs.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

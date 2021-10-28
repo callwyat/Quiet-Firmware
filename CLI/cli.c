@@ -255,6 +255,14 @@ int16_t ParseInt(char** str)
     return (int16_t)result;
 }
 
+void CopyWordToOutBuffer(CliBuffer *buffer, const char* word)
+{
+    while (*word)
+    {
+        *buffer->OutputPnt++ = *word++;
+    }
+}
+
 // Put the commands that have the most branches towards the top
 const CommandDefinition commands[] = {
     DEFINE_COMMAND("ANAI", AnalogInputs),
