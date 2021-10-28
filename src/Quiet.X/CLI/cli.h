@@ -56,7 +56,7 @@ extern "C" {
     
     void ByteToHexString(char* str, uint8_t b);
     
-    uint8_t IntToString(char* str, uint16_t i);
+    int8_t IntToString(char* str, uint16_t i);
     
     int16_t ParseInt(char** str);
     

@@ -7,13 +7,15 @@
 
 uint8_t digoChannel;
 
+#define DIGOUT_CHANNEL ((uint8_t)(digoChannel + DIGOUT_OFFSET))
+
 void DIGOChannelModeCommand(CliBuffer *buffer)
 {
     if (*buffer->InputPnt == '?')
     {
         ++buffer->InputPnt;
         
-        OutputMode_e mode = GetOutputMode(digoChannel + DIGOUT_OFFSET);
+        OutputMode_e mode = GetOutputMode(DIGOUT_CHANNEL);
         
         const char* word;
         
@@ -43,15 +45,15 @@ void DIGOChannelModeCommand(CliBuffer *buffer)
         
         if (SCPICompare(PWMWord, buffer->InputPnt))
         {
-            SetOutputMode(digoChannel + DIGOUT_OFFSET, OUT_PWM);
+            SetOutputMode(DIGOUT_CHANNEL, OUT_PWM);
         }
         else if (SCPICompare(ServoWord, buffer->InputPnt))
         {
-            SetOutputMode(digoChannel + DIGOUT_OFFSET, OUT_SERVO);
+            SetOutputMode(DIGOUT_CHANNEL, OUT_SERVO);
         }
         else if (SCPICompare(DISCREETWord, buffer->InputPnt))
         {
-            SetOutputMode(digoChannel + DIGOUT_OFFSET, OUT_DISCREET);
+            SetOutputMode(DIGOUT_CHANNEL, OUT_DISCREET);
         }
         
         buffer->InputPnt += CountTillCommandEnd(buffer->InputPnt);
@@ -63,17 +65,17 @@ void DIGOChannelValueCommand(CliBuffer *buffer)
     if (*buffer->InputPnt == '?')
     {
         ++buffer->InputPnt;
-        
-        uint8_t value = GetDiscreetOutput(digoChannel + DIGOUT_OFFSET);        
-        *buffer->OutputPnt++ = '0' + value;
+        uint16_t value = GetOutputValue(DIGOUT_CHANNEL);
+        buffer->OutputPnt += IntToString(buffer->OutputPnt, value);
     }
     else if (*buffer->InputPnt == ' ')
     {
         ++buffer->InputPnt;
-        
-        SetDiscreetOutput(digoChannel + DIGOUT_OFFSET, buffer->InputPnt == '1');
-        
-        ++buffer->InputPnt;
+        int16_t value = ParseInt(&buffer->InputPnt);
+        if (value > 0)
+        {
+            SetOutputValue(DIGOUT_CHANNEL, (uint16_t)value);
+        }
     }
 }
 
@@ -94,6 +96,11 @@ void DIGOChannelCommand(CliBuffer *buffer, uint8_t channel)
         {
             ++buffer->InputPnt;
             ProcessCommand(digoChanCommands, digoChanCommandCount, buffer, false);
+        }
+        else
+        {
+            // Default to working with the value
+            DIGOChannelValueCommand(buffer);
         }
     }
 }

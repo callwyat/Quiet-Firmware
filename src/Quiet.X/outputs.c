@@ -16,24 +16,24 @@ typedef struct {
     uint16_t ServoValue;
 } OutputSetup_t;
 
-#define DEFINE_OUTPUT(controlReg, avalibleModes) {  \
-    .ControlRegister = controlReg,                  \
-    .ValueRegister = controlReg + 1,                \
-    .ActiveMode = OUT_DISCREET,                     \
-    .AvalibleModes = avalibleModes,                 \
+#define DEFINE_OUTPUT(controlReg, defaultMode, avalibleModes) {  \
+    .ControlRegister = controlReg,                               \
+    .ValueRegister = controlReg + 1,                             \
+    .ActiveMode = defaultMode,                                   \
+    .AvalibleModes = defaultMode | avalibleModes,                \
 }
 
 OutputSetup_t OutputSetups[] = {
-    DEFINE_OUTPUT(&CCP1CON, OUT_PWM | OUT_SERVO),
-    DEFINE_OUTPUT(&CCP2CON, OUT_PWM | OUT_SERVO),
-    DEFINE_OUTPUT(&CCP4CON, OUT_DISCREET | OUT_PWM | OUT_SERVO),
-    DEFINE_OUTPUT(&CCP5CON, OUT_DISCREET | OUT_PWM | OUT_SERVO),
-    DEFINE_OUTPUT(&CCP6CON, OUT_DISCREET | OUT_PWM | OUT_SERVO),
-    DEFINE_OUTPUT(&CCP7CON, OUT_DISCREET | OUT_PWM | OUT_SERVO),
-    DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET | OUT_SERVO),
-    DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET | OUT_SERVO),
-    DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET | OUT_SERVO),
-    DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET | OUT_SERVO),
+    DEFINE_OUTPUT(&CCP1CON, OUT_PWM, OUT_SERVO),
+    DEFINE_OUTPUT(&CCP2CON, OUT_PWM, OUT_SERVO),
+    DEFINE_OUTPUT(&CCP4CON, OUT_DISCREET, OUT_PWM | OUT_SERVO),
+    DEFINE_OUTPUT(&CCP5CON, OUT_DISCREET, OUT_PWM | OUT_SERVO),
+    DEFINE_OUTPUT(&CCP6CON, OUT_DISCREET, OUT_PWM | OUT_SERVO),
+    DEFINE_OUTPUT(&CCP7CON, OUT_DISCREET, OUT_PWM | OUT_SERVO),
+    DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET, OUT_SERVO),
+    DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET, OUT_SERVO),
+    DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET, OUT_SERVO),
+    DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET, OUT_SERVO),
 };
 
 const uint8_t OutputSetupsCount = sizeof(OutputSetups) / sizeof(OutputSetups[0]);
@@ -206,8 +206,7 @@ uint16_t GetOutputValue(uint8_t output)
         switch (setup->ActiveMode)
         {
             case OUT_DISCREET:
-                GetDiscreetOutput(output);
-                break;
+                return GetDiscreetOutput(output);
                 
             case OUT_PWM:
                 return GetPWMValue(output);

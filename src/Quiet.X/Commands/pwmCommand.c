@@ -14,7 +14,7 @@ void PWMSetChannelValue(CliBuffer *buffer, uint8_t channel)
             // Get the value from the analog buffer
             int16_t value = ParseInt(&buffer->InputPnt);
 
-            buffer->OutputPnt += IntToString(buffer->OutputPnt, value);
+            buffer->OutputPnt += IntToString(buffer->OutputPnt, (uint16_t)value);
         }
     }
 }

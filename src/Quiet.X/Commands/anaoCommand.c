@@ -8,13 +8,15 @@
 
 uint8_t anaoChannel;
 
+#define ANAOUT_CHANNEL ((uint8_t)(anaoChannel + ANAOUT_OFFSET))
+
 void ANAOChannelModeCommand(CliBuffer *buffer)
 {
     if (*buffer->InputPnt == '?')
     {
         ++buffer->InputPnt;
         
-        OutputMode_e mode = GetOutputMode(anaoChannel + ANAOUT_OFFSET);
+        OutputMode_e mode = GetOutputMode(ANAOUT_CHANNEL);
         
         const char* word;
         
@@ -26,6 +28,10 @@ void ANAOChannelModeCommand(CliBuffer *buffer)
                 
             case OUT_SERVO:
                 word = ServoWord;
+                break;
+                
+            case OUT_DISCREET:
+                // Not a valid option
                 break;
         }
         
@@ -40,11 +46,11 @@ void ANAOChannelModeCommand(CliBuffer *buffer)
         
         if (SCPICompare(PWMWord, buffer->InputPnt))
         {
-            SetOutputMode(anaoChannel + ANAOUT_OFFSET, OUT_PWM);
+            SetOutputMode(ANAOUT_CHANNEL, OUT_PWM);
         }
         else if (SCPICompare(ServoWord, buffer->InputPnt))
         {
-            SetOutputMode(anaoChannel + ANAOUT_OFFSET, OUT_SERVO);
+            SetOutputMode(ANAOUT_CHANNEL, OUT_SERVO);
         }
         
         buffer->InputPnt += CountTillCommandEnd(buffer->InputPnt);
@@ -56,17 +62,17 @@ void ANAOChannelValueCommand(CliBuffer *buffer)
     if (*buffer->InputPnt == '?')
     {
         ++buffer->InputPnt;
-        
-        uint8_t value = GetDiscreetOutput(anaoChannel + ANAOUT_OFFSET);        
-        *buffer->OutputPnt++ = '0' + value;
+        uint16_t value = GetOutputValue(ANAOUT_CHANNEL);
+        buffer->OutputPnt += IntToString(buffer->OutputPnt, value);
     }
     else if (*buffer->InputPnt == ' ')
     {
         ++buffer->InputPnt;
-        
-        SetDiscreetOutput(anaoChannel + ANAOUT_OFFSET, buffer->InputPnt == '1');
-        
-        ++buffer->InputPnt;
+        int16_t value = ParseInt(&buffer->InputPnt);
+        if (value > 0)
+        {
+            SetOutputValue(ANAOUT_CHANNEL, (uint16_t)value);
+        }
     }
 }
 
@@ -78,37 +84,27 @@ const CommandDefinition anaoChanCommands[] = {
 const uint8_t anaoChanCommandCount = sizeof(anaoChanCommands) / sizeof(anaoChanCommands[0]);
 
 
-void AnaoSetChannelValue(CliBuffer *buffer, uint8_t channel)
+void ANAOChannelCommand(CliBuffer *buffer, uint8_t channel)
 {
     if (channel >= 1 && channel <= 2)
     {
-        if (*buffer->InputPnt == ' ')
-        {
-            // Get ready to parse this number
-            ++buffer->InputPnt;
-            
-            // Get the value from the analog buffer
-            int16_t value = ParseInt(&buffer->InputPnt);
-            
-            SetOutputValue(channel + ANAOUT_OFFSET, value);
-        }
-        else if (*buffer->InputPnt == '?')
-        {
-            ++buffer->InputPnt;
-            
-            buffer->OutputPnt += IntToString(buffer->OutputPnt, 
-                    GetOutputValue(channel + ANAOUT_OFFSET));
-        }
-        else if (*buffer->InputPnt == ':')
+        anaoChannel = channel;
+        
+        if (*buffer->InputPnt == ':')
         {
             ++buffer->InputPnt;
             ProcessCommand(anaoChanCommands, anaoChanCommandCount, buffer, false);  
+        }
+        else
+        {
+            // Default to working with the value
+            ANAOChannelValueCommand(buffer);
         }
     }
 }
 
 const CommandDefinition anaoCommands[] = {
-  DEFINE_CHANNEL_COMMAND("CH", AnaoSetChannelValue),  
+  DEFINE_CHANNEL_COMMAND("CH", ANAOChannelCommand),  
 };
 
 const uint8_t anaoCommandCount = sizeof(anaoCommands) / sizeof(anaoCommands[0]);

@@ -158,34 +158,41 @@ void ByteToHexString(char* str, uint8_t b)
 }
 
 const uint16_t decades[] = { 10000, 1000, 100, 10, 1 };
-uint8_t IntToString(char* str, uint16_t input)
-{
-    const uint16_t* d = decades;
-    
-    char *s = str;
-    
-    // Figure out when to start
-    while (*d > input)
+int8_t IntToString(char* str, uint16_t input)
+{    
+    if (input == 0)
     {
-        ++d;
+        *str++ = '0';
+        return 1;
     }
-    
-    while (d < &decades[5])
+    else
     {
-        char c = '0';
-        
-        while (input >= *d)
+        const uint16_t* d = decades;
+        char *s = str;
+
+        // Figure out when to start
+        while (*d > input)
         {
-            input -= *d;
-            ++c;
+            ++d;
+        }
+
+        while (d < &decades[5])
+        {
+            char c = '0';
+
+            while (input >= *d)
+            {
+                input -= *d;
+                ++c;
+            }
+
+            ++d;
+            *s++ = c;
         }
         
-        ++d;
-        *s++ = c;
+        // Return the number of chars added to the string
+        return (uint8_t)(s - str);
     }
-    
-    // Return the number of chars added to the string
-    return (uint8_t)(s - str);
 }
 
 /**
@@ -301,8 +308,8 @@ void ProcessCLI(CliBuffer *buffer)
     // If something was placed in the output buffer, make sure it is terminated
     if (buffer->OutputBuffer[0] != 0x00)
     {
-        *buffer->OutputPnt++ = '\n';
         *buffer->OutputPnt++ = '\r';
-        *buffer->OutputPnt++ = '\x00';
+        *buffer->OutputPnt++ = '\n';
+        *buffer->OutputPnt = '\x00';
     }
 }
