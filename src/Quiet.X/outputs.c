@@ -85,7 +85,7 @@ OutputMode_e GetOutputMode(uint8_t channel)
     }
     else
     {
-        return -1;
+        return (OutputMode_e)-1;
     }
 }
 
@@ -245,7 +245,7 @@ void ServoTick(void)
                 if (setup->ActiveMode == OUT_SERVO)
                     PSTR3CON |= steering & 0x0F;
                 
-                steering = steering << 1;
+                steering = (uint8_t)(steering << 1);
             }
             
             if (setup->ActiveMode == OUT_SERVO)
