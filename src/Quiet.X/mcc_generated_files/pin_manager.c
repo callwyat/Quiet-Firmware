@@ -63,8 +63,8 @@ void PIN_MANAGER_Initialize(void)
     /**
     TRISx registers
     */
-    TRISE = 0xC7;
-    TRISA = 0xEF;
+    TRISE = 0x07;
+    TRISA = 0xEC;
     TRISB = 0x30;
     TRISC = 0x87;
     TRISD = 0xFF;
@@ -79,8 +79,8 @@ void PIN_MANAGER_Initialize(void)
     WPUx registers
     */
     INTCON2bits.nRBPU = 1;
-    TRISEbits.RDPU = 1;
-    TRISEbits.REPU = 1;
+    TRISEbits.RDPU = 0;
+    TRISEbits.REPU = 0;
 
     /**
     ODx registers

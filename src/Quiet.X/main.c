@@ -95,6 +95,8 @@ void USB_CDC_Tasks(void)
  */
 void main(void)
 {
+    // TODO: Auto Crystal detection
+    
     // Initialize the device
     SYSTEM_Initialize();
     
@@ -104,13 +106,20 @@ void main(void)
     // Use the following macros to:
 
     // Enable the Global Interrupts
-    INTERRUPT_GlobalInterruptEnable();
+    INTERRUPT_GlobalInterruptHighEnable();
+    INTERRUPT_GlobalInterruptLowEnable();
 
     // Disable the Global Interrupts
     //INTERRUPT_GlobalInterruptDisable();
 
+    // Disable high priority global interrupts
+    //INTERRUPT_GlobalInterruptHighDisable();
+
+    // Disable low priority global interrupts.
+    //INTERRUPT_GlobalInterruptLowDisable();
+
     // Enable the Peripheral Interrupts
-    INTERRUPT_PeripheralInterruptEnable();
+    // INTERRUPT_PeripheralInterruptEnable();
 
     // Disable the Peripheral Interrupts
     //INTERRUPT_PeripheralInterruptDisable();

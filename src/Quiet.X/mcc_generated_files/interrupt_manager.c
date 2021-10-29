@@ -1,11 +1,11 @@
 /**
-  Generated Interrupt Manager Source File
+  Generated Interrupt Manager Header File
 
   @Company:
     Microchip Technology Inc.
 
   @File Name:
-    interrupt_manager.c
+    interrupt_manager.h
 
   @Summary:
     This is the Interrupt Manager file generated using PIC10 / PIC12 / PIC16 / PIC18 MCUs
@@ -17,7 +17,7 @@
     Generation Information :
         Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.78
         Device            :  PIC18F46J53
-        Driver Version    :  2.03
+        Driver Version    :  2.12
     The generated drivers are tested against the following:
         Compiler          :  XC8 2.05 and above or later
         MPLAB 	          :  MPLAB X 5.20
@@ -51,33 +51,37 @@
 
 void  INTERRUPT_Initialize (void)
 {
-    // Disable Interrupt Priority Vectors (16CXXX Compatibility Mode)
-    RCONbits.IPEN = 0;
+    // Enable Interrupt Priority Vectors
+    RCONbits.IPEN = 1;
+
+    // Assign peripheral interrupt priority vectors
+
+    // ADI - high priority
+    IPR1bits.ADIP = 1;
+
+    // USBI - high priority
+    IPR2bits.USBIP = 1;
+
+
 }
 
-void __interrupt() INTERRUPT_InterruptManager (void)
+void __interrupt() INTERRUPT_InterruptManagerHigh (void)
 {
-    // interrupt handler
-    if(INTCONbits.PEIE == 1)
+   // interrupt handler
+    if(PIE1bits.ADIE == 1 && PIR1bits.ADIF == 1)
     {
-        if(PIE1bits.ADIE == 1 && PIR1bits.ADIF == 1)
-        {
-            ADC_ISR();
-        } 
-        else if(PIE2bits.USBIE == 1 && PIR2bits.USBIF == 1)
-        {
-            USB_USBDeviceTasks();
-        } 
-        else
-        {
-            //Unhandled Interrupt
-        }
-    }      
+        ADC_ISR();
+    }
+    else if(PIE2bits.USBIE == 1 && PIR2bits.USBIF == 1)
+    {
+        USB_USBDeviceTasks();
+    }
     else
     {
         //Unhandled Interrupt
     }
 }
+
 /**
  End of File
 */
