@@ -1,4 +1,5 @@
 
+#include "../analogInputs.h"
 
 #include "../CLI/cli.h"
 #include <stdint.h>
@@ -13,7 +14,7 @@ void PrintAnalogInput(CliBuffer *buffer, uint8_t channel)
             ++buffer->InputPnt;
             
             // Get the value from the analog buffer
-            uint16_t value = 0x1 << channel;
+            uint16_t value = GetADCValue(channel - 1);
 
             buffer->OutputPnt += IntToString(buffer->OutputPnt, value);
         }

@@ -44,6 +44,8 @@ void SetOutputValue(uint8_t output, uint16_t value);
 
 uint16_t GetOutputValue(uint8_t output);
 
+void ServoTick(void);
+
 #ifdef	__cplusplus
 }
 #endif

@@ -65,14 +65,17 @@ void ADC_Initialize(void)
     // GO_nDONE stop; VCFG1 VSS; VCFG0 VDD; ADON enabled; CHS AN0; 
     ADCON0 = 0x01;
     
-    // ADFM left; ADCAL Normal_a/d_operation; ACQT 0; ADCS FOSC/16; 
-    ADCON1 = 0x05;
+    // ADFM right; ADCAL Normal_a/d_operation; ACQT 16; ADCS FOSC/16; 
+    ADCON1 = 0xB5;
     
     // ADRESL 0; 
     ADRESL = 0x00;
     
     // ADRESH 0; 
     ADRESH = 0x00;
+    
+    // Timer1 Trigger
+    ADCTRIG = 0x01;
     
     // Enabling ADC interrupt.
     PIE1bits.ADIE = 1;

@@ -43,6 +43,8 @@
 
 #include "mcc_generated_files/mcc.h"
 #include "CLI/cli.h"
+#include "analogInputs.h"
+#include "outputs.h"
 
 static CliBuffer usbBuffer;
 
@@ -73,10 +75,14 @@ void USB_CDC_Tasks(void)
                 case 0x0A:
                 case 0x0D:
                 {
+                    LATBbits.LATB0 = 1;
+                    
                     ProcessCLI(&usbBuffer);
                     
                     putUSBUSART((uint8_t*)usbBuffer.OutputBuffer, 
                     (uint8_t)(usbBuffer.OutputPnt - usbBuffer.OutputBuffer)); 
+                    
+                    LATBbits.LATB0 = 0;
                 }
                     break;
 
@@ -90,6 +96,44 @@ void USB_CDC_Tasks(void)
     CDCTxService();
 }
 
+typedef void(*TaskHandle)(void);
+
+typedef struct {
+    TaskHandle Handle;
+    uint8_t Tick;
+    uint8_t Top;
+} Task_t;
+
+#define DEFINE_TASK(handle, tick, top) {        \
+    .Handle = handle,                           \
+    .Tick = tick,                               \
+    .Top = top                                  \
+}
+
+Task_t Tasks[] = {
+    DEFINE_TASK(StartADCUpdate, 0, 1),
+    DEFINE_TASK(ServoTick, 0, 1),
+};
+
+uint8_t tasksSize = sizeof(Tasks) / sizeof(Tasks[1]);
+
+void ProcessTasks(void)
+{
+    Task_t *task;
+    
+    for (uint8_t i = 0; i < tasksSize; ++i)
+    {
+        task = &Tasks[i];
+        
+        if (++task->Tick >= task->Top)
+        {
+            task->Tick = 0;
+            task->Handle();
+        }
+    }
+}
+
+
 /*
                          Main application
  */
@@ -100,11 +144,16 @@ void main(void)
     // Initialize the device
     SYSTEM_Initialize();
     
+    
+    
     //USB Setup-------------------------------
     // If using interrupts in PIC18 High/Low Priority Mode you need to enable the Global High and Low Interrupts
     // If using interrupts in PIC Mid-Range Compatibility Mode you need to enable the Global and Peripheral Interrupts
     // Use the following macros to:
 
+    ADC_SetInterruptHandler(ADCTick);
+    TMR2_SetInterruptHandler(ProcessTasks);
+    
     // Enable the Global Interrupts
     INTERRUPT_GlobalInterruptHighEnable();
     INTERRUPT_GlobalInterruptLowEnable();
@@ -119,7 +168,7 @@ void main(void)
     //INTERRUPT_GlobalInterruptLowDisable();
 
     // Enable the Peripheral Interrupts
-    // INTERRUPT_PeripheralInterruptEnable();
+    INTERRUPT_PeripheralInterruptEnable();
 
     // Disable the Peripheral Interrupts
     //INTERRUPT_PeripheralInterruptDisable();

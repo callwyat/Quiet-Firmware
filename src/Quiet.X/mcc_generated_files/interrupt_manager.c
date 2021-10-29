@@ -56,32 +56,43 @@ void  INTERRUPT_Initialize (void)
 
     // Assign peripheral interrupt priority vectors
 
-    // ADI - high priority
-    IPR1bits.ADIP = 1;
-
     // USBI - high priority
     IPR2bits.USBIP = 1;
 
+    // ADI - high priority
+    IPR1bits.ADIP = 1;
+
+
+    // TMRI - low priority
+    IPR1bits.TMR2IP = 0;    
 
 }
 
 void __interrupt() INTERRUPT_InterruptManagerHigh (void)
 {
    // interrupt handler
+    if(PIE2bits.USBIE == 1 && PIR2bits.USBIF == 1)
+    {
+        USB_USBDeviceTasks();
+    }
     if(PIE1bits.ADIE == 1 && PIR1bits.ADIF == 1)
     {
         ADC_ISR();
     }
-    else if(PIE2bits.USBIE == 1 && PIR2bits.USBIF == 1)
+}
+
+void __interrupt(low_priority) INTERRUPT_InterruptManagerLow (void)
+{
+    // interrupt handler
+    if(PIE1bits.TMR2IE == 1 && PIR1bits.TMR2IF == 1)
     {
-        USB_USBDeviceTasks();
+        TMR2_ISR();
     }
     else
     {
         //Unhandled Interrupt
     }
 }
-
 /**
  End of File
 */
