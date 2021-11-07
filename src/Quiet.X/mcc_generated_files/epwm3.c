@@ -1,26 +1,24 @@
 /**
-  Generated Pin Manager File
+  EPWM3 Generated Driver File
 
-  Company:
+  @Company
     Microchip Technology Inc.
 
-  File Name:
-    pin_manager.c
+  @File Name
+    epwm3.c
 
-  Summary:
-    This is the Pin Manager file generated using PIC10 / PIC12 / PIC16 / PIC18 MCUs
+  @Summary
+    This is the generated driver implementation file for the EPWM3 driver using PIC10 / PIC12 / PIC16 / PIC18 MCUs
 
-  Description:
-    This header file provides implementations for pin APIs for all pins selected in the GUI.
+  @Description
+    This source file provides implementations for driver APIs for EPWM3.
     Generation Information :
         Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.78
         Device            :  PIC18F46J53
-        Driver Version    :  2.11
+        Driver Version    :  2.01
     The generated drivers are tested against the following:
         Compiler          :  XC8 2.05 and above
-        MPLAB             :  MPLAB X 5.20
-
-    Copyright (c) 2013 - 2015 released Microchip Technology Inc.  All rights reserved.
+         MPLAB 	          :  MPLAB X 5.20
 */
 
 /*
@@ -46,60 +44,58 @@
     SOFTWARE.
 */
 
-#include "pin_manager.h"
+/**
+  Section: Included Files
+*/
 
+#include <xc.h>
+#include "epwm3.h"
 
-void PIN_MANAGER_Initialize(void)
+/**
+  Section: Macro Declarations
+*/
+
+#define PWM3_INITIALIZE_DUTY_VALUE    499
+
+/**
+  Section: EPWM Module APIs
+*/
+
+void EPWM3_Initialize(void)
 {
-    /**
-    LATx registers
-    */
-    LATE = 0x00;
-    LATD = 0x00;
-    LATA = 0x00;
-    LATB = 0x00;
-    LATC = 0x00;
+    // Set the EPWM3 to the options selected in the User Interface
+	
+	// CCP3M P3A,P3C: active high; P3B,P3D: active high; DC3B 3; P3M single; 
+	CCP3CON = 0x3C;    
+	
+	// ECCP3ASE operating; PSS3BD low; PSS3AC low; ECCP3AS disabled; 
+	ECCP3AS = 0x00;    
+	
+	// STRD P3D_to_port; STRC P3C_to_port; STRB P3B_to_port; STRA P3A_to_port; CMPL Steering Outputs depend on the values of STRD-A settings; STRSYNC start_at_next; 
+	PSTR3CON = 0x10;    
+	
+	// P3RSEN automatic_restart; P3DC 0; 
+	ECCP3DEL = 0x80;    
+	
+	// CCPR3H 0; 
+	CCPR3H = 0x00;    
+	
+	// CCPR3L 124; 
+	CCPR3L = 0x7C;    
 
-    /**
-    TRISx registers
-    */
-    TRISE = 0x07;
-    TRISA = 0xEC;
-    TRISB = 0x30;
-    TRISC = 0x84;
-    TRISD = 0xFF;
-
-    /**
-    ANSELx registers
-    */
-    ANCON0 = 0xC3;
-    ANCON1 = 0x1F;
-
-    /**
-    WPUx registers
-    */
-    INTCON2bits.nRBPU = 1;
-    TRISEbits.RDPU = 0;
-    TRISEbits.REPU = 0;
-
-    /**
-    ODx registers
-    */
-    ODCON1 = 0x00;
-    ODCON2 = 0x00;
-    ODCON3 = 0x00;
-
-
-   
-
+	// Selecting Timer2
+	CCPTMRS0bits.C3TSEL = 0x0;
 }
 
-void PIN_MANAGER_IOC(void)
-{	
-	// Clear global Interrupt-On-Change flag
-    INTCONbits.RBIF = 0;
+void EPWM3_LoadDutyValue(uint16_t dutyValue)
+{
+   // Writing to 8 MSBs of pwm duty cycle in CCPRL register
+    CCPR3L = ((dutyValue & 0x03FC)>>2);
+    
+   // Writing to 2 LSBs of pwm duty cycle in CCPCON register
+    CCP3CON = ((uint8_t)(CCP3CON & 0xCF) | ((dutyValue & 0x0003)<<4));
 }
-
 /**
  End of File
 */
+

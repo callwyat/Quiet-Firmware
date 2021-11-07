@@ -56,7 +56,7 @@ void DIGOChannelModeCommand(CliBuffer *buffer)
             SetOutputMode(DIGOUT_CHANNEL, OUT_DISCREET);
         }
         
-        buffer->InputPnt += CountTillCommandEnd(buffer->InputPnt);
+        FFTilPunctuation(&buffer->InputPnt);
     }
 }
 
@@ -66,7 +66,7 @@ void DIGOChannelValueCommand(CliBuffer *buffer)
     {
         ++buffer->InputPnt;
         uint16_t value = GetOutputValue(DIGOUT_CHANNEL);
-        buffer->OutputPnt += IntToString(buffer->OutputPnt, value);
+        IntToString(buffer, value);
     }
     else if (*buffer->InputPnt == ' ')
     {
@@ -114,13 +114,11 @@ const uint8_t digoCommandCount = sizeof(digoCommands) / sizeof(digoCommands[0]);
 
 void DigitalOutputs(CliBuffer *buffer)
 {
-    if (IS_QUERY(buffer))
+    if (*buffer->InputPnt == '?')
     {
         //Progress the pointer past the query
         ++buffer->InputPnt;
-
-        ByteToHexString(buffer->OutputPnt, DOUT);
-        buffer->OutputPnt += 4;
+        ByteToHexString(buffer, DOUT);
     }
     else if (*buffer->InputPnt == ' ')
     {

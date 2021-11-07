@@ -2658,7 +2658,7 @@ static void USBCtrlTrfInHandler(void)
         {
             if(outPipes[0].pFunc != NULL)
             {
-                outPipes[0].pFunc();
+                 outPipes[0].pFunc();
             }
             outPipes[0].info.bits.busy = 0;
         }

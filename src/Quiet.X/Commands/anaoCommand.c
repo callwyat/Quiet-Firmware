@@ -53,7 +53,7 @@ void ANAOChannelModeCommand(CliBuffer *buffer)
             SetOutputMode(ANAOUT_CHANNEL, OUT_SERVO);
         }
         
-        buffer->InputPnt += CountTillCommandEnd(buffer->InputPnt);
+        FFTilPunctuation(&buffer->InputPnt);
     }
 }
 
@@ -63,7 +63,7 @@ void ANAOChannelValueCommand(CliBuffer *buffer)
     {
         ++buffer->InputPnt;
         uint16_t value = GetOutputValue(ANAOUT_CHANNEL);
-        buffer->OutputPnt += IntToString(buffer->OutputPnt, value);
+        IntToString(buffer, value);
     }
     else if (*buffer->InputPnt == ' ')
     {
@@ -77,8 +77,8 @@ void ANAOChannelValueCommand(CliBuffer *buffer)
 }
 
 const CommandDefinition anaoChanCommands[] = {
+  DEFINE_COMMAND("VALU", ANAOChannelValueCommand),
   DEFINE_COMMAND("MODE", ANAOChannelModeCommand),  
-  DEFINE_COMMAND("VALU", ANAOChannelValueCommand),  
 };
 
 const uint8_t anaoChanCommandCount = sizeof(anaoChanCommands) / sizeof(anaoChanCommands[0]);

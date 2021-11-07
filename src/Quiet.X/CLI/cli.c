@@ -37,35 +37,21 @@ bool SCPICompare(const char *reference, char *input)
     return true;
 }
 
-const char* SCPIPuncuation = ":? ;";
-
-bool IsSCPIPuncuation(char c)
+void FFTilPunctuation(char **input)
 {
-    if (c == '\x00')
-        return true;
-    
-    const char *p = SCPIPuncuation;
-    
-    while (*p)
+    while (**input)
     {
-        if (c == *p++)
+        switch (**input)
         {
-            return true;
+            case ':':
+            case ' ':
+            case '?':
+            case ';':
+                return;
         }
+
+        ++(*input);
     }
-    
-    return false;
-}
-
-uint8_t CountTillCommandEnd(char *input)
-{
-    char *c = input;
-
-    while (!IsSCPIPuncuation(*c++));
-    
-    --c;
-    
-    return (uint8_t)(c - input);
 }
 
 void ProcessCommand(const CommandDefinition commands[], uint8_t commandsLength, 
@@ -78,7 +64,7 @@ void ProcessCommand(const CommandDefinition commands[], uint8_t commandsLength,
         {
             if (command->Handle)
             {
-                buffer->InputPnt += CountTillCommandEnd(buffer->InputPnt);
+                FFTilPunctuation(&buffer->InputPnt);
                 command->Handle(buffer);
             }
             else if (command->ChannelHandle)
@@ -86,10 +72,14 @@ void ProcessCommand(const CommandDefinition commands[], uint8_t commandsLength,
                 // Scan until a number is found
                 while (*buffer->InputPnt < '0' || *buffer->InputPnt > '9')
                 {
-                    if (IsSCPIPuncuation(*buffer->InputPnt))
+                    // Check if it punctuation showed up
+                    switch (*buffer->InputPnt)
                     {
-                        // Failed to find a channel number
-                        return;
+                        case ':':
+                        case ' ':
+                        case '?':
+                        case ';':
+                            return;
                     }
                     
                     ++buffer->InputPnt;
@@ -143,33 +133,29 @@ void ProcessCommand(const CommandDefinition commands[], uint8_t commandsLength,
     }
 }
 
-void ByteToHexString(char* str, uint8_t b)
+void ByteToHexString(CliBuffer *buffer, uint8_t b)
 {
-    *str++ = '0';
-    *str++ = 'x';
-    
+    *buffer->OutputPnt++ = '0';
+    *buffer->OutputPnt++ = 'x';
+
     uint8_t upperNibble = (b >> 4) & 0x0F;
-    *str++ = upperNibble + (upperNibble > 0x09 ? '7' : '0');
-    
+    *buffer->OutputPnt++ = upperNibble + (upperNibble > 0x09 ? '7' : '0');
+
     uint8_t lowerNibble = (b & 0x0F);
-    *str++ = lowerNibble + (lowerNibble > 0x09 ? '7' : '0');
-    
-    *str = 0x00;
+    *buffer->OutputPnt++ = lowerNibble + (lowerNibble > 0x09 ? '7' : '0');
 }
 
 const uint16_t decades[] = { 10000, 1000, 100, 10, 1 };
-int8_t IntToString(char* str, uint16_t input)
+void IntToString(CliBuffer *buffer, uint16_t input)
 {    
     if (input == 0)
     {
-        *str++ = '0';
-        return 1;
+        *buffer->OutputPnt++ = '0';
+        return;
     }
     else
     {
         const uint16_t* d = decades;
-        char *s = str;
-
         // Figure out when to start
         while (*d > input)
         {
@@ -187,11 +173,8 @@ int8_t IntToString(char* str, uint16_t input)
             }
 
             ++d;
-            *s++ = c;
+            *buffer->OutputPnt++ = c;
         }
-        
-        // Return the number of chars added to the string
-        return (uint8_t)(s - str);
     }
 }
 
@@ -272,12 +255,12 @@ void CopyWordToOutBuffer(CliBuffer *buffer, const char* word)
 
 // Put the commands that have the most branches towards the top
 const CommandDefinition commands[] = {
-    DEFINE_COMMAND("ANAI", AnalogInputs),
-    DEFINE_COMMAND("ANAO", AnalogOutputs),
     DEFINE_COMMAND("PWMO", PWMOutputs),
     DEFINE_COMMAND("SERV", ServoOutputs),
-    DEFINE_COMMAND("DIGI", DigitalInputs),
     DEFINE_COMMAND("DIGO", DigitalOutputs),
+    DEFINE_COMMAND("ANAO", AnalogOutputs),
+    DEFINE_COMMAND("ANAI", AnalogInputs),
+    DEFINE_COMMAND("DIGI", DigitalInputs),
     DEFINE_COMMAND("*IDN", Identify),
 };
 

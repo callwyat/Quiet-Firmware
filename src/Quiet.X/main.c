@@ -67,6 +67,11 @@ void USB_CDC_Tasks(void)
 
         numBytesRead = getsUSBUSART((uint8_t*)usbBuffer.InputBuffer, sizeof(usbBuffer.InputBuffer));
 
+        if (numBytesRead > sizeof(usbBuffer.InputBuffer))
+        {
+            numBytesRead = 64;
+        }
+        
         for(i=0; i<numBytesRead; i++)
         {
             switch(usbBuffer.InputBuffer[i])

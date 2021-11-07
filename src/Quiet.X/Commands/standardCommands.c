@@ -4,7 +4,7 @@
 
 void Identify(CliBuffer *buffer)
 {
-    if (IS_QUERY(buffer))
+    if (*buffer->InputPnt == '?')
     {
         //Progress the pointer past the query
         ++buffer->InputPnt;

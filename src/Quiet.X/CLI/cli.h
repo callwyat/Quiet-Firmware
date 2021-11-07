@@ -19,8 +19,8 @@ extern "C" {
     typedef struct
     {
         char *InputPnt;
-        char InputBuffer[64];
         char *OutputPnt;
+        char InputBuffer[64];
         char OutputBuffer[64];
     } CliBuffer;
     
@@ -49,14 +49,14 @@ extern "C" {
     
     bool SCPICompare(const char *reference, char *input);
     
-    uint8_t CountTillCommandEnd(char *input);
+    void FFTilPunctuation(char **input);
     
     void ProcessCommand(const CommandDefinition commands[], uint8_t commandsLength, 
         CliBuffer *buffer, bool isRoot);
     
-    void ByteToHexString(char* str, uint8_t b);
+    void ByteToHexString(CliBuffer *buffer, uint8_t b);
     
-    int8_t IntToString(char* str, uint16_t i);
+    void IntToString(CliBuffer *buffer, uint16_t i);
     
     int16_t ParseInt(char** str);
     
@@ -65,8 +65,6 @@ extern "C" {
     void CopyWordToOutBuffer(CliBuffer *buffer, const char* word);
     
     void ProcessCLI(CliBuffer *buffer);
-    
-#define IS_QUERY(buffer) (*buffer->InputPnt == '?')
 
 #ifdef	__cplusplus
 }

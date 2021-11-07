@@ -58,6 +58,7 @@ void SYSTEM_Initialize(void)
     EPWM2_Initialize();
     USBDeviceInit();
     TMR2_Initialize();
+    EPWM3_Initialize();
     ADC_Initialize();
     EPWM1_Initialize();
     TMR1_Initialize();
