@@ -188,14 +188,14 @@ int16_t ParseInt(char** str)
     if (!IS_NUMBER(**str))
         return -1;
     
-    uint16_t result = 0;
+    int16_t result = 0;
     
     // Check if hex or int
     if (**str == '0')
     {
         ++(*str);
         
-        if (**str == 'x' || **str == 'X')
+        if (**str == 'X' || **str == 'x')
         {
             ++(*str);
             // Parse as HEX
@@ -210,16 +210,17 @@ int16_t ParseInt(char** str)
                 }
                 else
                 {
-                    // ToUpper whatever we have here
-                    char c = c & 0x20;
-                    
                     if (c >= 'A' && c <= 'F')
                     {
                         result = (result << 4) | (c - '7');
                     }
+                    else if (c >= 'a' && c <= 'z'){
+                        c -= 0x20;
+                        result = (result << 4) | (c - '7');
+                    }
                     else
                     {
-                        break;
+                        return result;
                     }
                 }
                 
@@ -231,18 +232,17 @@ int16_t ParseInt(char** str)
             --(*str);
         }
     }
-    else
+    
+    
+    while (IS_NUMBER(**str))
     {
-        while (IS_NUMBER(**str))
-        {
-            result *= 10;
-            result += **str - '0';
-            
-            ++(*str);
-        }
+        result *= 10;
+        result += **str - '0';
+
+        ++(*str);
     }
     
-    return (int16_t)result;
+    return result;
 }
 
 void CopyWordToOutBuffer(CliBuffer *buffer, const char* word)
@@ -275,7 +275,7 @@ void ProcessCLI(CliBuffer *buffer)
     {
         if (*pnt >= 'a' && *pnt <= 'z')
         {
-            *pnt += 0x20;
+            *pnt -= 0x20;
         }
         
         ++pnt;

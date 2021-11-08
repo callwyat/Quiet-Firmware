@@ -64,6 +64,8 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
         QueryChannelTest('SERV:CH#:MODE?', 1, 10, OUTPUT_MODE_PATTERN), 
     ]
 
+    print('Starting Command Tests')
+
     for test in queryTests:
 
         for command in test.commands:
@@ -84,6 +86,36 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
                 if exit_on_fail:
                     return False
 
+    print('Command Tests Passed')
+    print('Starting Parse Test')
+
+    # Test the parsing method
+    for val in range(0, 1024):
+
+        if verbose:
+            print(f'Testing             => {val}')
+
+        command = f'ANAO:CH1 {val};CH1?\r\n'
+        com.write(command.encode())
+        response = coms.read_until().decode()
+
+        expected = f',{val}\r\n'
+        if response != expected:
+            print(f"Test Failed\nSent:     {repr(command)}\n" +
+            f"Expected: {repr(expected)}\n" +
+            f"Received: {repr(response)}")
+
+        command = f'ANAO:CH1 {hex(val)};CH1?\r\n'
+        com.write(command.encode())
+        response = coms.read_until().decode()
+
+        if response != expected:
+            print(f"Test Failed\nSent:     {repr(command)}\n" +
+            f"Expected: {repr(expected)}\n" +
+            f"Received: {repr(response)}")
+
+    print('Parse Test Passed')
+
     # TODO: Test the manipulation of settings
 
     return True
@@ -100,7 +132,7 @@ if __name__ == "__main__":
 
     com = serial.Serial(port=qPort, timeout=1)
 
-    if (run_quiet_test(com, verbose=True, exit_on_fail=False)):
+    if (run_quiet_test(com, verbose=False, exit_on_fail=True)):
         print("All Tests Passed")
 
     

@@ -72,7 +72,7 @@ void DIGOChannelValueCommand(CliBuffer *buffer)
     {
         ++buffer->InputPnt;
         int16_t value = ParseInt(&buffer->InputPnt);
-        if (value > 0)
+        if (value >= 0)
         {
             SetOutputValue(DIGOUT_CHANNEL, (uint16_t)value);
         }

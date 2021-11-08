@@ -69,7 +69,7 @@ void ANAOChannelValueCommand(CliBuffer *buffer)
     {
         ++buffer->InputPnt;
         int16_t value = ParseInt(&buffer->InputPnt);
-        if (value > 0)
+        if (value >= 0)
         {
             SetOutputValue(ANAOUT_CHANNEL, (uint16_t)value);
         }
