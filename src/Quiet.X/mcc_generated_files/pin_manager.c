@@ -89,8 +89,30 @@ void PIN_MANAGER_Initialize(void)
     ODCON2 = 0x00;
     ODCON3 = 0x00;
 
-
-   
+    // Peripheral Pin Select----------------------------
+    EECON2 = 0x55;      //Charge pump!
+    EECON2 = 0xAA;
+    
+    PPSCONbits.IOLOCK = 0;  //Enable writing to the re-mappable functions
+    
+    //PWM Pin Setup
+    RPOR0 = 14;       //PWM1A
+    RPOR1 = 18;       //PWM2A
+    RPOR6 = 22;       //PMW3A
+    RPOR5 = 23;       //PMW3B
+    RPOR4 = 24;       //PMW3C
+    RPOR3 = 25;       //PMW3D
+    
+    //SSP2 Pin Setup
+    RPINR21 = 13;       //MSSP2 SPI DATA IN
+    RPOR11 = 0x0a;      //MSSP2 SPI DATA OUT
+    RPOR12 = 0x0B;      //MSSP2 SPI CLK
+    
+    //USART Setup
+    RPINR16 = 18;        //USART2 RC
+            
+    EECON2 = 0x55;
+    EECON2 = 0xAA;
 
 }
 
