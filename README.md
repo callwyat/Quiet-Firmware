@@ -10,21 +10,21 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 ├———:*IDN?
 ├———:DIGInput?
 ├———:ANAInput
-│   └———:CHannel<n>?
+│   └———:CHannel<n>
 ├———:DIGOutput
-│   └———:CHannel<n>?
+│   └———:CHannel<n>
 │       ├———:VALUe
 │       └———:MODE
 ├———:ANAOutput
-│   └———:CHannel<n>?
+│   └———:CHannel<n>
 │       ├———:VALUe
 │       └———:MODE
 ├———:PWM
-│   └———:CHannel<n>?
+│   └———:CHannel<n>
 │       ├———:VALUe
 │       └———:MODE
 ├———:SERVo
-│   └———:CHannel<n>?
+│   └———:CHannel<n>
 │       ├———:VALUe
 │       └———:MODE
 └———:SYSTem
