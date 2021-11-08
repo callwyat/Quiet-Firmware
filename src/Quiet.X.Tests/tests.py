@@ -8,7 +8,7 @@ QUIET_TERMINATION = '\r\n'
 BOOL_PATTERN = '\\b[01]\\b'
 HEX8_PATTERN = '\\b0x[0-9a-fA-F]{2}\\b'
 INT16_PATTERN = '\\b[\\d]{1,5}\\b'
-OUTPUT_MODE_PATTERN = '\\b[DISC|PWM|SERV]\\b'
+OUTPUT_MODE_PATTERN = '\\b(DISC|PWM|SERV)\\b'
 
 class QueryTest():
 
@@ -35,19 +35,6 @@ class QueryChannelTest():
     def check_response(self, response):
         return re.search(self.response, response)
 
-
-ESCAPES = {
-    '\r' : '\\r',
-    '\n' : '\\n',
-}
-
-def show_escapes(a):
-
-    for key in ESCAPES:
-        a = a.replace(key, ESCAPES[key])
-
-    return a
-
 def run_quiet_test(coms, verbose=False, exit_on_fail=True):
 
     # TODO: Apply default settings to the UUT
@@ -68,13 +55,13 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
         QueryChannelTest('ANAO:CH#:VALU?', 1, 2, INT16_PATTERN),
         QueryChannelTest('ANAO:CH#:MODE?', 1, 2, '\\bPWM\\b'),
 
-        QueryChannelTest('PWMO:CH#?', 1, 10, INT16_PATTERN),
-        QueryChannelTest('PWMO:CH#:VALU?', 1, 10, INT16_PATTERN),
-        QueryChannelTest('SERO:CH#:MODE?', 1, 10, OUTPUT_MODE_PATTERN), 
+        QueryChannelTest('PWMO:CH#?', 1, 6, INT16_PATTERN),
+        QueryChannelTest('PWMO:CH#:VALU?', 1, 6, INT16_PATTERN),
+        QueryChannelTest('PWMO:CH#:MODE?', 1, 6, OUTPUT_MODE_PATTERN), 
 
-        QueryChannelTest('SERO:CH#?', 1, 10, INT16_PATTERN),
-        QueryChannelTest('SERO:CH#:VALU?', 1, 10, INT16_PATTERN),
-        QueryChannelTest('SERO:CH#:MODE?', 1, 10, OUTPUT_MODE_PATTERN), 
+        QueryChannelTest('SERV:CH#?', 1, 10, INT16_PATTERN),
+        QueryChannelTest('SERV:CH#:VALU?', 1, 10, INT16_PATTERN),
+        QueryChannelTest('SERV:CH#:MODE?', 1, 10, OUTPUT_MODE_PATTERN), 
     ]
 
     for test in queryTests:
@@ -90,9 +77,9 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
                 print(f"{command.strip().ljust(16)} =>   {response.strip()}")
 
             if not test_result:
-                print(f"Test Failed\nSent:     \"{show_escapes(command)}\"\n" +
-                f"Expected: \"{show_escapes(test.response)}\"\n" +
-                f"Received: \"{show_escapes(response)}\"")
+                print(f"Test Failed\nSent:     {repr(command)}\n" +
+                f"Expected: {repr(test.response)}\n" +
+                f"Received: {repr(response)}")
 
                 if exit_on_fail:
                     return False
@@ -113,7 +100,7 @@ if __name__ == "__main__":
 
     com = serial.Serial(port=qPort, timeout=1)
 
-    if (run_quiet_test(com, verbose=True, exit_on_fail=True)):
+    if (run_quiet_test(com, verbose=True, exit_on_fail=False)):
         print("All Tests Passed")
 
     

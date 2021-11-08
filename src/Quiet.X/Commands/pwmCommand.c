@@ -81,7 +81,7 @@ const uint8_t pwmChanCommandCount = sizeof(pwmChanCommands) / sizeof(pwmChanComm
 
 void PWMSetChannelValue(CliBuffer *buffer, uint8_t channel)
 {
-    if (channel >= 1 && channel <= 2)
+    if (channel >= 1 && channel <= 6)
     {
         pwmChannel = channel;
         

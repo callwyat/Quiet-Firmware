@@ -81,7 +81,7 @@ const uint8_t servChanCommandCount = sizeof(servChanCommands) / sizeof(servChanC
 
 void SERVChannelCommand(CliBuffer *buffer, uint8_t channel)
 {
-    if (channel >= 1 && channel <= 2)
+    if (channel >= 1 && channel <= 10)
     {
         servoChannel = channel;
         
