@@ -72,7 +72,7 @@ void USB_CDC_Tasks(void)
             numBytesRead = 64;
         }
         
-        for(i=0; i<numBytesRead; i++)
+        for(i=0; i<numBytesRead; ++i)
         {
             switch(usbBuffer.InputBuffer[i])
             {
@@ -88,6 +88,9 @@ void USB_CDC_Tasks(void)
                     (uint8_t)(usbBuffer.OutputPnt - usbBuffer.OutputBuffer)); 
                     
                     LATBbits.LATB0 = 0;
+                    
+                    // Force the loop to exit
+                    i = 254;
                 }
                     break;
 
