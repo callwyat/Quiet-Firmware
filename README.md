@@ -6,18 +6,30 @@ The Qy@ (Quiet) Board was designed to add easy IO to a computer. It connects to 
 Commands are formatted using the SCPI (Standard Communication for Programable Instruments) format.
 
 ## Command Tree
-:*IDN?
-:DIGI?
-:ANAI   :CHx?
-:DIGO   :CHx    :VALUe
-                :MODE
-:ANAO   :CHx    :VALUe
-                :MODE
-:PWM    :CHx    :VALUe
-                :MODE
-:SERV   :CHx    :VALUe
-                :MODE
-:SYSM   :SERI
+```scpi
+├———:*IDN?
+├———:DIGInput?
+├———:ANAInput
+│   └———:CHannel<n>?
+├———:DIGOutput
+│   └———:CHannel<n>?
+│       ├———:VALUe
+│       └———:MODE
+├———:ANAOutput
+│   └———:CHannel<n>?
+│       ├———:VALUe
+│       └———:MODE
+├———:PWM
+│   └———:CHannel<n>?
+│       ├———:VALUe
+│       └———:MODE
+├———:SERVo
+│   └———:CHannel<n>?
+│       ├———:VALUe
+│       └———:MODE
+└———:SYSTem
+    └———:SerialNumber
+```
 
 ## Command Breakdown
 ### *IDN? (Query Only)
