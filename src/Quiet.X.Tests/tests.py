@@ -90,7 +90,7 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
     print('Starting Parse Test')
 
     # Test the parsing method
-    for val in range(0, 1024):
+    for val in range(0, 1024, 3):
 
         if verbose:
             print(f'Testing             => {val}')
