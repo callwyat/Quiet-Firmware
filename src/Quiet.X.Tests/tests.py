@@ -1,6 +1,7 @@
 
 
 import serial
+import serial.tools.list_ports
 import re
 
 QUIET_TERMINATION = '\r\n'
@@ -103,8 +104,14 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
 
 
 if __name__ == "__main__":
+    ports = list(serial.tools.list_ports.comports())
+    
+    for p in ports:        
+        if p.product and 'Qy@ Board' in p.product:
+            qPort = p.device
+            break
 
-    com = serial.Serial(port="/dev/tty.usbmodem142401", timeout=1)
+    com = serial.Serial(port=qPort, timeout=1)
 
     if (run_quiet_test(com, verbose=True, exit_on_fail=True)):
         print("All Tests Passed")
