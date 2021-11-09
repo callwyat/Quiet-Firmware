@@ -12,7 +12,8 @@
 extern "C" {
 #endif
 
-    #include "outputs.h"
+#include "outputs.h"
+#include <stdint.h>
 
     typedef struct {
         uint16_t Value;

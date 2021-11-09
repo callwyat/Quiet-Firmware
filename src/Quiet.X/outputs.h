@@ -13,6 +13,7 @@ extern "C" {
 #endif
 
 #include <stdbool.h>
+#include <stdint.h>
 
 const char* DISCREETWord = "DISC";
 const char* PWMWord = "PWM";

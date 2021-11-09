@@ -28,7 +28,8 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 │       ├———:VALUe
 │       └———:MODE
 └———:SYSTem
-    └———:SerialNumber
+    └———:SERIalNumber
+    └———:SAVEState
 ```
 
 ## Command Breakdown

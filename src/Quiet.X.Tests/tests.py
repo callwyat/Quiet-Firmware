@@ -104,6 +104,8 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
             print(f"Test Failed\nSent:     {repr(command)}\n" +
             f"Expected: {repr(expected)}\n" +
             f"Received: {repr(response)}")
+            if exit_on_fail:
+                    return False
 
         command = f'ANAO:CH1 {hex(val)};CH1?\r\n'
         com.write(command.encode())
@@ -113,6 +115,8 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
             print(f"Test Failed\nSent:     {repr(command)}\n" +
             f"Expected: {repr(expected)}\n" +
             f"Received: {repr(response)}")
+            if exit_on_fail:
+                    return False
 
     print('Parse Test Passed')
 
@@ -132,7 +136,7 @@ if __name__ == "__main__":
 
     com = serial.Serial(port=qPort, timeout=1)
 
-    if (run_quiet_test(com, verbose=False, exit_on_fail=True)):
+    if (run_quiet_test(com, verbose=True, exit_on_fail=True)):
         print("All Tests Passed")
 
     

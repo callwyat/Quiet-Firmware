@@ -8,7 +8,7 @@ void SerialNumberCommand(CliBuffer *buffer)
 {
     QuietSettings_t settings = GetSettings();
     
-    if (buffer->InputPnt == ' ')
+    if (*buffer->InputPnt == ' ')
     {
         ++buffer->InputPnt;
         
@@ -18,7 +18,7 @@ void SerialNumberCommand(CliBuffer *buffer)
             
             bool foundEnd = false;
             
-            char *c = &settings.SerialNumber;
+            char *c = settings.SerialNumber;
             
             for (uint8_t i = 0; i < (sizeof(settings.SerialNumber) - 1) && !foundEnd; ++i)
             {
@@ -47,7 +47,7 @@ void SerialNumberCommand(CliBuffer *buffer)
         ++buffer->InputPnt;
         
         *buffer->OutputPnt++ = '"';
-        char *c = &settings.SerialNumber;
+        char *c = settings.SerialNumber;
         
         while (*c)
         {
@@ -69,9 +69,9 @@ void SaveCommand(CliBuffer *buffer)
 }
 
 const CommandDefinition systemCommands[] = {
-  DEFINE_CHANNEL_COMMAND("REST", RestoreCommand),
-  DEFINE_CHANNEL_COMMAND("SAVE", SaveCommand),
-  DEFINE_CHANNEL_COMMAND("SERI", SerialNumberCommand),
+  DEFINE_COMMAND("REST", RestoreCommand),
+  DEFINE_COMMAND("SAVE", SaveCommand),
+  DEFINE_COMMAND("SERI", SerialNumberCommand),
 };
 
 const uint8_t systemCommandCount = sizeof(systemCommands) / sizeof(systemCommands[0]);
