@@ -26,7 +26,7 @@ extern "C" {
     }
     
     typedef struct {
-        uint8_t Occupied;
+        uint16_t Occupied;
         char SerialNumber[16];
         OutputSettings_t OutputSettings[10];
     } QuietSettings_t;

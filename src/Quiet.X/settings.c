@@ -12,7 +12,7 @@
 #include "constants.h"
 #include "mcc_generated_files/memory.h"
 
-const QuietSettings_t settings __at(0xFF80) = {
+const QuietSettings_t settings __at(0xF800) = {
     .Occupied = 1,
     .SerialNumber = { '{', 'S', 'e', 'r', 'i', 'a', 'l', ' ', 
     'N', 'u', 'm', 'b', 'e', 'r', '}', '\x00'},

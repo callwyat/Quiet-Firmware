@@ -38,6 +38,7 @@ void SerialNumberCommand(CliBuffer *buffer)
             
             if (foundEnd)
             {
+                *c++ = '\x00';
                 SetSettings(settings);
             }
         }
