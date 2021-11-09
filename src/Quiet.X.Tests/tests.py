@@ -40,7 +40,7 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
     # TODO: Apply default settings to the UUT
 
     queryTests = [
-        QueryTest('*IDN?', 'Y@ Technologies,Qy@ Board,\\{Serial Number\\},[2-9]\\.[0-9]'),
+        QueryTest('*IDN?', 'Y@ Technologies,Qy@ Board,.*?,[2-9]\\.[0-9]'),
 
         QueryTest('DIGI?', HEX8_PATTERN),
 

@@ -273,9 +273,20 @@ void ProcessCLI(CliBuffer *buffer)
     // Upper Case the input
     char *pnt = buffer->InputBuffer;
     
+    bool inQuote = false;
     while (*pnt != 0x00)
     {
-        if (*pnt >= 'a' && *pnt <= 'z')
+        // Don't ToUpper Strings
+        if (*pnt == '"')
+        {
+            --pnt;
+            if (*pnt++ != '\\')
+            {
+                inQuote = !inQuote;
+            }
+            
+        }
+        else if (!inQuote && *pnt >= 'a' && *pnt <= 'z')
         {
             *pnt -= 0x20;
         }
