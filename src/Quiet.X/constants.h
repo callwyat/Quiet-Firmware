@@ -21,6 +21,8 @@ const char* VersionString = "2.0";
 #define DIN PORTD
 #define DOUT LATB
 
+#define USBLED PORTEbits.RE1
+
 #define OUTPUT_COUNT 10
 
 #ifdef	__cplusplus

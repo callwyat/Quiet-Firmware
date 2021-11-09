@@ -46,6 +46,7 @@
 #include "analogInputs.h"
 #include "outputs.h"
 #include "settings.h"
+#include "constants.h"
 
 static CliBuffer usbBuffer;
 
@@ -53,7 +54,12 @@ void USB_CDC_Tasks(void)
 {
     if( USBGetDeviceState() < CONFIGURED_STATE )
     {
+        USBLED = 0;
         return;
+    }
+    else
+    {
+        USBLED = 1;
     }
 
     if( USBIsDeviceSuspended()== true )
