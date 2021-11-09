@@ -45,6 +45,7 @@
 #include "CLI/cli.h"
 #include "analogInputs.h"
 #include "outputs.h"
+#include "settings.h"
 
 static CliBuffer usbBuffer;
 
@@ -152,7 +153,8 @@ void main(void)
     // Initialize the device
     SYSTEM_Initialize();
     
-    
+    // Load up settings
+    RestoreSettings();
     
     //USB Setup-------------------------------
     // If using interrupts in PIC18 High/Low Priority Mode you need to enable the Global High and Low Interrupts

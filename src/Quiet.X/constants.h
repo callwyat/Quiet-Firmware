@@ -16,13 +16,12 @@ extern "C" {
 
 const char* MakeString = "Y@ Technologies";
 const char* ModelString = "Qy@ Board";
-const char* SerialNumberString = "{Serial Number}";
 const char* VersionString = "2.0";
-
 
 #define DIN PORTD
 #define DOUT LATB
 
+#define OUTPUT_COUNT 10
 
 #ifdef	__cplusplus
 }

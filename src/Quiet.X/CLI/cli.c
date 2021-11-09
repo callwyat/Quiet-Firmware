@@ -10,6 +10,7 @@
 #include "../Commands/anaoCommand.h"
 #include "../Commands/pwmCommand.h"
 #include "../Commands/servoCommand.h"
+#include "../Commands/systemCommand.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -262,6 +263,7 @@ const CommandDefinition commands[] = {
     DEFINE_COMMAND("ANAI", AnalogInputs),
     DEFINE_COMMAND("DIGI", DigitalInputs),
     DEFINE_COMMAND("*IDN", Identify),
+    DEFINE_COMMAND("SYST", SystemCommand),
 };
 
 const uint8_t CommandCount = sizeof(commands) / sizeof(commands[0]);
