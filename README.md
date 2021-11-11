@@ -30,6 +30,7 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 └———:SYSTem
     └———:SERIalNumber
     └———:SAVEState
+    └———:RESToreState
 ```
 
 ## Command Breakdown

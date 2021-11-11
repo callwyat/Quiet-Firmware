@@ -15,11 +15,12 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
     
-    
-    typedef struct
+    typedef struct CliBuffer
     {
         char *InputPnt;
         char *OutputPnt;
+        uint8_t InputLength;
+        void(*DataHandle)(struct CliBuffer *buffer);
         char InputBuffer[64];
         char OutputBuffer[64];
     } CliBuffer;
@@ -60,11 +61,17 @@ extern "C" {
     
     int16_t ParseInt(char** str);
     
-    bool IsNumber(char c);
+    uint16_t ParseIEEEHeader(CliBuffer *buffer);
+    
+    void GenerateIEEEHeader(CliBuffer *buffer, uint16_t dataSize);
     
     void CopyWordToOutBuffer(CliBuffer *buffer, const char* word);
     
     void ProcessCLI(CliBuffer *buffer);
+    
+    void SetLargeDataHandle(CliBuffer *buffer, CommandHandle handle);
+    
+    void ClearLargeDataHandle(CliBuffer *buffer);
 
 #ifdef	__cplusplus
 }

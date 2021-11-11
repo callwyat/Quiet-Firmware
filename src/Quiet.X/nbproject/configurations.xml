@@ -13,6 +13,7 @@
         <itemPath>Commands/servoCommand.h</itemPath>
         <itemPath>Commands/digoCommand.h</itemPath>
         <itemPath>Commands/systemCommand.h</itemPath>
+        <itemPath>Commands/uartCommand.h</itemPath>
       </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"
@@ -68,6 +69,7 @@
         <itemPath>Commands/servoCommand.c</itemPath>
         <itemPath>Commands/digoCommand.c</itemPath>
         <itemPath>Commands/systemCommand.c</itemPath>
+        <itemPath>Commands/uartCommand.c</itemPath>
       </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"
@@ -247,6 +249,7 @@
                   value="Press to browse for a specific firmware version"/>
         <property key="ToolFirmwareOption.UseLatestFirmware" value="true"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
+        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="true"/>

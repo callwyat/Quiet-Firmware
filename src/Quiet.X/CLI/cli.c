@@ -10,6 +10,7 @@
 #include "../Commands/anaoCommand.h"
 #include "../Commands/pwmCommand.h"
 #include "../Commands/servoCommand.h"
+#include "../Commands/uartCommand.h"
 #include "../Commands/systemCommand.h"
 
 #include <stdbool.h>
@@ -25,6 +26,12 @@ bool SCPICompare(const char *reference, char *input)
     // Match upto the first 4 chars, or until reference is null
     for (int i = 0; i < 4; ++i)
     {        
+        // To Upper
+        if (*input >= 'a' && *input <= 'z')
+        {
+            *input -= 0x20;
+        }
+        
         if (*reference++ != *input++)
         {
             return false;
@@ -246,6 +253,48 @@ int16_t ParseInt(char** str)
     return result;
 }
 
+uint16_t ParseIEEEHeader(CliBuffer *buffer)
+{
+    if (IS_NUMBER(*buffer->InputPnt))
+    {
+        uint8_t headerSize = *buffer->InputPnt - '0';
+        
+        ++buffer->InputPnt;
+        
+        uint16_t result = 0;
+        for (uint8_t i = 0; i < headerSize; ++i)
+        {
+            if (IS_NUMBER(*buffer->InputPnt))
+            {
+                result *= 10;
+                result += *buffer->InputPnt++ - '0';
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        
+        return result; 
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+void GenerateIEEEHeader(CliBuffer *buffer, uint16_t dataSize)
+{
+    *buffer->OutputPnt++ = '#';
+    
+    char *c = buffer->OutputPnt++;
+    IntToString(buffer, dataSize);
+    
+    uint8_t dataHeaderSize = (uint8_t)(buffer->OutputPnt - c);
+    
+    *c = dataHeaderSize + '0';
+}
+
 void CopyWordToOutBuffer(CliBuffer *buffer, const char* word)
 {
     while (*word)
@@ -264,36 +313,13 @@ const CommandDefinition commands[] = {
     DEFINE_COMMAND("DIGI", DigitalInputs),
     DEFINE_COMMAND("*IDN", Identify),
     DEFINE_COMMAND("SYST", SystemCommand),
+    DEFINE_COMMAND("UART", UARTCommand),
 };
 
 const uint8_t CommandCount = sizeof(commands) / sizeof(commands[0]);
 
 void ProcessCLI(CliBuffer *buffer)
-{
-    // Upper Case the input
-    char *pnt = buffer->InputBuffer;
-    
-    bool inQuote = false;
-    while (*pnt != 0x00)
-    {
-        // Don't ToUpper Strings
-        if (*pnt == '"')
-        {
-            --pnt;
-            if (*pnt++ != '\\')
-            {
-                inQuote = !inQuote;
-            }
-            
-        }
-        else if (!inQuote && *pnt >= 'a' && *pnt <= 'z')
-        {
-            *pnt -= 0x20;
-        }
-        
-        ++pnt;
-    }
-    
+{    
     buffer->InputPnt = buffer->InputBuffer;
     buffer->OutputPnt = buffer->OutputBuffer;
     
@@ -307,5 +333,32 @@ void ProcessCLI(CliBuffer *buffer)
         *buffer->OutputPnt++ = '\r';
         *buffer->OutputPnt++ = '\n';
         *buffer->OutputPnt = '\x00';
+    }
+}
+
+uint24_t TheStack[32];
+uint24_t *TheStackPnt = TheStack;
+
+void SetLargeDataHandle(CliBuffer *buffer, CommandHandle handle)
+{    
+    buffer->DataHandle = handle;
+    
+    // Pop the stack until we get back to Process CLI
+    while (TOS != (uint24_t)&ProcessCLI)
+    {
+        *TheStackPnt++ = TOS;
+        __asm("pop");
+    }
+}
+
+void ClearLargeDataHandle(CliBuffer *buffer)
+{
+    buffer->DataHandle = 0x0000;
+    
+    // Pop the stack until we get back to Process CLI
+    while (TheStackPnt != TheStack)
+    {
+        TOS = *TheStackPnt--;
+        __asm("push");
     }
 }

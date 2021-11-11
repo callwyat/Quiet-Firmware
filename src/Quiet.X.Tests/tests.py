@@ -136,7 +136,7 @@ if __name__ == "__main__":
 
     com = serial.Serial(port=qPort, timeout=1)
 
-    if (run_quiet_test(com, verbose=True, exit_on_fail=True)):
+    if (run_quiet_test(com, verbose=True, exit_on_fail=False)):
         print("All Tests Passed")
 
     

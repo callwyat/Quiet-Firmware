@@ -79,31 +79,37 @@ void USB_CDC_Tasks(void)
             numBytesRead = 64;
         }
         
-        for(i=0; i<numBytesRead; ++i)
+        if (usbBuffer.DataHandle)
         {
-            switch(usbBuffer.InputBuffer[i])
+            usbBuffer.DataHandle(&usbBuffer);
+        }
+        else
+        {
+            for(i=0; i<numBytesRead; ++i)
             {
-                /* echo line feeds and returns without modification. */
-                case 0x0A:
-                case 0x0D:
+                switch(usbBuffer.InputBuffer[i])
                 {
-                    LATBbits.LATB0 = 1;
-                    
-                    ProcessCLI(&usbBuffer);
-                    
-                    putUSBUSART((uint8_t*)usbBuffer.OutputBuffer, 
-                    (uint8_t)(usbBuffer.OutputPnt - usbBuffer.OutputBuffer)); 
-                    
-                    LATBbits.LATB0 = 0;
-                    
-                    // Force the loop to exit
-                    i = 254;
-                }
-                    break;
+                    /* echo line feeds and returns without modification. */
+                    case 0x0A:
+                    case 0x0D:
+                    {
+                        LATBbits.LATB0 = 1;
 
-                /* all other characters get +1 (e.g. 'a' -> 'b') */
-                default:
-                    break;
+                        ProcessCLI(&usbBuffer);
+
+                        putUSBUSART((uint8_t*)usbBuffer.OutputBuffer, 
+                        (uint8_t)(usbBuffer.OutputPnt - usbBuffer.OutputBuffer)); 
+
+                        LATBbits.LATB0 = 0;
+                        // Force the loop to exit
+                        i = 254;
+                    }
+                        break;
+
+                    /* all other characters get +1 (e.g. 'a' -> 'b') */
+                    default:
+                        break;
+                }
             }
         }
     }
@@ -154,6 +160,16 @@ void ProcessTasks(void)
  */
 void main(void)
 {
+#if 1 || __DEBUG
+    
+//    FSR0 = 0x0E00;
+//   
+//    do 
+//    {
+//        POSTDEC0 = 0x00;
+//    } while (FSR0 != 0x00);
+    
+#endif 
     // TODO: Auto Crystal detection
     
     // Initialize the device
@@ -188,7 +204,7 @@ void main(void)
 
     // Disable the Peripheral Interrupts
     //INTERRUPT_PeripheralInterruptDisable();
-
+    
     while (1)
     {
         USB_CDC_Tasks();
