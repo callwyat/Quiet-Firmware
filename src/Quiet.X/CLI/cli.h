@@ -20,7 +20,7 @@ extern "C" {
         char *InputPnt;
         char *OutputPnt;
         uint8_t InputLength;
-        void(*DataHandle)(struct CliBuffer_t *buffer);
+        void(*DataHandle)(struct CliBuffer *buffer);
         char InputBuffer[64];
         char OutputBuffer[64];
     } CliBuffer_t;

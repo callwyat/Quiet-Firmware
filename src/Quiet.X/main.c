@@ -69,47 +69,25 @@ void USB_CDC_Tasks(void)
 
     if( USBUSARTIsTxTrfReady() == true)
     {
-        uint8_t i;
-        uint8_t numBytesRead;
+        usbBuffer.InputLength = getsUSBUSART((uint8_t*)usbBuffer.InputBuffer, sizeof(usbBuffer.InputBuffer));
 
-        numBytesRead = getsUSBUSART((uint8_t*)usbBuffer.InputBuffer, sizeof(usbBuffer.InputBuffer));
-
-        if (numBytesRead > sizeof(usbBuffer.InputBuffer))
+        if (usbBuffer.InputLength != 0)
         {
-            numBytesRead = 64;
-        }
-        
-        if (usbBuffer.DataHandle)
-        {
-            usbBuffer.DataHandle(&usbBuffer);
-        }
-        else
-        {
-            for(i=0; i<numBytesRead; ++i)
+            if (usbBuffer.DataHandle)
             {
-                switch(usbBuffer.InputBuffer[i])
-                {
-                    /* echo line feeds and returns without modification. */
-                    case 0x0A:
-                    case 0x0D:
-                    {
-                        LATBbits.LATB0 = 1;
+                usbBuffer.InputPnt = usbBuffer.InputBuffer;
+                usbBuffer.DataHandle(&usbBuffer);
+            }
+            else
+            {
+                LATBbits.LATB0 = 1;
 
-                        ProcessCLI(&usbBuffer);
+                ProcessCLI(&usbBuffer);
 
-                        putUSBUSART((uint8_t*)usbBuffer.OutputBuffer, 
-                        (uint8_t)(usbBuffer.OutputPnt - usbBuffer.OutputBuffer)); 
+                putUSBUSART((uint8_t*)usbBuffer.OutputBuffer, 
+                (uint8_t)(usbBuffer.OutputPnt - usbBuffer.OutputBuffer)); 
 
-                        LATBbits.LATB0 = 0;
-                        // Force the loop to exit
-                        i = 254;
-                    }
-                        break;
-
-                    /* all other characters get +1 (e.g. 'a' -> 'b') */
-                    default:
-                        break;
-                }
+                LATBbits.LATB0 = 0;
             }
         }
     }

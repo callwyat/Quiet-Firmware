@@ -318,8 +318,11 @@ const CommandDefinition commands[] = {
 
 const uint8_t CommandCount = sizeof(commands) / sizeof(commands[0]);
 
+volatile uint8_t stackPnt;
+
 void ProcessCLI(CliBuffer_t *buffer)
 {    
+    stackPnt = STKPTR;
     buffer->InputPnt = buffer->InputBuffer;
     buffer->OutputPnt = buffer->OutputBuffer;
     
@@ -343,17 +346,25 @@ void SetLargeDataHandle(CliBuffer_t *buffer, CommandHandle handle)
 {    
     buffer->DataHandle = handle;
     
+    uint8_t intConSto = INTCON;     // Disable interrupts
+    INTCON = 0x00;
+    
     // Pop the stack until we get back to Process CLI
-    while (TOS != (uint24_t)&ProcessCLI)
+    while (STKPTR > stackPnt)
     {
         *TheStackPnt++ = TOS;
         __asm("pop");
     }
+    
+    INTCON |= intConSto;            // Restore Interrupts
 }
 
 void ClearLargeDataHandle(CliBuffer_t *buffer)
 {
     buffer->DataHandle = 0x0000;
+    
+    uint8_t intConSto = INTCON;     // Disable interrupts
+    INTCON = 0x00;
     
     // Pop the stack until we get back to Process CLI
     while (TheStackPnt != TheStack)
@@ -361,4 +372,6 @@ void ClearLargeDataHandle(CliBuffer_t *buffer)
         TOS = *TheStackPnt--;
         __asm("push");
     }
+    
+    INTCON |= intConSto;            // Restore Interrupts
 }

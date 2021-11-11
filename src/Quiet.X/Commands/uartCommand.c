@@ -33,7 +33,7 @@ uint16_t readSize = 0;
 
 void UARTLargeWrite(CliBuffer_t *buffer)
 {
-    uint8_t bufferRemaining = &buffer->InputBuffer[buffer->InputLength] - buffer->InputBuffer;
+    uint8_t bufferRemaining = &buffer->InputBuffer[buffer->InputLength] - buffer->InputPnt;
 
     if (readSize <= bufferRemaining)
     {
@@ -81,7 +81,7 @@ void UARTWriteCommand(CliBuffer_t *buffer)
             // Check for an invalid number
             if (readSize != 0)
             {
-
+                UARTLargeWrite(buffer);
             }
         }
     }
