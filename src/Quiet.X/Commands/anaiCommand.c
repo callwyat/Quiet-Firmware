@@ -15,7 +15,7 @@ void PrintAnalogInput(CliBuffer_t *buffer, uint8_t channel)
             
             // Get the value from the analog buffer
             uint16_t value = GetADCValue(channel - 1);
-            IntToString(buffer, value);
+            Int14ToString(buffer, value);
         }
     }
 }

@@ -57,9 +57,13 @@ extern "C" {
     
     void ByteToHexString(CliBuffer_t *buffer, uint8_t b);
     
-    void IntToString(CliBuffer_t *buffer, uint16_t i);
+    void Int14ToString(CliBuffer_t *buffer, uint16_t i);
+    
+    void Int24ToString(CliBuffer_t *buffer, uint24_t input);
     
     int16_t ParseInt(char** str);
+    
+    uint24_t ParseInt24(char** str);
     
     uint16_t ParseIEEEHeader(CliBuffer_t *buffer);
     

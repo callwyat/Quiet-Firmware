@@ -154,8 +154,10 @@ void ByteToHexString(CliBuffer_t *buffer, uint8_t b)
     *buffer->OutputPnt++ = lowerNibble + (lowerNibble > 0x09 ? '7' : '0');
 }
 
-const uint16_t decades[] = { 10000, 1000, 100, 10, 1 };
-void IntToString(CliBuffer_t *buffer, uint16_t input)
+const uint16_t decades14[] = { 1000, 100, 10, 1 };
+#define DECADES14_LENGTH sizeof(decades14) / sizeof(decades14[0])
+
+void Int14ToString(CliBuffer_t *buffer, uint16_t input)
 {    
     if (input == 0)
     {
@@ -164,14 +166,48 @@ void IntToString(CliBuffer_t *buffer, uint16_t input)
     }
     else
     {
-        const uint16_t* d = decades;
+        const uint16_t* d = decades14;
         // Figure out when to start
         while (*d > input)
         {
             ++d;
         }
 
-        while (d < &decades[5])
+        while (d < &decades14[DECADES14_LENGTH])
+        {
+            char c = '0';
+
+            while (input >= *d)
+            {
+                input -= *d;
+                ++c;
+            }
+
+            ++d;
+            *buffer->OutputPnt++ = c;
+        }
+    }
+}
+
+const uint24_t decades24[] = { 10000000, 1000000, 100000, 10000, 1000, 100, 10, 1 };
+#define DECADES24_LENGTH sizeof(decades24) / sizeof(decades24[0])
+void Int24ToString(CliBuffer_t *buffer, uint24_t input)
+{    
+    if (input == 0)
+    {
+        *buffer->OutputPnt++ = '0';
+        return;
+    }
+    else
+    {
+        const uint24_t* d = decades24;
+        // Figure out when to start
+        while (*d > input)
+        {
+            ++d;
+        }
+
+        while (d < &decades24[DECADES24_LENGTH])
         {
             char c = '0';
 
@@ -254,6 +290,21 @@ int16_t ParseInt(char** str)
     return result;
 }
 
+uint24_t ParseInt24(char** str)
+{
+    uint24_t result = 0;
+    
+    while (IS_NUMBER(**str))
+    {
+        result *= 10;
+        result += **str - '0';
+
+        ++(*str);
+    }
+    
+    return result;
+}
+
 uint16_t ParseIEEEHeader(CliBuffer_t *buffer)
 {
     if (IS_NUMBER(*buffer->InputPnt))
@@ -289,9 +340,9 @@ void GenerateIEEEHeader(CliBuffer_t *buffer, uint16_t dataSize)
     *buffer->OutputPnt++ = '#';
     
     char *c = buffer->OutputPnt++;
-    IntToString(buffer, dataSize);
+    Int14ToString(buffer, dataSize);
     
-    uint8_t dataHeaderSize = (uint8_t)(buffer->OutputPnt - c);
+    uint8_t dataHeaderSize = (uint8_t)(buffer->OutputPnt - c) - 1;
     
     *c = dataHeaderSize + '0';
 }
@@ -311,7 +362,7 @@ void DiagnosticsCommand(CliBuffer_t *buffer)
     {
         ++buffer->InputPnt;
 
-        IntToString(buffer, lastExecutionTime);
+        Int14ToString(buffer, lastExecutionTime);
     }
 }
 

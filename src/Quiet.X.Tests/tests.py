@@ -3,6 +3,7 @@
 import serial
 import serial.tools.list_ports
 import re
+import time
 
 QUIET_TERMINATION = '\r\n'
 BOOL_PATTERN = '\\b[01]\\b'
@@ -125,6 +126,30 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
 
     print('Parse Test Passed')
 
+    print('UART Tests')
+
+    com.write('UART:BAUD 115200'.encode())
+    
+    data = ''
+    for i in range(0, 64):
+
+        data += 'U'
+        data_size = str(len(data))
+        header_size = len(data_size)
+
+        packet = f'#{header_size}{data_size}{data}'
+        com.write(f'UART:WRIT {packet}\r\n'.encode())
+
+        time.sleep(0.001 * i)
+        com.write('UART:READ?\r\n'.encode())
+        response = coms.read_until().decode()
+
+        if response != packet + '\r\n':
+            print(f'UART Test Failed at: {i}')
+            if exit_on_fail:
+                    return False
+
+    print('UART Test Complete')
     # TODO: Test the manipulation of settings
 
     return True

@@ -48,6 +48,7 @@
   Section: Included Files
 */
 #include "eusart1.h"
+#include "device_config.h"
 
 /**
   Section: Macro Declarations
@@ -127,6 +128,32 @@ void EUSART1_Initialize(void)
 
     // enable receive interrupt
     PIE1bits.RC1IE = 1;
+}
+
+void EUART1_set_baud_rate(uint24_t rate)
+{
+    uint16_t period = _XTAL_FREQ / (4 * ((uint24_t)rate + 1));
+            
+    uint8_t storage = TXSTA1;
+    TXSTA1 = 0x00;
+    SPBRG1 = (uint8_t)period & 0xFF;
+    SPBRGH1 = (uint8_t)(period >> 8);
+    TXSTA1 = storage;
+    
+    period *= 3;
+    
+    storage = RCSTA2;
+    RCSTA2 = 0x00;
+    SPBRG2 = (uint8_t)period & 0xFF;
+    SPBRGH2 = (uint8_t)(period >> 8);
+    RCSTA2 = storage;
+}
+
+uint24_t EUART1_get_baud_rate(void)
+{
+    uint24_t period = (SPBRGH1 << 8) + SPBRG1;
+    
+    return (_XTAL_FREQ / (4 * period)) - 1;   
 }
 
 bool EUSART1_is_tx_ready(void)

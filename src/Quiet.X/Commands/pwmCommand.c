@@ -58,7 +58,7 @@ void PWMChannelValueCommand(CliBuffer_t *buffer)
     {
         ++buffer->InputPnt;
         uint16_t value = GetOutputValue(PWM_CHANNEL);
-        IntToString(buffer, value);
+        Int14ToString(buffer, value);
     }
     else if (*buffer->InputPnt == ' ')
     {

@@ -22,9 +22,9 @@ void UARTReadCommand(CliBuffer_t *buffer)
         
         GenerateIEEEHeader(buffer, receivedData);
         
-        while (receivedData > 0)
+        while (receivedData-- > 0)
         {
-            *buffer->OutputPnt = EUSART2_Read();
+            *buffer->OutputPnt++ = EUSART2_Read();
         }
     }
 }
@@ -40,7 +40,7 @@ void UARTLargeWrite(CliBuffer_t *buffer)
         // Read out the data in this buffer
         do
         {
-            EUSART1_Write((uint8_t)buffer->InputPnt++);
+            EUSART1_Write((uint8_t)*buffer->InputPnt++);
         } while (--readSize > 0);
         
         ClearLargeDataHandle(buffer);
@@ -52,7 +52,7 @@ void UARTLargeWrite(CliBuffer_t *buffer)
         // Read out the data until all the data is read
         do 
         {
-            EUSART1_Write((uint8_t)buffer->InputPnt++);
+            EUSART1_Write((uint8_t)*buffer->InputPnt++);
         }   while (--bufferRemaining > 0);
 
         if (buffer->DataHandle)
@@ -87,9 +87,35 @@ void UARTWriteCommand(CliBuffer_t *buffer)
     }
 }
 
+void UARTBaudCommand(CliBuffer_t *buffer)
+{
+    if (*buffer->InputPnt == '?')
+    {
+        ++buffer->InputPnt;
+        
+        uint24_t baudRate = EUART1_get_baud_rate();
+        
+        Int24ToString(buffer, baudRate);
+    }
+    else if (*buffer->InputPnt == ' ')
+    {
+        ++buffer->InputPnt;
+        
+        uint24_t buadRate = ParseInt24(&buffer->InputPnt);
+        
+        // BaudRates below 60 cannot be generated with this the system clock
+        if (buadRate > 60)
+        {
+            EUART1_set_baud_rate(buadRate);
+        }
+
+    }
+}
+
 const CommandDefinition uartCommands[] = {
   DEFINE_COMMAND("READ", UARTReadCommand),
   DEFINE_COMMAND("WRIT", UARTWriteCommand),
+  DEFINE_COMMAND("BAUD", UARTBaudCommand),
 };
 
 const uint8_t uartCommandCount = sizeof(uartCommands) / sizeof(uartCommands[0]);

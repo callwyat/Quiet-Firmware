@@ -58,7 +58,7 @@ void SERVChannelValueCommand(CliBuffer_t *buffer)
     {
         ++buffer->InputPnt;
         uint16_t value = GetOutputValue(SERVO_CHANNEL);
-        IntToString(buffer, value);
+        Int14ToString(buffer, value);
     }
     else if (*buffer->InputPnt == ' ')
     {
