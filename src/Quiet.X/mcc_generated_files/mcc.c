@@ -55,11 +55,11 @@ void SYSTEM_Initialize(void)
     SPI2_Initialize();
     PIN_MANAGER_Initialize();
     OSCILLATOR_Initialize();
-    EPWM2_Initialize();
     USBDeviceInit();
+    EPWM2_Initialize();
     TMR2_Initialize();
-    EPWM3_Initialize();
     ADC_Initialize();
+    EPWM3_Initialize();
     EPWM1_Initialize();
     TMR1_Initialize();
     USBDeviceAttach();

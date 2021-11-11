@@ -80,14 +80,10 @@ void USB_CDC_Tasks(void)
             }
             else
             {
-                LATBbits.LATB0 = 1;
-
                 ProcessCLI(&usbBuffer);
 
                 putUSBUSART((uint8_t*)usbBuffer.OutputBuffer, 
-                (uint8_t)(usbBuffer.OutputPnt - usbBuffer.OutputBuffer)); 
-
-                LATBbits.LATB0 = 0;
+                (uint8_t)(usbBuffer.OutputPnt - usbBuffer.OutputBuffer));
             }
         }
     }

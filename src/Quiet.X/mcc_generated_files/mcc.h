@@ -61,8 +61,8 @@
 #include "epwm1.h"
 #include "usb/usb.h"
 #include "memory.h"
-#include "epwm3.h"
 #include "adc.h"
+#include "epwm3.h"
 #include "eusart2.h"
 #include "eusart1.h"
 

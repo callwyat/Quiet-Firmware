@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include <xc.h>
+#include "../mcc_generated_files/tmr1.h"
 
 #define IS_NUMBER(c) (c >= '0' && c <= '9')
 
@@ -303,6 +304,17 @@ void CopyWordToOutBuffer(CliBuffer_t *buffer, const char* word)
     }
 }
 
+uint16_t lastExecutionTime = 0;
+void DiagnosticsCommand(CliBuffer_t *buffer)
+{
+    if (*buffer->InputPnt == '?')
+    {
+        ++buffer->InputPnt;
+
+        IntToString(buffer, lastExecutionTime);
+    }
+}
+
 // Put the commands that have the most branches towards the top
 const CommandDefinition commands[] = {
     DEFINE_COMMAND("PWMO", PWMOutputs),
@@ -314,14 +326,16 @@ const CommandDefinition commands[] = {
     DEFINE_COMMAND("*IDN", Identify),
     DEFINE_COMMAND("SYST", SystemCommand),
     DEFINE_COMMAND("UART", UARTCommand),
+    DEFINE_COMMAND("DIAG", DiagnosticsCommand),
 };
 
 const uint8_t CommandCount = sizeof(commands) / sizeof(commands[0]);
 
 volatile uint8_t stackPnt;
-
 void ProcessCLI(CliBuffer_t *buffer)
 {    
+    TMR1_WriteTimer(0x0000);
+    TMR1_StartTimer();
     stackPnt = STKPTR;
     buffer->InputPnt = buffer->InputBuffer;
     buffer->OutputPnt = buffer->OutputBuffer;
@@ -337,6 +351,9 @@ void ProcessCLI(CliBuffer_t *buffer)
         *buffer->OutputPnt++ = '\n';
         *buffer->OutputPnt = '\x00';
     }
+
+    TMR1_StopTimer();
+    lastExecutionTime = TMR1_ReadTimer();
 }
 
 uint24_t TheStack[32];
