@@ -74,9 +74,6 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
 
             response = coms.read_until().decode()
             test_result = test.check_response(response)
-            
-            if verbose:
-                print(f"{command.strip().ljust(16)} =>   {response.strip()}")
 
             if not test_result:
                 print(f"Test Failed\nSent:     {repr(command)}\n" +
@@ -85,6 +82,14 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
 
                 if exit_on_fail:
                     return False
+
+            else:
+                # Get the time to execute the command
+                coms.write('DIAG?'.encode())
+                execution_time = coms.read_until().decode().strip()
+
+                if verbose:
+                    print(f"{command.strip().ljust(16)} ( {execution_time.ljust(5)} ) =>   {response.strip()}")
 
     print('Command Tests Passed')
     print('Starting Parse Test')
