@@ -5,7 +5,7 @@
 #include "../mcc_generated_files/eusart2.h"
 
 
-void UARTReadCommand(CliBuffer *buffer)
+void UARTReadCommand(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -31,7 +31,7 @@ void UARTReadCommand(CliBuffer *buffer)
 
 uint16_t readSize = 0;
 
-void UARTLargeWrite(CliBuffer *buffer)
+void UARTLargeWrite(CliBuffer_t *buffer)
 {
     uint8_t bufferRemaining = &buffer->InputBuffer[buffer->InputLength] - buffer->InputBuffer;
 
@@ -66,7 +66,7 @@ void UARTLargeWrite(CliBuffer *buffer)
     }
 }
 
-void UARTWriteCommand(CliBuffer *buffer)
+void UARTWriteCommand(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == ' ')
     {        
@@ -94,7 +94,7 @@ const CommandDefinition uartCommands[] = {
 
 const uint8_t uartCommandCount = sizeof(uartCommands) / sizeof(uartCommands[0]);
 
-void UARTCommand(CliBuffer *buffer)
+void UARTCommand(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == ':')
     {

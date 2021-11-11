@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-    void Identify(CliBuffer *buffer);
+    void Identify(CliBuffer_t *buffer);
 
 
 #ifdef	__cplusplus

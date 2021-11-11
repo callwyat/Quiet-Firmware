@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-    void UARTCommand(CliBuffer *buffer);
+    void UARTCommand(CliBuffer_t *buffer);
 
 
 #ifdef	__cplusplus

@@ -10,7 +10,7 @@ uint8_t anaoChannel;
 
 #define ANAOUT_CHANNEL ((uint8_t)(anaoChannel + ANAOUT_OFFSET))
 
-void ANAOChannelModeCommand(CliBuffer *buffer)
+void ANAOChannelModeCommand(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -57,7 +57,7 @@ void ANAOChannelModeCommand(CliBuffer *buffer)
     }
 }
 
-void ANAOChannelValueCommand(CliBuffer *buffer)
+void ANAOChannelValueCommand(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -84,7 +84,7 @@ const CommandDefinition anaoChanCommands[] = {
 const uint8_t anaoChanCommandCount = sizeof(anaoChanCommands) / sizeof(anaoChanCommands[0]);
 
 
-void ANAOChannelCommand(CliBuffer *buffer, uint8_t channel)
+void ANAOChannelCommand(CliBuffer_t *buffer, uint8_t channel)
 {
     if (channel >= 1 && channel <= 2)
     {
@@ -109,7 +109,7 @@ const CommandDefinition anaoCommands[] = {
 
 const uint8_t anaoCommandCount = sizeof(anaoCommands) / sizeof(anaoCommands[0]);
 
-void AnalogOutputs(CliBuffer *buffer)
+void AnalogOutputs(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == ':')
     {

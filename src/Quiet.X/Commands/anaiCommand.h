@@ -14,7 +14,7 @@ extern "C" {
 
 #include "../CLI/cli.h"
     
-    void AnalogInputs(CliBuffer *buffer);
+    void AnalogInputs(CliBuffer_t *buffer);
 
 
 #ifdef	__cplusplus

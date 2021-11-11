@@ -20,15 +20,15 @@ extern "C" {
         char *InputPnt;
         char *OutputPnt;
         uint8_t InputLength;
-        void(*DataHandle)(struct CliBuffer *buffer);
+        void(*DataHandle)(struct CliBuffer_t *buffer);
         char InputBuffer[64];
         char OutputBuffer[64];
-    } CliBuffer;
+    } CliBuffer_t;
     
     
-    typedef void(*CommandHandle)(CliBuffer *buffer);
+    typedef void(*CommandHandle)(CliBuffer_t *buffer);
     
-    typedef void(*ChannelCommandHandle)(CliBuffer *buffer, uint8_t channel);
+    typedef void(*ChannelCommandHandle)(CliBuffer_t *buffer, uint8_t channel);
         
     typedef struct
     {
@@ -53,25 +53,25 @@ extern "C" {
     void FFTilPunctuation(char **input);
     
     void ProcessCommand(const CommandDefinition commands[], uint8_t commandsLength, 
-        CliBuffer *buffer, bool isRoot);
+        CliBuffer_t *buffer, bool isRoot);
     
-    void ByteToHexString(CliBuffer *buffer, uint8_t b);
+    void ByteToHexString(CliBuffer_t *buffer, uint8_t b);
     
-    void IntToString(CliBuffer *buffer, uint16_t i);
+    void IntToString(CliBuffer_t *buffer, uint16_t i);
     
     int16_t ParseInt(char** str);
     
-    uint16_t ParseIEEEHeader(CliBuffer *buffer);
+    uint16_t ParseIEEEHeader(CliBuffer_t *buffer);
     
-    void GenerateIEEEHeader(CliBuffer *buffer, uint16_t dataSize);
+    void GenerateIEEEHeader(CliBuffer_t *buffer, uint16_t dataSize);
     
-    void CopyWordToOutBuffer(CliBuffer *buffer, const char* word);
+    void CopyWordToOutBuffer(CliBuffer_t *buffer, const char* word);
     
-    void ProcessCLI(CliBuffer *buffer);
+    void ProcessCLI(CliBuffer_t *buffer);
     
-    void SetLargeDataHandle(CliBuffer *buffer, CommandHandle handle);
+    void SetLargeDataHandle(CliBuffer_t *buffer, CommandHandle handle);
     
-    void ClearLargeDataHandle(CliBuffer *buffer);
+    void ClearLargeDataHandle(CliBuffer_t *buffer);
 
 #ifdef	__cplusplus
 }

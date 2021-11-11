@@ -9,7 +9,7 @@ uint8_t servoChannel;
 
 #define SERVO_CHANNEL ((uint8_t)(servoChannel + SERVO_OFFSET))
 
-void SERVChannelModeCommand(CliBuffer *buffer)
+void SERVChannelModeCommand(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -52,7 +52,7 @@ void SERVChannelModeCommand(CliBuffer *buffer)
     }
 }
 
-void SERVChannelValueCommand(CliBuffer *buffer)
+void SERVChannelValueCommand(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -79,7 +79,7 @@ const CommandDefinition servChanCommands[] = {
 const uint8_t servChanCommandCount = sizeof(servChanCommands) / sizeof(servChanCommands[0]);
 
 
-void SERVChannelCommand(CliBuffer *buffer, uint8_t channel)
+void SERVChannelCommand(CliBuffer_t *buffer, uint8_t channel)
 {
     if (channel >= 1 && channel <= 10)
     {
@@ -104,7 +104,7 @@ const CommandDefinition servoCommands[] = {
 
 const uint8_t servoCommandCount = sizeof(servoCommands) / sizeof(servoCommands[0]);
 
-void ServoOutputs(CliBuffer *buffer)
+void ServoOutputs(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == ':')
     {

@@ -63,7 +63,7 @@ void FFTilPunctuation(char **input)
 }
 
 void ProcessCommand(const CommandDefinition commands[], uint8_t commandsLength, 
-        CliBuffer *buffer, bool isRoot)
+        CliBuffer_t *buffer, bool isRoot)
 {
     for (int i = 0; i < commandsLength; ++i)
     {
@@ -141,7 +141,7 @@ void ProcessCommand(const CommandDefinition commands[], uint8_t commandsLength,
     }
 }
 
-void ByteToHexString(CliBuffer *buffer, uint8_t b)
+void ByteToHexString(CliBuffer_t *buffer, uint8_t b)
 {
     *buffer->OutputPnt++ = '0';
     *buffer->OutputPnt++ = 'x';
@@ -154,7 +154,7 @@ void ByteToHexString(CliBuffer *buffer, uint8_t b)
 }
 
 const uint16_t decades[] = { 10000, 1000, 100, 10, 1 };
-void IntToString(CliBuffer *buffer, uint16_t input)
+void IntToString(CliBuffer_t *buffer, uint16_t input)
 {    
     if (input == 0)
     {
@@ -253,7 +253,7 @@ int16_t ParseInt(char** str)
     return result;
 }
 
-uint16_t ParseIEEEHeader(CliBuffer *buffer)
+uint16_t ParseIEEEHeader(CliBuffer_t *buffer)
 {
     if (IS_NUMBER(*buffer->InputPnt))
     {
@@ -283,7 +283,7 @@ uint16_t ParseIEEEHeader(CliBuffer *buffer)
     }
 }
 
-void GenerateIEEEHeader(CliBuffer *buffer, uint16_t dataSize)
+void GenerateIEEEHeader(CliBuffer_t *buffer, uint16_t dataSize)
 {
     *buffer->OutputPnt++ = '#';
     
@@ -295,7 +295,7 @@ void GenerateIEEEHeader(CliBuffer *buffer, uint16_t dataSize)
     *c = dataHeaderSize + '0';
 }
 
-void CopyWordToOutBuffer(CliBuffer *buffer, const char* word)
+void CopyWordToOutBuffer(CliBuffer_t *buffer, const char* word)
 {
     while (*word)
     {
@@ -318,7 +318,7 @@ const CommandDefinition commands[] = {
 
 const uint8_t CommandCount = sizeof(commands) / sizeof(commands[0]);
 
-void ProcessCLI(CliBuffer *buffer)
+void ProcessCLI(CliBuffer_t *buffer)
 {    
     buffer->InputPnt = buffer->InputBuffer;
     buffer->OutputPnt = buffer->OutputBuffer;
@@ -339,7 +339,7 @@ void ProcessCLI(CliBuffer *buffer)
 uint24_t TheStack[32];
 uint24_t *TheStackPnt = TheStack;
 
-void SetLargeDataHandle(CliBuffer *buffer, CommandHandle handle)
+void SetLargeDataHandle(CliBuffer_t *buffer, CommandHandle handle)
 {    
     buffer->DataHandle = handle;
     
@@ -351,7 +351,7 @@ void SetLargeDataHandle(CliBuffer *buffer, CommandHandle handle)
     }
 }
 
-void ClearLargeDataHandle(CliBuffer *buffer)
+void ClearLargeDataHandle(CliBuffer_t *buffer)
 {
     buffer->DataHandle = 0x0000;
     

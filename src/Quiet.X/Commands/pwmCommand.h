@@ -14,7 +14,7 @@ extern "C" {
 
 #include "../CLI/cli.h"
     
-    void PWMOutputs(CliBuffer *buffer);
+    void PWMOutputs(CliBuffer_t *buffer);
 
 
 #ifdef	__cplusplus

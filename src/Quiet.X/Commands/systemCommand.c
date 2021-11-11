@@ -4,7 +4,7 @@
 #include "../settings.h"
 #include "../outputs.h"
 
-void SerialNumberCommand(CliBuffer *buffer)
+void SerialNumberCommand(CliBuffer_t *buffer)
 {
     QuietSettings_t settings = GetSettings();
     
@@ -59,12 +59,12 @@ void SerialNumberCommand(CliBuffer *buffer)
     }
 }
 
-void RestoreCommand(CliBuffer *buffer)
+void RestoreCommand(CliBuffer_t *buffer)
 {
     RestoreSettings();
 }
 
-void SaveCommand(CliBuffer *buffer)
+void SaveCommand(CliBuffer_t *buffer)
 {
     SaveSettings();
 }
@@ -77,7 +77,7 @@ const CommandDefinition systemCommands[] = {
 
 const uint8_t systemCommandCount = sizeof(systemCommands) / sizeof(systemCommands[0]);
 
-void SystemCommand(CliBuffer *buffer)
+void SystemCommand(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == ':')
     {

@@ -9,7 +9,7 @@ uint8_t digoChannel;
 
 #define DIGOUT_CHANNEL ((uint8_t)(digoChannel + DIGOUT_OFFSET))
 
-void DIGOChannelModeCommand(CliBuffer *buffer)
+void DIGOChannelModeCommand(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -60,7 +60,7 @@ void DIGOChannelModeCommand(CliBuffer *buffer)
     }
 }
 
-void DIGOChannelValueCommand(CliBuffer *buffer)
+void DIGOChannelValueCommand(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -86,7 +86,7 @@ const CommandDefinition digoChanCommands[] = {
 
 const uint8_t digoChanCommandCount = sizeof(digoChanCommands) / sizeof(digoChanCommands[0]);
 
-void DIGOChannelCommand(CliBuffer *buffer, uint8_t channel)
+void DIGOChannelCommand(CliBuffer_t *buffer, uint8_t channel)
 {
     if (channel > 0 && channel < 9)
     {
@@ -112,7 +112,7 @@ const CommandDefinition digoCommands[] = {
 const uint8_t digoCommandCount = sizeof(digoCommands) / sizeof(digoCommands[0]);
 
 
-void DigitalOutputs(CliBuffer *buffer)
+void DigitalOutputs(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == '?')
     {

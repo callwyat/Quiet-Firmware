@@ -3,7 +3,7 @@
 #include "../CLI/cli.h"
 #include "../settings.h"
 
-void Identify(CliBuffer *buffer)
+void Identify(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == '?')
     {

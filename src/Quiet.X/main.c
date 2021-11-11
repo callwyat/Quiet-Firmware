@@ -48,7 +48,7 @@
 #include "settings.h"
 #include "constants.h"
 
-static CliBuffer usbBuffer;
+static CliBuffer_t usbBuffer;
 
 void USB_CDC_Tasks(void)
 {

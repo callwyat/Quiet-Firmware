@@ -14,7 +14,7 @@ extern "C" {
 
 #include "../CLI/cli.h"
     
-    void DigitalInputs(CliBuffer *buffer);
+    void DigitalInputs(CliBuffer_t *buffer);
 
 
 #ifdef	__cplusplus
