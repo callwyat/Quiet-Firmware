@@ -127,3 +127,15 @@ Write -> SERV:CH10:MODE SERVo
 Write -> DIGO:CH8:MODE?
 Read  -> SERV
 ```
+
+### DIAGnostics? (Query Only)
+#### Description
+Returns the number of micro seconds it took to execute the last command. Useful if trying to optimise commands.
+
+#### Example
+```
+Write -> ANAI:CH1?
+Read  -> 2045
+Write -> DIAG?
+Read  -> 1096
+```
