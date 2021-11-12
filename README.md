@@ -27,10 +27,19 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 │   └———:CHannel<n>
 │       ├———:VALUe
 │       └———:MODE
-└———:SYSTem
-    └———:SERIalNumber
-    └———:SAVEState
-    └———:RESToreState
+├———:UART
+│   └———:WRITe
+│   └———:READ
+│   └———:BAUD
+├———:SPI
+│   └———:EXCHange
+│   └———:CS
+│   └———:BAUD
+├———:SYSTem
+│   └———:SERIalNumber
+│   └———:SAVEState
+│   └———:RESToreState
+└———DIAGnostics
 ```
 
 ## Command Breakdown
