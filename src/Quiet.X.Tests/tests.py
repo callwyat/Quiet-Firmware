@@ -158,7 +158,6 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
 
 if __name__ == "__main__":
     ports = list(serial.tools.list_ports.comports())
-    
     for p in ports:        
         if p.product and 'Qy@ Board' in p.product:
             qPort = p.device
@@ -166,7 +165,12 @@ if __name__ == "__main__":
 
     com = serial.Serial(port=qPort, timeout=1)
 
-    if (run_quiet_test(com, verbose=True, exit_on_fail=False)):
+    for i in range(1, 11):
+        com.write(f'SERV:CH{i}:MODE SERV;MODE?'.encode())
+        time.sleep(1)
+        print(f'{i} => {com.read_until().decode().strip()}')
+
+    if False and run_quiet_test(com, verbose=True, exit_on_fail=False):
         print("All Tests Passed")
 
     

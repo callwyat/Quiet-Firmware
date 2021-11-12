@@ -20,20 +20,20 @@ typedef struct {
     .ControlRegister = controlReg,                               \
     .ValueRegister = controlReg + 1,                             \
     .ActiveMode = defaultMode,                                   \
-    .AvalibleModes = defaultMode | avalibleModes,                \
+    .AvalibleModes = defaultMode | (avalibleModes),              \
 }
 
 OutputSetup_t OutputSetups[] = {
     DEFINE_OUTPUT(&CCP1CON, OUT_PWM, OUT_SERVO),
     DEFINE_OUTPUT(&CCP2CON, OUT_PWM, OUT_SERVO),
+    DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET, OUT_SERVO),
+    DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET, OUT_SERVO),
+    DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET, OUT_SERVO),
+    DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET, OUT_SERVO),
     DEFINE_OUTPUT(&CCP4CON, OUT_DISCREET, OUT_PWM | OUT_SERVO),
     DEFINE_OUTPUT(&CCP5CON, OUT_DISCREET, OUT_PWM | OUT_SERVO),
     DEFINE_OUTPUT(&CCP6CON, OUT_DISCREET, OUT_PWM | OUT_SERVO),
     DEFINE_OUTPUT(&CCP7CON, OUT_DISCREET, OUT_PWM | OUT_SERVO),
-    DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET, OUT_SERVO),
-    DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET, OUT_SERVO),
-    DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET, OUT_SERVO),
-    DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET, OUT_SERVO),
 };
 
 const uint8_t OutputSetupsCount = sizeof(OutputSetups) / sizeof(OutputSetups[0]);
@@ -91,6 +91,11 @@ OutputMode_e GetOutputMode(uint8_t channel)
 
 void SetOutputMode(uint8_t output, OutputMode_e mode)
 {
+    if (output > 10)
+        return;
+    
+    OutputSetup_t *setup = &OutputSetups[output];
+    
     if (output > 1)
     {
         if (mode == OUT_DISCREET)
@@ -101,9 +106,14 @@ void SetOutputMode(uint8_t output, OutputMode_e mode)
         {
             OutputMask &= ~(0x01 << (mode - 2));
         }
+        
+        // Outputs 6, 7, 8, and 9 need the CCP module turned on if not DISCREET
+        if (output > 5)
+        {
+            *setup->ControlRegister = mode == OUT_DISCREET ? 0x00 : 0x0C;
+        }
     }
     
-    OutputSetup_t *setup = &OutputSetups[output];
     if (setup->AvalibleModes & mode)
     {
         setup->ActiveMode = mode;
@@ -221,44 +231,44 @@ uint16_t GetOutputValue(uint8_t output)
 
 void ServoTick(void)
 {
-    static OutputSetup_t *setup = &OutputSetups[0];
+    static OutputSetup_t *setup = OutputSetups;
     static bool oddEvenTick = true;
     static uint8_t steering = 0x01;
     
-    if (setup->ActiveMode == OUT_SERVO)
+    if (oddEvenTick)
     {
-        if (oddEvenTick)
+        if (setup->ActiveMode == OUT_SERVO)
         {
             *setup->ValueRegister = 0x00;
             *setup->ControlRegister &= 0xCF;
-            
-            // Increment to the next step
-            if (++setup > &OutputSetups[OutputSetupsCount - 1])
-            {
-                setup = &OutputSetups[0];
-                steering= 0x01;
-            }
-            else if (setup->ControlRegister == &CCP3CON)
-            {
-                // Rotate which output is being driven
-                PSTR3CON &= 0xF0;
-                if (setup->ActiveMode == OUT_SERVO)
-                    PSTR3CON |= steering & 0x0F;
-                
-                steering = (uint8_t)(steering << 1);
-            }
-            
-            if (setup->ActiveMode == OUT_SERVO)
-            {
-                *setup->ValueRegister = 0xFF;
-                *setup->ControlRegister |= 0x30;
-            }
         }
-        else
+
+        // Increment to the next step
+        if (++setup > &OutputSetups[OutputSetupsCount - 1])
         {
-            SetCCPValue(setup, setup->ServoValue);
+            setup = OutputSetups;
+            steering= 0x08;
         }
-        
-        oddEvenTick = !oddEvenTick;
+        else if (setup->ControlRegister == &CCP3CON)
+        {
+            // Rotate which output is being driven
+            PSTR3CON &= 0xF0;
+            if (setup->ActiveMode == OUT_SERVO)
+                PSTR3CON |= steering & 0x0F;
+
+            steering = (uint8_t)(steering >> 1);
+        }
+
+        if (setup->ActiveMode == OUT_SERVO)
+        {
+            *setup->ValueRegister = 0xFF;
+            *setup->ControlRegister |= 0x30;
+        }
     }
+    else if (setup->ActiveMode == OUT_SERVO)
+    {
+        SetCCPValue(setup, setup->ServoValue);
+    }
+
+    oddEvenTick = !oddEvenTick;
 }
