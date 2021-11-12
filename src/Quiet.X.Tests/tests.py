@@ -80,9 +80,9 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
         QueryChannelTest('ANAO:CH#:VALU?', 1, 2, INT16_PATTERN),
         QueryChannelTest('ANAO:CH#:MODE?', 1, 2, '\\bPWM\\b'),
 
-        QueryChannelTest('PWMO:CH#?', 1, 6, INT16_PATTERN),
-        QueryChannelTest('PWMO:CH#:VALU?', 1, 6, INT16_PATTERN),
-        QueryChannelTest('PWMO:CH#:MODE?', 1, 6, OUTPUT_MODE_PATTERN), 
+        QueryChannelTest('PWM:CH#?', 1, 6, INT16_PATTERN),
+        QueryChannelTest('PWM:CH#:VALU?', 1, 6, INT16_PATTERN),
+        QueryChannelTest('PWM:CH#:MODE?', 1, 6, OUTPUT_MODE_PATTERN), 
 
         QueryChannelTest('SERV:CH#?', 1, 10, INT16_PATTERN),
         QueryChannelTest('SERV:CH#:VALU?', 1, 10, INT16_PATTERN),
@@ -150,7 +150,7 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
 
     output_test(com, 'SERV', 10, 'SERV', '0x3FF', verbose)
 
-    output_test(com, 'PWMO', 6, 'PWM', '0x3FF', verbose)
+    output_test(com, 'PWM', 6, 'PWM', '0x3FF', verbose)
 
     output_test(com, 'DIGO', 8, 'DISC', 0, verbose)
 

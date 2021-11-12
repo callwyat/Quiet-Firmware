@@ -368,7 +368,7 @@ void DiagnosticsCommand(CliBuffer_t *buffer)
 
 // Put the commands that have the most branches towards the top
 const CommandDefinition commands[] = {
-    DEFINE_COMMAND("PWMO", PWMOutputs),
+    DEFINE_COMMAND("PWM", PWMOutputs),
     DEFINE_COMMAND("SERV", ServoOutputs),
     DEFINE_COMMAND("DIGO", DigitalOutputs),
     DEFINE_COMMAND("ANAO", AnalogOutputs),
