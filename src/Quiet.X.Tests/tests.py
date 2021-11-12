@@ -44,7 +44,7 @@ def print_fail_message(command, expected, response):
 
 def output_test(com, command, count, mode, value, verbose=False, exit_on_fail=True):
     for i in range(1, count + 1):
-        full_command = f'{command}:CH{i}:MODE {mode};VALUE {value};MODE?'
+        full_command = f'{command}:CH{i}:MODE {mode};VALUE {value};MODE?\r\n'
         com.write(full_command.encode())
         
         expected = f',,{mode}\r\n'
@@ -155,6 +155,32 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
     output_test(com, 'DIGO', 8, 'DISC', 0, verbose)
 
     print('Outputs Test Complete')
+
+    print('Analog Input Stability Test')
+
+    aMax = [0, 0, 0, 0]
+    aMin = [ 10000, 10000, 10000, 10000]
+    for i in range(1, 10000):
+
+        com.write('ANAI:CH1?;CH2?;CH3?;CH4?\r\n'.encode())
+        response_raw = com.read_until().decode().strip().split(',')
+
+        i = 0
+        for response in response_raw:
+            r = int(response)
+
+            if r < aMin[i]:
+                aMin[i] = r
+            if r > aMax[i]:
+                aMax[i] = r
+
+            i += 1
+
+    for i in range(0, 4):
+        print(f'{i}  =>  Max: ' + str(aMax[i]).ljust(8) +  
+        f'Min: ' + str(aMin[i]).ljust(8) + f'Range: {aMax[i] - aMin[i]}')
+
+    print('Analog Input Stability Test Complete')
 
     print('UART Tests')
 
