@@ -36,6 +36,30 @@ class QueryChannelTest():
     def check_response(self, response):
         return re.search(self.response, response)
 
+def print_fail_message(command, expected, response):
+    print(f"Test Failed\nSent:     {repr(command)}\n" +
+          f"Expected: {repr(expected)}\n" +
+          f"Received: {repr(response)}")
+
+
+def output_test(com, command, count, mode, value, verbose=False, exit_on_fail=True):
+    for i in range(1, count + 1):
+        full_command = f'{command}:CH{i}:MODE {mode};VALUE {value};MODE?'
+        com.write(full_command.encode())
+        
+        expected = f',,{mode}\r\n'
+        response = com.read_until().decode()
+        if response != expected:
+            print_fail_message(full_command, expected, response)
+            if exit_on_fail:
+                return False
+
+        if verbose:
+            print(f'{command}:CH{i}'.ljust(10) + f' => {response.strip()}')
+
+        time.sleep(1)
+
+
 def run_quiet_test(coms, verbose=False, exit_on_fail=True):
 
     # TODO: Apply default settings to the UUT
@@ -107,9 +131,7 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
 
         expected = f',{val}\r\n'
         if response != expected:
-            print(f"Test Failed\nSent:     {repr(command)}\n" +
-            f"Expected: {repr(expected)}\n" +
-            f"Received: {repr(response)}")
+            print_fail_message(command, expected, response)
             if exit_on_fail:
                     return False
 
@@ -118,13 +140,21 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
         response = coms.read_until().decode()
 
         if response != expected:
-            print(f"Test Failed\nSent:     {repr(command)}\n" +
-            f"Expected: {repr(expected)}\n" +
-            f"Received: {repr(response)}")
+            print_fail_message(command, expected, response)
             if exit_on_fail:
                     return False
 
     print('Parse Test Passed')
+
+    print('Outputs Test')
+
+    output_test(com, 'SERV', 10, 'SERV', '0x3FF', verbose)
+
+    output_test(com, 'PWMO', 6, 'PWM', '0x3FF', verbose)
+
+    output_test(com, 'DIGO', 8, 'DISC', 0, verbose)
+
+    print('Outputs Test Complete')
 
     print('UART Tests')
 
@@ -165,12 +195,7 @@ if __name__ == "__main__":
 
     com = serial.Serial(port=qPort, timeout=1)
 
-    for i in range(1, 11):
-        com.write(f'SERV:CH{i}:MODE SERV;MODE?'.encode())
-        time.sleep(1)
-        print(f'{i} => {com.read_until().decode().strip()}')
-
-    if False and run_quiet_test(com, verbose=True, exit_on_fail=False):
+    if  run_quiet_test(com, verbose=True, exit_on_fail=True):
         print("All Tests Passed")
 
     

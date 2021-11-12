@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 
-#define ANAOUT_OFFSET -1
+#define ANAOUT_OFFSET 7
 
 uint8_t anaoChannel;
 

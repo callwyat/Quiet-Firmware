@@ -3,7 +3,7 @@
 #include "../constants.h"
 #include "../outputs.h"
 
-#define DIGOUT_OFFSET 1
+#define DIGOUT_OFFSET -1
 
 uint8_t digoChannel;
 

@@ -8,6 +8,8 @@
 
 uint16_t servoValue[10];
 
+#define DIGO_OFFSET 0
+
 typedef struct {
     volatile unsigned char *ValueRegister;
     volatile unsigned char *ControlRegister;
@@ -21,11 +23,10 @@ typedef struct {
     .ValueRegister = controlReg + 1,                             \
     .ActiveMode = defaultMode,                                   \
     .AvalibleModes = defaultMode | (avalibleModes),              \
+    .ServoValue = 0x0200 /* Start servos in the idle position*/  \
 }
 
 OutputSetup_t OutputSetups[] = {
-    DEFINE_OUTPUT(&CCP1CON, OUT_PWM, OUT_SERVO),
-    DEFINE_OUTPUT(&CCP2CON, OUT_PWM, OUT_SERVO),
     DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET, OUT_SERVO),
     DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET, OUT_SERVO),
     DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET, OUT_SERVO),
@@ -34,6 +35,8 @@ OutputSetup_t OutputSetups[] = {
     DEFINE_OUTPUT(&CCP5CON, OUT_DISCREET, OUT_PWM | OUT_SERVO),
     DEFINE_OUTPUT(&CCP6CON, OUT_DISCREET, OUT_PWM | OUT_SERVO),
     DEFINE_OUTPUT(&CCP7CON, OUT_DISCREET, OUT_PWM | OUT_SERVO),
+    DEFINE_OUTPUT(&CCP1CON, OUT_PWM, OUT_SERVO),
+    DEFINE_OUTPUT(&CCP2CON, OUT_PWM, OUT_SERVO),
 };
 
 const uint8_t OutputSetupsCount = sizeof(OutputSetups) / sizeof(OutputSetups[0]);
@@ -42,9 +45,9 @@ uint8_t OutputMask = 0xFF;
 
 void SetDiscreetOutput(uint8_t output, bool value)
 {
-    if (output > 1 && output < 9)
+    if (output >= DIGO_OFFSET && output <= (DIGO_OFFSET + 7))
     {
-        output -= 2;
+        output -= DIGO_OFFSET;
         
         uint8_t v = DOUT;
         
@@ -63,9 +66,9 @@ void SetDiscreetOutput(uint8_t output, bool value)
 
 bool GetDiscreetOutput(uint8_t output)
 {
-    if (output > 1 && output < 9)
+    if (output >= DIGO_OFFSET && output <= (DIGO_OFFSET + 7))
     {
-        output -= 2;
+        output -= DIGO_OFFSET;
         return (DOUT >> output) & 0x01;
     }
     
@@ -91,24 +94,24 @@ OutputMode_e GetOutputMode(uint8_t channel)
 
 void SetOutputMode(uint8_t output, OutputMode_e mode)
 {
-    if (output > 10)
+    if (output >= OutputSetupsCount)
         return;
     
     OutputSetup_t *setup = &OutputSetups[output];
     
-    if (output > 1)
+    if (output >= DIGO_OFFSET && output <= (DIGO_OFFSET + 7))
     {
         if (mode == OUT_DISCREET)
         {
-            OutputMask |= 0x01 << (mode - 2);
+            OutputMask |= 0x01 << (output - DIGO_OFFSET);
         }
         else
         {
-            OutputMask &= ~(0x01 << (mode - 2));
+            OutputMask &= ~(0x01 << (output - DIGO_OFFSET));
         }
         
-        // Outputs 6, 7, 8, and 9 need the CCP module turned on if not DISCREET
-        if (output > 5)
+        // Outputs 4, 5, 6, and 7 need the CCP module turned on if not DISCREET
+        if (output >= 4 && output <= 7)
         {
             *setup->ControlRegister = mode == OUT_DISCREET ? 0x00 : 0x0C;
         }
@@ -243,16 +246,18 @@ void ServoTick(void)
             *setup->ControlRegister &= 0xCF;
         }
 
+        // Rotate which output is being driven
+        PSTR3CON &= 0xF0;
+            
         // Increment to the next step
         if (++setup > &OutputSetups[OutputSetupsCount - 1])
         {
             setup = OutputSetups;
             steering= 0x08;
         }
-        else if (setup->ControlRegister == &CCP3CON)
+        
+        if (setup->ControlRegister == &CCP3CON)
         {
-            // Rotate which output is being driven
-            PSTR3CON &= 0xF0;
             if (setup->ActiveMode == OUT_SERVO)
                 PSTR3CON |= steering & 0x0F;
 

@@ -3,7 +3,7 @@
 #include "../outputs.h"
 #include <stdint.h>
 
-#define PWM_OFFSET -1
+#define PWM_OFFSET 3
 
 uint8_t pwmChannel;
 
@@ -43,9 +43,9 @@ void PWMChannelModeCommand(CliBuffer_t *buffer)
         // To Upper
         *buffer->InputPnt &= 0xDF;
         
-        if (SCPICompare(ServoWord, buffer->InputPnt))
+        if (SCPICompare(PWMWord, buffer->InputPnt))
         {
-            SetOutputMode(PWM_CHANNEL, OUT_SERVO);
+            SetOutputMode(PWM_CHANNEL, OUT_PWM);
         }
         
         FFTilPunctuation(&buffer->InputPnt);
