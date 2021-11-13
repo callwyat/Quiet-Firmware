@@ -38,7 +38,7 @@ extern "C" {
     
     void SaveSettings(void);
     
-    void RestoreSettings(void);
+    void RestoreSettings(bool factory);
     
 #ifdef	__cplusplus
 }

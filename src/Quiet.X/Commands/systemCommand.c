@@ -61,7 +61,19 @@ void SERIalNumberCommand(CliBuffer_t *buffer)
 
 void RESToreCommand(CliBuffer_t *buffer)
 {
-    RestoreSettings();
+    if (*buffer->InputPnt == ' ')
+    {
+        ++buffer->InputPnt;
+        
+        if (SCPICompare("FACT", buffer->InputPnt))
+        {
+            RestoreSettings(true);
+        }
+    }
+    else
+    {
+        RestoreSettings(false);
+    }
 }
 
 void SAVECommand(CliBuffer_t *buffer)

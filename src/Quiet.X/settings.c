@@ -12,23 +12,25 @@
 #include "constants.h"
 #include "mcc_generated_files/memory.h"
 
-const QuietSettings_t settings __at(0xF800) = {
-    .Occupied = 1,
-    .SerialNumber = { '{', 'S', 'e', 'r', 'i', 'a', 'l', ' ', 
-    'N', 'u', 'm', 'b', 'e', 'r', '}', '\x00'},
-    .OutputSettings = {
-        DEFINE_OUTPUT_SETTING(0x0FF, OUT_PWM),       
-        DEFINE_OUTPUT_SETTING(0x0FF, OUT_PWM),
-        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),
-        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),
-        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),
-        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),
-        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),
-        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),
-        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),
-        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),
-    }
-};
+#define FACTORY_SETTINGS {                                          \
+    .Occupied = 1,                                                  \
+    .SerialNumber = { '{', 'S', 'e', 'r', 'i', 'a', 'l', ' ',       \
+    'N', 'u', 'm', 'b', 'e', 'r', '}', '\x00'},                     \
+    .OutputSettings = {                                             \
+        DEFINE_OUTPUT_SETTING(0x0FF, OUT_PWM),                      \
+        DEFINE_OUTPUT_SETTING(0x0FF, OUT_PWM),                      \
+        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
+        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
+        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
+        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
+        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
+        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
+        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
+        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
+    }                                                               \
+} 
+
+const QuietSettings_t settings __at(0xF800) = FACTORY_SETTINGS;
 
 QuietSettings_t GetSettings(){
     return settings;
@@ -53,9 +55,18 @@ void SaveSettings()
     SetSettings(settings);
 }
 
-void RestoreSettings()
+void RestoreSettings(bool factory)
 {
-    QuietSettings_t settings = GetSettings();
+    QuietSettings_t settings = FACTORY_SETTINGS;
+    
+    if (factory)
+    {
+        SetSettings(settings);
+    }
+    else
+    {
+        settings = GetSettings();
+    }
 
     for (uint8_t i = 0; i < OUTPUT_COUNT; ++i)
     {

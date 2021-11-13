@@ -30,7 +30,7 @@ void IDNCommand(CliBuffer_t *buffer)
 
 void RSTCommand(CliBuffer_t *buffer)
 {
-    RestoreSettings(); 
+    RestoreSettings(false); 
 }
 
 const CommandDefinition starCommands[] = {

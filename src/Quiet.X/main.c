@@ -152,7 +152,7 @@ void main(void)
     SYSTEM_Initialize();
     
     // Load up settings
-    RestoreSettings();
+    RestoreSettings(false);
     
     //USB Setup-------------------------------
     // If using interrupts in PIC18 High/Low Priority Mode you need to enable the Global High and Low Interrupts
