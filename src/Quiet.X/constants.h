@@ -23,6 +23,10 @@ const char* VersionString = "2.0";
 
 #define USBLED PORTEbits.RE1
 
+#define SPICS LATEbits.LATE2
+#define SDDetect PORTEbits.RE2
+#define SDDetectEnable TRISEbits.TRISE2
+
 #define OUTPUT_COUNT 10
 
 #ifdef	__cplusplus

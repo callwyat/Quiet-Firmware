@@ -11,6 +11,7 @@
 #include "../Commands/pwmCommand.h"
 #include "../Commands/servoCommand.h"
 #include "../Commands/uartCommand.h"
+#include "../Commands/spiCommand.h"
 #include "../Commands/systemCommand.h"
 
 #include <stdbool.h>
@@ -48,7 +49,7 @@ bool SCPICompare(const char *reference, char *input)
 
 void FFTilPunctuation(char **input)
 {
-    while (**input)
+    while (**input) // Handles "\x00"
     {
         switch (**input)
         {
@@ -376,6 +377,7 @@ const CommandDefinition commands[] = {
     DEFINE_COMMAND("DIGI", DIGICommand),
     DEFINE_COMMAND("SYST", SYSTemCommand),
     DEFINE_COMMAND("UART", UARTCommand),
+    DEFINE_COMMAND("SPI", SPICommand),
     DEFINE_COMMAND("DIAG", DIAGnosticsCommand),
     DEFINE_COMMAND("*", StarCommand),
 };

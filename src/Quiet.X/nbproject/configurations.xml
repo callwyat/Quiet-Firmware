@@ -14,6 +14,7 @@
         <itemPath>Commands/digoCommand.h</itemPath>
         <itemPath>Commands/systemCommand.h</itemPath>
         <itemPath>Commands/uartCommand.h</itemPath>
+        <itemPath>Commands/spiCommand.h</itemPath>
       </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"
@@ -71,6 +72,7 @@
         <itemPath>Commands/digoCommand.c</itemPath>
         <itemPath>Commands/systemCommand.c</itemPath>
         <itemPath>Commands/uartCommand.c</itemPath>
+        <itemPath>Commands/spiCommand.c</itemPath>
       </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"
