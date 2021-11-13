@@ -356,7 +356,7 @@ void CopyWordToOutBuffer(CliBuffer_t *buffer, const char* word)
 }
 
 uint16_t lastExecutionTime = 0;
-void DiagnosticsCommand(CliBuffer_t *buffer)
+void DIAGnosticsCommand(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -368,16 +368,16 @@ void DiagnosticsCommand(CliBuffer_t *buffer)
 
 // Put the commands that have the most branches towards the top
 const CommandDefinition commands[] = {
-    DEFINE_COMMAND("PWM", PWMOutputs),
-    DEFINE_COMMAND("SERV", ServoOutputs),
-    DEFINE_COMMAND("DIGO", DigitalOutputs),
-    DEFINE_COMMAND("ANAO", AnalogOutputs),
-    DEFINE_COMMAND("ANAI", AnalogInputs),
-    DEFINE_COMMAND("DIGI", DigitalInputs),
-    DEFINE_COMMAND("*IDN", Identify),
-    DEFINE_COMMAND("SYST", SystemCommand),
+    DEFINE_COMMAND("PWM", PWMCommand),
+    DEFINE_COMMAND("SERV", SERVoCommand),
+    DEFINE_COMMAND("DIGO", DIGOCommand),
+    DEFINE_COMMAND("ANAO", ANAOCommand),
+    DEFINE_COMMAND("ANAI", ANAICommand),
+    DEFINE_COMMAND("DIGI", DIGICommand),
+    DEFINE_COMMAND("SYST", SYSTemCommand),
     DEFINE_COMMAND("UART", UARTCommand),
-    DEFINE_COMMAND("DIAG", DiagnosticsCommand),
+    DEFINE_COMMAND("DIAG", DIAGnosticsCommand),
+    DEFINE_COMMAND("*", StarCommand),
 };
 
 const uint8_t CommandCount = sizeof(commands) / sizeof(commands[0]);

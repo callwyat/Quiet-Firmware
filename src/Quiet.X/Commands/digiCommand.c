@@ -2,7 +2,7 @@
 #include "../CLI/cli.h"
 #include "../constants.h"
 
-void DigitalInputs(CliBuffer_t *buffer)
+void DIGICommand(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == '?')
     {

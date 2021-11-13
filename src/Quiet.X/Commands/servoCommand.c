@@ -104,7 +104,7 @@ const CommandDefinition servoCommands[] = {
 
 const uint8_t servoCommandCount = sizeof(servoCommands) / sizeof(servoCommands[0]);
 
-void ServoOutputs(CliBuffer_t *buffer)
+void SERVoCommand(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == ':')
     {

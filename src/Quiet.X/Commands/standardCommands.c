@@ -3,7 +3,7 @@
 #include "../CLI/cli.h"
 #include "../settings.h"
 
-void Identify(CliBuffer_t *buffer)
+void IDNCommand(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -26,4 +26,30 @@ void Identify(CliBuffer_t *buffer)
         cc = VersionString;
         while (*cc != 0x00) *buffer->OutputPnt++ = *cc++;   
     }
+}
+
+void RSTCommand(CliBuffer_t *buffer)
+{
+    RestoreSettings(); 
+}
+
+const CommandDefinition starCommands[] = {
+  DEFINE_COMMAND("IDN", IDNCommand),
+  DEFINE_COMMAND("RST", RSTCommand),
+};
+
+const uint8_t starCommandsCount = sizeof(starCommands) / sizeof(starCommands[0]);
+
+void StarCommand(CliBuffer_t *buffer)
+{
+    // Process command will have fast forwarded, we must back up to the star
+    
+    while (*buffer->InputPnt != '*')
+    {
+        --buffer->InputPnt;
+    }
+    
+    ++buffer->InputPnt;
+    
+    ProcessCommand(starCommands, starCommandsCount, buffer, false);
 }

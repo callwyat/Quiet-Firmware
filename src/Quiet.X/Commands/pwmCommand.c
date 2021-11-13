@@ -79,7 +79,7 @@ const CommandDefinition pwmChanCommands[] = {
 const uint8_t pwmChanCommandCount = sizeof(pwmChanCommands) / sizeof(pwmChanCommands[0]);
 
 
-void PWMSetChannelValue(CliBuffer_t *buffer, uint8_t channel)
+void PWMChannelCommand(CliBuffer_t *buffer, uint8_t channel)
 {
     if (channel >= 1 && channel <= 6)
     {
@@ -99,12 +99,12 @@ void PWMSetChannelValue(CliBuffer_t *buffer, uint8_t channel)
 }
 
 const CommandDefinition pwmCommands[] = {
-  DEFINE_CHANNEL_COMMAND("CH", PWMSetChannelValue),  
+  DEFINE_CHANNEL_COMMAND("CH", PWMChannelCommand),  
 };
 
 const uint8_t pwmCommandCount = sizeof(pwmCommands) / sizeof(pwmCommands[0]);
 
-void PWMOutputs(CliBuffer_t *buffer)
+void PWMCommand(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == ':')
     {

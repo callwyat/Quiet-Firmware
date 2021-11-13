@@ -112,7 +112,7 @@ const CommandDefinition digoCommands[] = {
 const uint8_t digoCommandCount = sizeof(digoCommands) / sizeof(digoCommands[0]);
 
 
-void DigitalOutputs(CliBuffer_t *buffer)
+void DIGOCommand(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == '?')
     {

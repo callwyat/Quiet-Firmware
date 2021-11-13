@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-    void Identify(CliBuffer_t *buffer);
+    void StarCommand(CliBuffer_t *buffer);
 
 
 #ifdef	__cplusplus

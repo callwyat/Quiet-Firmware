@@ -109,7 +109,7 @@ const CommandDefinition anaoCommands[] = {
 
 const uint8_t anaoCommandCount = sizeof(anaoCommands) / sizeof(anaoCommands[0]);
 
-void AnalogOutputs(CliBuffer_t *buffer)
+void ANAOCommand(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == ':')
     {
