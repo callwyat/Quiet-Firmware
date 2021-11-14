@@ -15,6 +15,12 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
     
+    typedef enum
+    {
+        HexFormat,
+        DecimalFormat,
+    } NumberFormat_e;
+    
     typedef struct CliBuffer
     {
         char *InputPnt;
@@ -55,11 +61,11 @@ extern "C" {
     void ProcessCommand(const CommandDefinition commands[], uint8_t commandsLength, 
         CliBuffer_t *buffer, bool isRoot);
     
-    void ByteToHexString(CliBuffer_t *buffer, uint8_t b);
+    void SetNumberFormat(NumberFormat_e format);
     
-    void Int14ToString(CliBuffer_t *buffer, uint16_t i);
+    NumberFormat_e GetNumberFormat(void);
     
-    void Int24ToString(CliBuffer_t *buffer, uint24_t input);
+    void NumberToString(CliBuffer_t *buffer, uint24_t input);
     
     int16_t ParseInt(char** str);
     

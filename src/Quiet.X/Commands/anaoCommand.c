@@ -63,7 +63,7 @@ void ANAOChannelValueCommand(CliBuffer_t *buffer)
     {
         ++buffer->InputPnt;
         uint16_t value = GetOutputValue(ANAOUT_CHANNEL);
-        Int14ToString(buffer, value);
+        NumberToString(buffer, value);
     }
     else if (*buffer->InputPnt == ' ')
     {

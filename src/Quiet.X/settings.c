@@ -10,10 +10,12 @@
 #include "settings.h"
 #include "outputs.h"
 #include "constants.h"
+#include "CLI/cli.h"
 #include "mcc_generated_files/memory.h"
 
 #define FACTORY_SETTINGS {                                          \
     .Occupied = 1,                                                  \
+    .NumberFormat = DecimalFormat,                                  \
     .SerialNumber = { '{', 'S', 'e', 'r', 'i', 'a', 'l', ' ',       \
     'N', 'u', 'm', 'b', 'e', 'r', '}', '\x00'},                     \
     .OutputSettings = {                                             \
@@ -52,6 +54,8 @@ void SaveSettings()
         outputSetting->Value = GetOutputValue(i);
     }
     
+    settings.NumberFormat = GetNumberFormat();
+    
     SetSettings(settings);
 }
 
@@ -74,4 +78,6 @@ void RestoreSettings(bool factory)
         SetOutputMode(i, outputSetting.Mode);
         SetOutputValue(i, outputSetting.Value);
     }
+    
+    SetNumberFormat(settings.NumberFormat);
 }

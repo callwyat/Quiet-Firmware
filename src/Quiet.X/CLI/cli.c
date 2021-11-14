@@ -143,87 +143,6 @@ void ProcessCommand(const CommandDefinition commands[], uint8_t commandsLength,
     }
 }
 
-void ByteToHexString(CliBuffer_t *buffer, uint8_t b)
-{
-    *buffer->OutputPnt++ = '0';
-    *buffer->OutputPnt++ = 'x';
-
-    uint8_t upperNibble = (b >> 4) & 0x0F;
-    *buffer->OutputPnt++ = upperNibble + (upperNibble > 0x09 ? '7' : '0');
-
-    uint8_t lowerNibble = (b & 0x0F);
-    *buffer->OutputPnt++ = lowerNibble + (lowerNibble > 0x09 ? '7' : '0');
-}
-
-const uint16_t decades14[] = { 1000, 100, 10, 1 };
-#define DECADES14_LENGTH sizeof(decades14) / sizeof(decades14[0])
-
-void Int14ToString(CliBuffer_t *buffer, uint16_t input)
-{    
-    if (input == 0)
-    {
-        *buffer->OutputPnt++ = '0';
-        return;
-    }
-    else
-    {
-        const uint16_t* d = decades14;
-        // Figure out when to start
-        while (*d > input)
-        {
-            ++d;
-        }
-
-        while (d < &decades14[DECADES14_LENGTH])
-        {
-            char c = '0';
-
-            while (input >= *d)
-            {
-                input -= *d;
-                ++c;
-            }
-
-            ++d;
-            *buffer->OutputPnt++ = c;
-        }
-    }
-}
-
-const uint24_t decades24[] = { 10000000, 1000000, 100000, 10000, 1000, 100, 10, 1 };
-#define DECADES24_LENGTH sizeof(decades24) / sizeof(decades24[0])
-void Int24ToString(CliBuffer_t *buffer, uint24_t input)
-{    
-    if (input == 0)
-    {
-        *buffer->OutputPnt++ = '0';
-        return;
-    }
-    else
-    {
-        const uint24_t* d = decades24;
-        // Figure out when to start
-        while (*d > input)
-        {
-            ++d;
-        }
-
-        while (d < &decades24[DECADES24_LENGTH])
-        {
-            char c = '0';
-
-            while (input >= *d)
-            {
-                input -= *d;
-                ++c;
-            }
-
-            ++d;
-            *buffer->OutputPnt++ = c;
-        }
-    }
-}
-
 /**
  * Converts as many chars as possible to numbers
  * @param str
@@ -336,18 +255,6 @@ uint16_t ParseIEEEHeader(CliBuffer_t *buffer)
     }
 }
 
-void GenerateIEEEHeader(CliBuffer_t *buffer, uint16_t dataSize)
-{
-    *buffer->OutputPnt++ = '#';
-    
-    char *c = buffer->OutputPnt++;
-    Int14ToString(buffer, dataSize);
-    
-    uint8_t dataHeaderSize = (uint8_t)(buffer->OutputPnt - c) - 1;
-    
-    *c = dataHeaderSize + '0';
-}
-
 void CopyWordToOutBuffer(CliBuffer_t *buffer, const char* word)
 {
     while (*word)
@@ -363,7 +270,7 @@ void DIAGnosticsCommand(CliBuffer_t *buffer)
     {
         ++buffer->InputPnt;
 
-        Int14ToString(buffer, lastExecutionTime);
+        NumberToString(buffer, lastExecutionTime);
     }
 }
 
@@ -444,4 +351,155 @@ void ClearLargeDataHandle(CliBuffer_t *buffer)
     }
     
     INTCON |= intConSto;            // Restore Interrupts
+}
+
+NumberFormat_e NumberFormat;
+void SetNumberFormat(NumberFormat_e format)
+{
+    NumberFormat = format;
+}
+
+NumberFormat_e GetNumberFormat(void)
+{
+    return NumberFormat;
+}
+    
+void Int24ToHexString(CliBuffer_t *buffer, uint24_t input)
+{
+    *buffer->OutputPnt++ = '0';
+    *buffer->OutputPnt++ = 'x';
+
+    uint8_t b = (uint8_t)(input >> 16);
+    uint8_t nibble = 0x00;
+    
+    if (b > 0)
+    {
+        nibble = (b >> 4);
+        *buffer->OutputPnt++ = nibble + (nibble > 0x09 ? '7' : '0');
+
+        nibble = (b & 0x0F);
+        *buffer->OutputPnt++ = nibble + (nibble > 0x09 ? '7' : '0'); 
+        
+        nibble = b;
+    }
+    
+    b = (uint8_t)(input >> 8);
+    
+    if (b > 0 || nibble > 0)
+    {
+        nibble = (b >> 4);
+        *buffer->OutputPnt++ = nibble + (nibble > 0x09 ? '7' : '0');
+
+        nibble = (b & 0x0F);
+        *buffer->OutputPnt++ = nibble + (nibble > 0x09 ? '7' : '0'); 
+    }
+    
+    b = (uint8_t)(input);
+    
+    nibble = (b >> 4);
+    *buffer->OutputPnt++ = nibble + (nibble > 0x09 ? '7' : '0');
+
+    nibble = (b & 0x0F);
+    *buffer->OutputPnt++ = nibble + (nibble > 0x09 ? '7' : '0');
+}
+
+const uint16_t decades14[] = { 1000, 100, 10, 1 };
+#define DECADES14_LENGTH sizeof(decades14) / sizeof(decades14[0])
+
+void Int14ToString(CliBuffer_t *buffer, uint16_t input)
+{   
+    if (input == 0)
+    {
+        *buffer->OutputPnt++ = '0';
+        return;
+    }
+    else
+    {
+        const uint16_t* d = decades14;
+        // Figure out when to start
+        while (*d > input)
+        {
+            ++d;
+        }
+
+        while (d < &decades14[DECADES14_LENGTH])
+        {
+            char c = '0';
+
+            while (input >= *d)
+            {
+                input -= *d;
+                ++c;
+            }
+
+            ++d;
+            *buffer->OutputPnt++ = c;
+        }
+    }
+}
+
+const uint24_t decades24[] = { 10000000, 1000000, 100000, 10000, 1000, 100, 10, 1 };
+#define DECADES24_LENGTH sizeof(decades24) / sizeof(decades24[0])
+void Int24ToString(CliBuffer_t *buffer, uint24_t input)
+{    
+    if (input == 0)
+    {
+        *buffer->OutputPnt++ = '0';
+        return;
+    }
+    else
+    {
+        const uint24_t* d = decades24;
+        // Figure out when to start
+        while (*d > input)
+        {
+            ++d;
+        }
+
+        while (d < &decades24[DECADES24_LENGTH])
+        {
+            char c = '0';
+
+            while (input >= *d)
+            {
+                input -= *d;
+                ++c;
+            }
+
+            ++d;
+            *buffer->OutputPnt++ = c;
+        }
+    }
+}
+
+void NumberToString(CliBuffer_t *buffer, uint24_t input)
+{
+    switch (NumberFormat)
+    {
+        case HexFormat:
+            Int24ToHexString(buffer, input);
+            break;
+        case DecimalFormat:
+            
+            if (input < 10000)
+                Int14ToString(buffer, input);
+            else
+                Int24ToString(buffer, input);
+            
+            break;
+        default:
+            while (true);
+    }
+}
+
+void GenerateIEEEHeader(CliBuffer_t *buffer, uint16_t dataSize)
+{
+    *buffer->OutputPnt++ = '#';
+    
+    char *c = buffer->OutputPnt++;
+    Int14ToString(buffer, dataSize);
+    
+    uint8_t dataHeaderSize = (uint8_t)(buffer->OutputPnt - c) - 1;
+    
+    *c = dataHeaderSize + '0';
 }

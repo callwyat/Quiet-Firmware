@@ -66,7 +66,7 @@ void DIGOChannelValueCommand(CliBuffer_t *buffer)
     {
         ++buffer->InputPnt;
         uint16_t value = GetOutputValue(DIGOUT_CHANNEL);
-        Int14ToString(buffer, value);
+        NumberToString(buffer, value);
     }
     else if (*buffer->InputPnt == ' ')
     {
@@ -118,7 +118,7 @@ void DIGOCommand(CliBuffer_t *buffer)
     {
         //Progress the pointer past the query
         ++buffer->InputPnt;
-        ByteToHexString(buffer, DOUT);
+        NumberToString(buffer, DOUT);
     }
     else if (*buffer->InputPnt == ' ')
     {

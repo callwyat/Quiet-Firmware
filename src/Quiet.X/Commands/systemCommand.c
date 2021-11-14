@@ -4,7 +4,7 @@
 #include "../settings.h"
 #include "../outputs.h"
 
-void SERIalNumberCommand(CliBuffer_t *buffer)
+void SYSTSerilalNumberCommand(CliBuffer_t *buffer)
 {
     QuietSettings_t settings = GetSettings();
     
@@ -59,7 +59,7 @@ void SERIalNumberCommand(CliBuffer_t *buffer)
     }
 }
 
-void RESToreCommand(CliBuffer_t *buffer)
+void SYSTRestoreCommand(CliBuffer_t *buffer)
 {
     if (*buffer->InputPnt == ' ')
     {
@@ -76,15 +76,56 @@ void RESToreCommand(CliBuffer_t *buffer)
     }
 }
 
-void SAVECommand(CliBuffer_t *buffer)
+void SYSTSaveCommand(CliBuffer_t *buffer)
 {
     SaveSettings();
 }
 
+const char* HEXString = "HEX";
+const char* DECIString = "DECI";
+
+void SYSTNumberCommand(CliBuffer_t *buffer)
+{
+    if (*buffer->InputPnt == ' ')
+    {
+        ++buffer->InputPnt;
+        
+        if (SCPICompare(DECIString, buffer->InputPnt))
+        {
+            SetNumberFormat(DecimalFormat);
+        }
+        else if (SCPICompare(HEXString, buffer->InputPnt))
+        {
+            SetNumberFormat(HexFormat);
+        }
+        
+        FFTilPunctuation(&buffer->InputPnt);
+    }
+    else if (*buffer->InputPnt == '?')
+    {
+        ++buffer->InputPnt;
+        
+        const char* word = "";
+        
+        switch (GetNumberFormat())
+        {
+            case DecimalFormat:
+                word = DECIString;
+                break;
+            case HexFormat:
+                word = HEXString;
+                break;
+        }
+        
+        CopyWordToOutBuffer(buffer, word);
+    }
+}
+
 const CommandDefinition systemCommands[] = {
-  DEFINE_COMMAND("REST", RESToreCommand),
-  DEFINE_COMMAND("SAVE", SAVECommand),
-  DEFINE_COMMAND("SERI", SERIalNumberCommand),
+  DEFINE_COMMAND("REST", SYSTRestoreCommand),
+  DEFINE_COMMAND("SAVE", SYSTSaveCommand),
+  DEFINE_COMMAND("SERI", SYSTSerilalNumberCommand),
+  DEFINE_COMMAND("NUMB", SYSTNumberCommand),
 };
 
 const uint8_t systemCommandCount = sizeof(systemCommands) / sizeof(systemCommands[0]);

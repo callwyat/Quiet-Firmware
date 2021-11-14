@@ -95,7 +95,7 @@ void UARTBaudCommand(CliBuffer_t *buffer)
         
         uint24_t baudRate = EUART1_get_baud_rate();
         
-        Int24ToString(buffer, baudRate);
+        NumberToString(buffer, baudRate);
     }
     else if (*buffer->InputPnt == ' ')
     {

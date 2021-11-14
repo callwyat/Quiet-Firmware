@@ -130,7 +130,7 @@ void SPIBaudCommand(CliBuffer_t *buffer)
                 break;
         }
         
-        Int24ToString(buffer, baudRate);
+        NumberToString(buffer, baudRate);
     }
     else if (*buffer->InputPnt == ' ')
     {

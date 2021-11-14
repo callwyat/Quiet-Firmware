@@ -7,7 +7,9 @@ import time
 
 QUIET_TERMINATION = '\r\n'
 BOOL_PATTERN = '\\b[01]\\b'
-HEX8_PATTERN = '\\b0x[0-9a-fA-F]{2}\\b'
+HEX8_PATTERN = "\\b0[xX]([0-9a-fA-F]{2})\\b"
+HEX16_PATTERN = "\\b0[xX]([0-9a-fA-F]{4}|[0-9a-fA-F]{2})\\b"
+HEX24_PATTERN = "\\b0[xX]([0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{2})\\b"
 INT16_PATTERN = '\\b[\\d]{1,5}\\b'
 OUTPUT_MODE_PATTERN = '\\b(DISC|PWM|SERV)\\b'
 
@@ -69,27 +71,30 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
 
         QueryTest('DIGI?', HEX8_PATTERN),
 
-        QueryChannelTest('ANAI:CH#?', 1, 4, INT16_PATTERN),
+        QueryChannelTest('ANAI:CH#?', 1, 4, HEX16_PATTERN),
 
         QueryTest('DIGO?', HEX8_PATTERN),
-        QueryChannelTest('DIGO:CH#?', 1, 8, INT16_PATTERN),
-        QueryChannelTest('DIGO:CH#:VALU?', 1, 8, BOOL_PATTERN),
+        QueryChannelTest('DIGO:CH#?', 1, 8, HEX16_PATTERN),
+        QueryChannelTest('DIGO:CH#:VALU?', 1, 8, HEX16_PATTERN),
         QueryChannelTest('DIGO:CH#:MODE?', 1, 8, '\\bDISC\\b'),
 
-        QueryChannelTest('ANAO:CH#?', 1, 2, INT16_PATTERN),
-        QueryChannelTest('ANAO:CH#:VALU?', 1, 2, INT16_PATTERN),
+        QueryChannelTest('ANAO:CH#?', 1, 2, HEX16_PATTERN),
+        QueryChannelTest('ANAO:CH#:VALU?', 1, 2, HEX16_PATTERN),
         QueryChannelTest('ANAO:CH#:MODE?', 1, 2, '\\bPWM\\b'),
 
-        QueryChannelTest('PWM:CH#?', 1, 6, INT16_PATTERN),
-        QueryChannelTest('PWM:CH#:VALU?', 1, 6, INT16_PATTERN),
+        QueryChannelTest('PWM:CH#?', 1, 6, HEX16_PATTERN),
+        QueryChannelTest('PWM:CH#:VALU?', 1, 6, HEX16_PATTERN),
         QueryChannelTest('PWM:CH#:MODE?', 1, 6, OUTPUT_MODE_PATTERN), 
 
-        QueryChannelTest('SERV:CH#?', 1, 10, INT16_PATTERN),
-        QueryChannelTest('SERV:CH#:VALU?', 1, 10, INT16_PATTERN),
+        QueryChannelTest('SERV:CH#?', 1, 10, HEX16_PATTERN),
+        QueryChannelTest('SERV:CH#:VALU?', 1, 10, HEX16_PATTERN),
         QueryChannelTest('SERV:CH#:MODE?', 1, 10, OUTPUT_MODE_PATTERN), 
     ]
 
     print('Starting Command Tests')
+
+    # Changed the number mode
+    com.write('SYST:NUMB HEX\r\n'.encode())
 
     for test in queryTests:
 
@@ -110,14 +115,45 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
 
             else:
                 # Get the time to execute the command
-                coms.write('DIAG?'.encode())
-                execution_time = coms.read_until().decode().strip()
+                coms.write('DIAG?\r\n'.encode())
+                execution_time = coms.read_until().decode().strip()[2:]
+                execution_time = int(execution_time, 16)
 
                 if verbose:
-                    print(f"{command.strip().ljust(16)} ( {execution_time.ljust(5)} ) =>   {response.strip()}")
+                    print(f"{command.strip().ljust(16)} ( {str(execution_time).ljust(5)} ) =>   {response.strip()}")
 
     print('Command Tests Passed')
+
+    print('Analog Input Stability Test')
+
+    aMax = [0, 0, 0, 0]
+    aMin = [ 10000, 10000, 10000, 10000]
+    for i in range(1, 10000):
+
+        com.write('ANAI:CH1?;CH2?;CH3?;CH4?\r\n'.encode())
+        response_raw = com.read_until().decode().strip().split(',')
+
+        i = 0
+        for response in response_raw:
+            r = int(response[2:], 16)
+
+            if r < aMin[i]:
+                aMin[i] = r
+            if r > aMax[i]:
+                aMax[i] = r
+
+            i += 1
+
+    for i in range(0, 4):
+        print(f'{i}  =>  Max: ' + str(aMax[i]).ljust(8) +  
+        f'Min: ' + str(aMin[i]).ljust(8) + f'Range: {aMax[i] - aMin[i]}')
+
+    print('Analog Input Stability Test Complete')
+
     print('Starting Parse Test')
+
+    # Changed the number mode
+    com.write('SYST:NUMB DECI\r\n'.encode())
 
     # Test the parsing method
     for val in range(0, 1024, 3):
@@ -155,32 +191,6 @@ def run_quiet_test(coms, verbose=False, exit_on_fail=True):
     output_test(com, 'DIGO', 8, 'DISC', 0, verbose)
 
     print('Outputs Test Complete')
-
-    print('Analog Input Stability Test')
-
-    aMax = [0, 0, 0, 0]
-    aMin = [ 10000, 10000, 10000, 10000]
-    for i in range(1, 10000):
-
-        com.write('ANAI:CH1?;CH2?;CH3?;CH4?\r\n'.encode())
-        response_raw = com.read_until().decode().strip().split(',')
-
-        i = 0
-        for response in response_raw:
-            r = int(response)
-
-            if r < aMin[i]:
-                aMin[i] = r
-            if r > aMax[i]:
-                aMax[i] = r
-
-            i += 1
-
-    for i in range(0, 4):
-        print(f'{i}  =>  Max: ' + str(aMax[i]).ljust(8) +  
-        f'Min: ' + str(aMin[i]).ljust(8) + f'Range: {aMax[i] - aMin[i]}')
-
-    print('Analog Input Stability Test Complete')
 
     print('UART Tests')
 

@@ -8,6 +8,6 @@ void DIGICommand(CliBuffer_t *buffer)
     {
         //Progress the pointer past the query
         ++buffer->InputPnt;
-        ByteToHexString(buffer, DIN);
+        NumberToString(buffer, DIN);
     }
 }

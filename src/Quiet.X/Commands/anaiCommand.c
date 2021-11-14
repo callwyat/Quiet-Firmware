@@ -15,7 +15,7 @@ void ANAIChannelCommand(CliBuffer_t *buffer, uint8_t channel)
             
             // Get the value from the analog buffer
             uint16_t value = GetADCValue(channel - 1);
-            Int14ToString(buffer, value);
+            NumberToString(buffer, value);
         }
     }
 }

@@ -39,6 +39,7 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 │   └———:SERIalNumber
 │   └———:SAVEState
 │   └———:RESToreState
+│   └———:NUMBerformat
 └———DIAGnostics
 ```
 

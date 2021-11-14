@@ -13,6 +13,7 @@ extern "C" {
 #endif
 
 #include "outputs.h"
+#include "CLI/cli.h"
 #include <stdint.h>
 
     typedef struct {
@@ -25,8 +26,10 @@ extern "C" {
     .Mode = mode,                               \
     }
     
+    
     typedef struct {
-        uint16_t Occupied;
+        uint8_t Occupied;
+        NumberFormat_e NumberFormat;
         char SerialNumber[16];
         OutputSettings_t OutputSettings[10];
     } QuietSettings_t;
