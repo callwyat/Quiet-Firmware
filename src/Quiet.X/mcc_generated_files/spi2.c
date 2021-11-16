@@ -62,11 +62,11 @@ static const spi2_configuration_t spi2_configuration[] = {
 void SPI2_Initialize(void)
 {
     //SPI setup
-    SSP2STAT = 0x40;
-    SSP2CON1 = 0x00;
-    SSP2ADD = 0x01;
+    SSP2STAT = 0x00;
+    SSP2CON1 = 0x32;
+    SSP2ADD = 0x27;
 //    0 = 0;
-    SSP2CON1bits.SSPEN = 0;
+    SSP2CON1bits.SSPEN = 1;
 }
 
 bool SPI2_Open(spi2_modes_t spi2UniqueConfiguration)
