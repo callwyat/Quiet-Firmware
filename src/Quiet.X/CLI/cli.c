@@ -353,7 +353,7 @@ void ClearLargeDataHandle(CliBuffer_t *buffer)
     INTCON |= intConSto;            // Restore Interrupts
 }
 
-NumberFormat_e NumberFormat;
+volatile NumberFormat_e NumberFormat;
 void SetNumberFormat(NumberFormat_e format)
 {
     NumberFormat = format;
