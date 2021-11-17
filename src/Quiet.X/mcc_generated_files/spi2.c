@@ -65,6 +65,9 @@ void SPI2_Initialize(void)
     SSP2STAT = 0x00;
     SSP2CON1 = 0x32;
     SSP2ADD = 0x27;
+    
+    DMACON2 = 0x10;
+    
 //    0 = 0;
     SSP2CON1bits.SSPEN = 1;
 }
@@ -97,14 +100,53 @@ uint8_t SPI2_ExchangeByte(uint8_t data)
     return SSP2BUF;
 }
 
-void SPI2_ExchangeBlock(void *block, size_t blockSize)
+void SPI2_ExchangeBlock(uint8_t *input, uint8_t *output, uint16_t count)
 {
-    uint8_t *data = block;
-    while(blockSize--)
+    if (count == 0)
+        return;
+    
+    DMACON1 = 0x00;
+    
+    if (input)
     {
-        *data = SPI2_ExchangeByte(*data );
-        data++;
+        TXADDRH = (uint8_t)((uint16_t)input >> 8);
+        TXADDRL = (uint8_t)((uint16_t)input & 0xFF);
+        DMACON1bits.TXINC = 1;
     }
+    
+    if (output)
+    {
+        RXADDRH = (uint8_t)((uint16_t)output >> 8);
+        RXADDRL = (uint8_t)((uint16_t)output & 0xFF);
+        DMACON1bits.RXINC = 1;
+    }
+
+    --count;
+    DMABCH = (uint8_t)(count >> 8);
+    DMABCL = (uint8_t)(count & 0xFF);
+    
+    if (input && output)
+    {
+        DMACON1bits.DUPLEX1 = 1;
+    }
+    else if (input)
+    {
+        DMACON1bits.DUPLEX0 = 1;
+    }
+    else if (output)
+    {
+        DMACON1bits.DUPLEX0 = 0;
+    }
+    else
+    {
+        // Attempted to start a transfer with no data?
+        while (1);
+    }
+    
+    DMACON1bits.DMAEN = 1;
+    
+    // Wait for transfer to complete
+    while (DMACON1bits.DMAEN);
 }
 
 // Half Duplex SPI Functions

@@ -16,10 +16,10 @@ void SPILargeExchange(CliBuffer_t *buffer)
     if (spiExchangeSize <= bufferRemaining)
     {
         // Read out the data in this buffer
-        do
-        {
-            *buffer->OutputPnt++ = SPI2_ExchangeByte(*buffer->InputPnt++);
-        } while (--spiExchangeSize > 0);
+        SPI2_ExchangeBlock((uint8_t*)buffer->InputPnt, (uint8_t*)buffer->OutputPnt,
+                spiExchangeSize);    
+        buffer->InputPnt += spiExchangeSize;
+        buffer->OutputPnt += spiExchangeSize;
         
         ClearLargeDataHandle(buffer);
     }
@@ -28,11 +28,11 @@ void SPILargeExchange(CliBuffer_t *buffer)
         spiExchangeSize -= bufferRemaining;
 
         // Read out the data until all the data is read
-        do 
-        {
-            *buffer->OutputPnt++ = SPI2_ExchangeByte(*buffer->InputPnt++);
-        }   while (--bufferRemaining > 0);
-
+        SPI2_ExchangeBlock((uint8_t*)buffer->InputPnt, (uint8_t*)buffer->OutputPnt, 
+                bufferRemaining);
+        buffer->InputPnt += bufferRemaining;
+        buffer->OutputPnt += bufferRemaining;
+        
         if (buffer->DataHandle)
         {
             return;

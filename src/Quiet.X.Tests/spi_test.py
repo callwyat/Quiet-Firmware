@@ -35,7 +35,18 @@ def spi_exchange(com, data):
     # Return all but the header
     return result[len(ieee_header):]
 
+def sd_card_exchange(com, data, response_length):
+
+    response_raw = spi_exchange(com, data + [0xFF] * (response_length + 1))
+
+    return response_raw[len(data) + 1:]
+
+
+
 def spi_test(com):
+
+    com.write('SPI:BAUD 250000;BAUD?\r\n'.encode())
+    response = com.read_until()
 
     # Init the SD Card
     # 80 Clocks while deselected
@@ -44,29 +55,41 @@ def spi_test(com):
     com.timeout = 5000
     response = com.read(22)
 
+    # More clocks while selected
+    response = spi_exchange(com, [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+
     # COM_0 -> Reset?
-    response = spi_exchange(com, [0xFF, 0xFF, 0x40, 0x00, 0x00, 0x00, 0x00, 0x95])
+    response = sd_card_exchange(com, [0x40, 0x00, 0x00, 0x00, 0x00, 0x95], 1)
 
     # COM_8 -> Wait for the card to be ready
     while True:
-        response = spi_exchange(com, [0x48, 0x00, 0x00, 0x01, 0xAA, 0x86])
+        response = sd_card_exchange(com, [0x48, 0x00, 0x00, 0x01, 0xAA, 0x86], 1)
 
-        if response[0] != 0:
+        if response[0] == 1:
             break
 
     # COM_58 -> Check the supported voltage levels of the card
-    response = spi_exchange(com, [0x7A, 0x00, 0x00, 0x00, 0x00, 0x95])
+    response = sd_card_exchange(com, [0x7A, 0x00, 0x00, 0x00, 0x00, 0x95], 4)
 
     # TODO: Maybe actually look at the supported levels...
 
-    # COM_55 -> Leave Idle
+    
     while True:
-        response = spi_exchange(com, [0x77, 0x00, 0x00, 0x00, 0x00, 0x7A])
+        # COM_55 -> Prepare for the app command
+        response = sd_card_exchange(com, [0x77, 0x00, 0x00, 0x00, 0x00, 0x7A], 1)
 
-        response = spi_exchange(com, [0x69, 0x40, 0x00, 0x00, 0x00, 0x95])
+        # COM_41 -> Leave Idle Mode
+        response = sd_card_exchange(com, [0x69, 0x40, 0x00, 0x00, 0x00, 0x95], 1)
 
-        if response[0] == 0:
+        if response[0] == 1:
             break
+
+    # Full Speed AHEAD!!!!!
+    com.write('SPI:BAUD 4000000;BAUD?\r\n'.encode())
+    response = com.read_until()
+
+    # Read the MBR
+    response = sd_card_exchange(com, [0x51, 0x00, 0x00, 0x00, 0x00, 0x95], 515)
 
     print(response)
 

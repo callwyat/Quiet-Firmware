@@ -64,7 +64,7 @@ void SPI2_Initialize(void);
 bool SPI2_Open(spi2_modes_t spi2UniqueConfiguration);
 void SPI2_Close(void);
 uint8_t SPI2_ExchangeByte(uint8_t data);
-void SPI2_ExchangeBlock(void *block, size_t blockSize);
+void SPI2_ExchangeBlock(uint8_t *input, uint8_t *output, uint16_t count);
 void SPI2_WriteBlock(void *block, size_t blockSize);
 void SPI2_ReadBlock(void *block, size_t blockSize);
 void SPI2_WriteByte(uint8_t byte);

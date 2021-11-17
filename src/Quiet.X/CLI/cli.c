@@ -333,7 +333,11 @@ void SetLargeDataHandle(CliBuffer_t *buffer, CommandHandle handle)
         __asm("pop");
     }
     
+    goto ReturnHere;
+    __asm("push");
     INTCON |= intConSto;            // Restore Interrupts
+    __asm("return");
+    ReturnHere:__asm("nop");
 }
 
 void ClearLargeDataHandle(CliBuffer_t *buffer)
