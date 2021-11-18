@@ -5,11 +5,9 @@
 
 #define DIGOUT_OFFSET -1
 
-uint8_t digoChannel;
+#define DIGOUT_CHANNEL (uint8_t)(*((uint8_t*)channel) + DIGOUT_OFFSET)
 
-#define DIGOUT_CHANNEL ((uint8_t)(digoChannel + DIGOUT_OFFSET))
-
-void DIGOChannelModeCommand(CliBuffer_t *buffer)
+void DIGOChannelModeCommand(CliBuffer_t *buffer, void *channel)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -60,7 +58,7 @@ void DIGOChannelModeCommand(CliBuffer_t *buffer)
     }
 }
 
-void DIGOChannelValueCommand(CliBuffer_t *buffer)
+void DIGOChannelValueCommand(CliBuffer_t *buffer, void *channel)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -79,40 +77,21 @@ void DIGOChannelValueCommand(CliBuffer_t *buffer)
     }
 }
 
-const CommandDefinition digoChanCommands[] = {
+const CommandDefinition_t digoChanCommands[] = {
   DEFINE_COMMAND("MODE", DIGOChannelModeCommand),  
   DEFINE_COMMAND("VALU", DIGOChannelValueCommand),  
 };
 
-const uint8_t digoChanCommandCount = sizeof(digoChanCommands) / sizeof(digoChanCommands[0]);
-
-void DIGOChannelCommand(CliBuffer_t *buffer, uint8_t channel)
-{
-    if (channel > 0 && channel < 9)
+const CommandDefinition_t digoCommands[] = {
     {
-        digoChannel = channel;
-        
-        if (*buffer->InputPnt == ':')
-        {
-            ++buffer->InputPnt;
-            ProcessCommand(digoChanCommands, digoChanCommandCount, buffer, false);
-        }
-        else
-        {
-            // Default to working with the value
-            DIGOChannelValueCommand(buffer);
-        }
+        .Command = "CH",
+        .Handle = DIGOChannelValueCommand,
+        .Children = digoChanCommands,
+        .ChildrenCount = sizeof(digoChanCommands) / sizeof(digoChanCommands[0]),
     }
-}
-
-const CommandDefinition digoCommands[] = {
-  DEFINE_CHANNEL_COMMAND("CH", DIGOChannelCommand),  
 };
 
-const uint8_t digoCommandCount = sizeof(digoCommands) / sizeof(digoCommands[0]);
-
-
-void DIGOCommand(CliBuffer_t *buffer)
+void DIGODiscreetCommand(CliBuffer_t *buffer, void* v)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -120,25 +99,11 @@ void DIGOCommand(CliBuffer_t *buffer)
         ++buffer->InputPnt;
         NumberToString(buffer, DOUT);
     }
-    else if (*buffer->InputPnt == ' ')
-    {
-        //Progress the pointer past the query
-        ++buffer->InputPnt;
-        
-        int16_t value = ParseInt(&buffer->InputPnt);
-        
-        if (value >= 0)
-        {
-            SetDiscreetOutputs((uint8_t)value);
-        }
-        else
-        {
-            // TODO: Record an error?
-        }
-    }
-    else if (*buffer->InputPnt == ':')
-    {
-        ++buffer->InputPnt;
-        ProcessCommand(digoCommands, digoCommandCount, buffer, false);
-    }
 }
+
+const CommandDefinition_t DIGOCommand = {
+    .Command = "DIGO",
+    .Handle = DIGODiscreetCommand,
+    .Children = digoCommands,
+    .ChildrenCount = sizeof(digoCommands) / sizeof(digoCommands[0]),
+};

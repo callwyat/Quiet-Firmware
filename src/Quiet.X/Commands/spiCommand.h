@@ -12,9 +12,6 @@
 extern "C" {
 #endif
 
-    void SPICommand(CliBuffer_t *buffer);
-
-
 #ifdef	__cplusplus
 }
 #endif

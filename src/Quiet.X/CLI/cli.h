@@ -32,34 +32,38 @@ extern "C" {
     } CliBuffer_t;
     
     
-    typedef void(*CommandHandle)(CliBuffer_t *buffer);
-    
-    typedef void(*ChannelCommandHandle)(CliBuffer_t *buffer, uint8_t channel);
+    typedef void(*CommandHandle)(CliBuffer_t *buffer, void *channel);
         
-    typedef struct
+    typedef struct CommandDefinition
     {
         const char Command[4];
-        CommandHandle Handle;
-        ChannelCommandHandle ChannelHandle;
         
-    } CommandDefinition;
+        const struct CommandDefinition* Children;
+        uint8_t ChildrenCount;
+        
+        CommandHandle Handle;
+        
+    } CommandDefinition_t;
     
 #define DEFINE_COMMAND(command, handle) { \
             .Command = command,           \
             .Handle = handle,             \
+            .Children = 0x0000,           \
+            .ChildrenCount = 0,           \
         }
     
-#define DEFINE_CHANNEL_COMMAND(command, handle) { \
+#define DEFINE_BRANCH(command, children) { \
             .Command = command,           \
-            .ChannelHandle = handle,      \
+            .Handle = 0x0000,             \
+            .Children = &children[0],     \
+            .ChildrenCount =  sizeof(children) / sizeof(children[0]),    \
         }
     
     bool SCPICompare(const char *reference, char *input);
     
     void FFTilPunctuation(char **input);
     
-    void ProcessCommand(const CommandDefinition commands[], uint8_t commandsLength, 
-        CliBuffer_t *buffer, bool isRoot);
+    void ProcessCommand(CliBuffer_t *buffer);
     
     void SetNumberFormat(NumberFormat_e format);
     

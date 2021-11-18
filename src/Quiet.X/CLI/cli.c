@@ -23,6 +23,50 @@
 
 #define IS_NUMBER(c) (c >= '0' && c <= '9')
 
+uint16_t lastExecutionTime = 0;
+void DIAGnostics(CliBuffer_t *buffer, void* v)
+{
+    if (*buffer->InputPnt == '?')
+    {
+        ++buffer->InputPnt;
+
+        NumberToString(buffer, lastExecutionTime);
+    }
+}
+
+CommandDefinition_t DIAGnosticsCommand = DEFINE_COMMAND("DIAG", DIAGnostics);
+
+extern CommandDefinition_t PWMCommand;
+extern CommandDefinition_t SERVoCommand;
+extern CommandDefinition_t DIGOCommand;
+extern CommandDefinition_t ANAOCommand;
+extern CommandDefinition_t ANAICommand;
+extern CommandDefinition_t DIGICommand;
+extern CommandDefinition_t SYSTemCommand;
+extern CommandDefinition_t UARTCommand;
+extern CommandDefinition_t SPICommand;
+extern CommandDefinition_t DIAGnosticsCommand;
+extern CommandDefinition_t StarCommand;
+            
+
+// Put the commands that have the most branches towards the top
+CommandDefinition_t commands[16];
+
+void CliInit(void)
+{
+    commands[0] = PWMCommand;
+    commands[1] = SERVoCommand;
+    commands[2] = DIGOCommand;
+    commands[3] = ANAOCommand;
+    commands[4] = ANAICommand;
+    commands[5] = DIGICommand;
+    commands[6] = SYSTemCommand;
+    commands[7] = UARTCommand;
+    commands[8] = SPICommand;
+    commands[9] = DIAGnosticsCommand;
+    commands[10] = StarCommand;
+}
+
 bool SCPICompare(const char *reference, char *input)
 {
     // Match upto the first 4 chars, or until reference is null
@@ -64,81 +108,94 @@ void FFTilPunctuation(char **input)
     }
 }
 
-void ProcessCommand(const CommandDefinition commands[], uint8_t commandsLength, 
-        CliBuffer_t *buffer, bool isRoot)
+
+void ProcessCommand(CliBuffer_t *buffer)
 {
-    for (int i = 0; i < commandsLength; ++i)
+    const CommandDefinition_t* commandList = commands;
+    const CommandDefinition_t* command = commandList;
+
+    char *inputEnd = &buffer->InputBuffer[buffer->InputLength];
+    
+    bool valid = true;
+    
+    while (true)
     {
-        const CommandDefinition* command = &commands[i];
         if (SCPICompare(command->Command, buffer->InputPnt))
         {
-            if (command->Handle)
-            {
-                FFTilPunctuation(&buffer->InputPnt);
-                command->Handle(buffer);
-            }
-            else if (command->ChannelHandle)
-            {
-                // Scan until a number is found
-                while (*buffer->InputPnt < '0' || *buffer->InputPnt > '9')
-                {
-                    // Check if it punctuation showed up
-                    switch (*buffer->InputPnt)
-                    {
-                        case ':':
-                        case ' ':
-                        case '?':
-                        case ';':
-                            return;
-                    }
-                    
-                    ++buffer->InputPnt;
-                }
-                
-                // Parse the number
-                uint8_t channel = 0;
-                
-                do
-                {
-                    channel *= 10;
-                    channel += *buffer->InputPnt++ - '0';
-                } while (IS_NUMBER(*buffer->InputPnt)); 
-                
-                command->ChannelHandle(buffer, channel);
-            }
-            else
-            {
-                // Developer error, command is missing handle
-                while (true);
-            }
+            const char* commandName = command->Command;
             
-            // Check for more commands at this level
-            if (*buffer->InputPnt == ';')
+            // FF to the end of the command
+            while (*commandName++);
+            
+            // look for numbers or some punctuation
+            uint8_t number = 0;
+            
+            while (true)
             {
-                ++buffer->InputPnt;
-                
-                // Check if returning to root
-                if (*buffer->InputPnt == ':')
+                char c = *buffer->InputPnt;
+                if (c == ':')           // Branch Deeper
                 {
-                    if (isRoot)
+                    if (command->Children)
                     {
-                        // Prep to run the next command
-                        ++buffer->InputPnt;
+                        commandList = command->Children;
+                        command = commandList;   
                     }
                     else
                     {
-                        // Back up to the ';'
-                        --buffer->InputPnt;
-                        return;
+                        valid = false;
+                    }
+                    break;
+                }
+                else if (c == '?' || c == ' ' || c == ';'  || c == '\r' || c == '\n')      // Get a value
+                {
+                    buffer->InputPnt++;
+                    if (command->Handle)
+                    {
+                        command->Handle(buffer, &number);
+                        c = *buffer->InputPnt;
+                    }
+                    else
+                    {
+                        // Missing Handle
+                        while (true);
                     }
                 }
+                else if (IS_NUMBER(c))      // Parse a number
+                {
+                    number *= 10;
+                    number += c - '0';
+                }
                 
-                *buffer->OutputPnt++ = ',';
-                i = -1;
-                continue;
+                // Check for end conditions
+                if (c == '\x00' || c == '\r' || c == '\n' || buffer->InputPnt >= inputEnd)
+                {
+                    return;
+                }
+                
+                if (c == ';')
+                {
+                    ++buffer->InputPnt;
+                    if (*buffer->InputPnt == ':')
+                    {
+                        ++buffer->InputPnt;
+                        command = commands;
+                        commandList = commands;
+                    }
+                    else
+                    {
+                        --buffer->InputPnt;
+                        command = commandList;
+                    }
+                }
             }
-            
-            return;
+        }
+        else
+        {
+            ++command;
+            if (command->Command[0] == '\x00')
+            {
+                break;
+            }
         }
     }
 }
@@ -263,34 +320,6 @@ void CopyWordToOutBuffer(CliBuffer_t *buffer, const char* word)
     }
 }
 
-uint16_t lastExecutionTime = 0;
-void DIAGnosticsCommand(CliBuffer_t *buffer)
-{
-    if (*buffer->InputPnt == '?')
-    {
-        ++buffer->InputPnt;
-
-        NumberToString(buffer, lastExecutionTime);
-    }
-}
-
-// Put the commands that have the most branches towards the top
-const CommandDefinition commands[] = {
-    DEFINE_COMMAND("PWM", PWMCommand),
-    DEFINE_COMMAND("SERV", SERVoCommand),
-    DEFINE_COMMAND("DIGO", DIGOCommand),
-    DEFINE_COMMAND("ANAO", ANAOCommand),
-    DEFINE_COMMAND("ANAI", ANAICommand),
-    DEFINE_COMMAND("DIGI", DIGICommand),
-    DEFINE_COMMAND("SYST", SYSTemCommand),
-    DEFINE_COMMAND("UART", UARTCommand),
-    DEFINE_COMMAND("SPI", SPICommand),
-    DEFINE_COMMAND("DIAG", DIAGnosticsCommand),
-    DEFINE_COMMAND("*", StarCommand),
-};
-
-const uint8_t CommandCount = sizeof(commands) / sizeof(commands[0]);
-
 volatile uint8_t stackPnt;
 void ProcessCLI(CliBuffer_t *buffer)
 {    
@@ -302,7 +331,7 @@ void ProcessCLI(CliBuffer_t *buffer)
     
     *buffer->OutputPnt = 0x00;
     
-    ProcessCommand(commands, CommandCount, buffer, true);
+    ProcessCommand(buffer);
     
     // If something was placed in the output buffer, make sure it is terminated
     if (buffer->OutputBuffer[0] != 0x00)
@@ -319,7 +348,7 @@ void ProcessCLI(CliBuffer_t *buffer)
 uint24_t TheStack[32];
 uint24_t *TheStackPnt = TheStack;
 
-void SetLargeDataHandle(CliBuffer_t *buffer, CommandHandle handle)
+void SetLargeDataHandle(CliBuffer_t *buffer, void(*handle)())
 {    
     buffer->DataHandle = handle;
     
@@ -333,11 +362,7 @@ void SetLargeDataHandle(CliBuffer_t *buffer, CommandHandle handle)
         __asm("pop");
     }
     
-    goto ReturnHere;
-    __asm("push");
     INTCON |= intConSto;            // Restore Interrupts
-    __asm("return");
-    ReturnHere:__asm("nop");
 }
 
 void ClearLargeDataHandle(CliBuffer_t *buffer)

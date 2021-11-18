@@ -14,8 +14,6 @@ extern "C" {
 
 #include "../CLI/cli.h"
     
-    void ANAICommand(CliBuffer_t *buffer);
-
 
 #ifdef	__cplusplus
 }

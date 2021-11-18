@@ -4,7 +4,7 @@
 #include "../settings.h"
 #include "../outputs.h"
 
-void SYSTSerilalNumberCommand(CliBuffer_t *buffer)
+void SYSTSerilalNumber(CliBuffer_t *buffer, void* v)
 {
     QuietSettings_t settings = GetSettings();
     
@@ -59,7 +59,7 @@ void SYSTSerilalNumberCommand(CliBuffer_t *buffer)
     }
 }
 
-void SYSTRestoreCommand(CliBuffer_t *buffer)
+void SYSTRestore(CliBuffer_t *buffer, void* v)
 {
     if (*buffer->InputPnt == ' ')
     {
@@ -76,7 +76,7 @@ void SYSTRestoreCommand(CliBuffer_t *buffer)
     }
 }
 
-void SYSTSaveCommand(CliBuffer_t *buffer)
+void SYSTSave(CliBuffer_t *buffer, void* v)
 {
     SaveSettings();
 }
@@ -84,7 +84,7 @@ void SYSTSaveCommand(CliBuffer_t *buffer)
 const char* HEXString = "HEX";
 const char* DECIString = "DECI";
 
-void SYSTNumberCommand(CliBuffer_t *buffer)
+void SYSTNumberCommand(CliBuffer_t *buffer, void* v)
 {
     if (*buffer->InputPnt == ' ')
     {
@@ -121,20 +121,11 @@ void SYSTNumberCommand(CliBuffer_t *buffer)
     }
 }
 
-const CommandDefinition systemCommands[] = {
-  DEFINE_COMMAND("REST", SYSTRestoreCommand),
-  DEFINE_COMMAND("SAVE", SYSTSaveCommand),
-  DEFINE_COMMAND("SERI", SYSTSerilalNumberCommand),
-  DEFINE_COMMAND("NUMB", SYSTNumberCommand),
+const CommandDefinition_t SYSTemChildrenCommands[] = {
+    DEFINE_COMMAND("REST", SYSTRestore),
+    DEFINE_COMMAND("SAVE", SYSTSave),
+    DEFINE_COMMAND("SERI", SYSTSerilalNumber),
+    DEFINE_COMMAND("NUMB", SYSTNumberCommand),
 };
 
-const uint8_t systemCommandCount = sizeof(systemCommands) / sizeof(systemCommands[0]);
-
-void SYSTemCommand(CliBuffer_t *buffer)
-{
-    if (*buffer->InputPnt == ':')
-    {
-        ++buffer->InputPnt;
-        ProcessCommand(systemCommands, systemCommandCount, buffer, false);
-    }
-}
+const CommandDefinition_t SYSTemCommand = DEFINE_BRANCH("SYST", SYSTemChildrenCommands);

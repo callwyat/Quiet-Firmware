@@ -5,11 +5,9 @@
 
 #define PWM_OFFSET 3
 
-uint8_t pwmChannel;
+#define PWM_CHANNEL (uint8_t)(*((uint8_t*)channel) + PWM_OFFSET)
 
-#define PWM_CHANNEL ((uint8_t)(pwmChannel + PWM_OFFSET))
-
-void PWMChannelModeCommand(CliBuffer_t *buffer)
+void PWMChannelModeCommand(CliBuffer_t *buffer, void *channel)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -52,7 +50,7 @@ void PWMChannelModeCommand(CliBuffer_t *buffer)
     }
 }
 
-void PWMChannelValueCommand(CliBuffer_t *buffer)
+void PWMChannelValueCommand(CliBuffer_t *buffer, void *channel)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -71,47 +69,19 @@ void PWMChannelValueCommand(CliBuffer_t *buffer)
     }
 }
 
-const CommandDefinition pwmChanCommands[] = {
+const CommandDefinition_t pwmChanCommands[] = {
   DEFINE_COMMAND("MODE", PWMChannelModeCommand),  
   DEFINE_COMMAND("VALU", PWMChannelValueCommand),  
 };
 
-const uint8_t pwmChanCommandCount = sizeof(pwmChanCommands) / sizeof(pwmChanCommands[0]);
-
-
-void PWMChannelCommand(CliBuffer_t *buffer, uint8_t channel)
-{
-    if (channel >= 1 && channel <= 6)
-    {
-        pwmChannel = channel;
-        
-        if (*buffer->InputPnt == ':')
-        {
-            ++buffer->InputPnt;
-            ProcessCommand(pwmChanCommands, pwmChanCommandCount, buffer, false);  
-        }
-        else
-        {
-            // Default to working with the value
-            PWMChannelValueCommand(buffer);
-        }
-    }
-}
-
-const CommandDefinition pwmCommands[] = {
-  DEFINE_CHANNEL_COMMAND("CH", PWMChannelCommand),  
+const CommandDefinition_t pwmCommands[] = {
+     {
+        .Command = "CH",
+        .Handle = PWMChannelValueCommand,
+        .Children = pwmChanCommands,
+        .ChildrenCount = sizeof(pwmChanCommands) / sizeof(pwmChanCommands[0]),
+     }
 };
 
-const uint8_t pwmCommandCount = sizeof(pwmCommands) / sizeof(pwmCommands[0]);
-
-void PWMCommand(CliBuffer_t *buffer)
-{
-    if (*buffer->InputPnt == ':')
-    {
-        ++buffer->InputPnt;
-        ProcessCommand(pwmCommands, pwmCommandCount, buffer, false);
-    }
-}
-
-
+const CommandDefinition_t PWMCommand = DEFINE_BRANCH("PWM", pwmCommands);
 

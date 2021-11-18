@@ -13,9 +13,6 @@ extern "C" {
 #endif
 
 #include "../CLI/cli.h"
-    
-    void SERVoCommand(CliBuffer_t *buffer);
-
 
 #ifdef	__cplusplus
 }

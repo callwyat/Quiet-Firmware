@@ -5,7 +5,7 @@
 #include "../mcc_generated_files/eusart2.h"
 
 
-void UARTReadCommand(CliBuffer_t *buffer)
+void UARTReadCommand(CliBuffer_t *buffer, void* v)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -31,7 +31,7 @@ void UARTReadCommand(CliBuffer_t *buffer)
 
 uint16_t uartReadSize = 0;
 
-void UARTLargeWrite(CliBuffer_t *buffer)
+void UARTLargeWrite(CliBuffer_t *buffer, void *v)
 {
     uint8_t bufferRemaining = &buffer->InputBuffer[buffer->InputLength] - buffer->InputPnt;
 
@@ -66,7 +66,7 @@ void UARTLargeWrite(CliBuffer_t *buffer)
     }
 }
 
-void UARTWriteCommand(CliBuffer_t *buffer)
+void UARTWriteCommand(CliBuffer_t *buffer, void* v)
 {
     if (*buffer->InputPnt == ' ')
     {        
@@ -81,13 +81,13 @@ void UARTWriteCommand(CliBuffer_t *buffer)
             // Check for an invalid number
             if (uartReadSize != 0)
             {
-                UARTLargeWrite(buffer);
+                UARTLargeWrite(buffer, v);
             }
         }
     }
 }
 
-void UARTBaudCommand(CliBuffer_t *buffer)
+void UARTBaudCommand(CliBuffer_t *buffer, void* v)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -112,19 +112,10 @@ void UARTBaudCommand(CliBuffer_t *buffer)
     }
 }
 
-const CommandDefinition uartCommands[] = {
+const CommandDefinition_t uartCommands[] = {
   DEFINE_COMMAND("READ", UARTReadCommand),
   DEFINE_COMMAND("WRIT", UARTWriteCommand),
   DEFINE_COMMAND("BAUD", UARTBaudCommand),
 };
 
-const uint8_t uartCommandCount = sizeof(uartCommands) / sizeof(uartCommands[0]);
-
-void UARTCommand(CliBuffer_t *buffer)
-{
-    if (*buffer->InputPnt == ':')
-    {
-        ++buffer->InputPnt;
-        ProcessCommand(uartCommands, uartCommandCount, buffer, false);
-    }
-}
+const CommandDefinition_t UARTCommand = DEFINE_BRANCH("UART", uartCommands);
