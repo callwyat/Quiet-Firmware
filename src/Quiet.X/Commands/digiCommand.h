@@ -14,8 +14,6 @@ extern "C" {
 
 #include "../CLI/cli.h"
     
-    void DIGICommand(CliBuffer_t *buffer);
-
 
 #ifdef	__cplusplus
 }

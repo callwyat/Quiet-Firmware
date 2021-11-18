@@ -6,11 +6,9 @@
 
 #define ANAOUT_OFFSET 7
 
-uint8_t anaoChannel;
+#define ANAOUT_CHANNEL (uint8_t)(*((uint8_t*)channel) + ANAOUT_OFFSET)
 
-#define ANAOUT_CHANNEL ((uint8_t)(anaoChannel + ANAOUT_OFFSET))
-
-void ANAOChannelModeCommand(CliBuffer_t *buffer)
+void ANAOChannelModeCommand(CliBuffer_t *buffer, void *channel)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -57,7 +55,7 @@ void ANAOChannelModeCommand(CliBuffer_t *buffer)
     }
 }
 
-void ANAOChannelValueCommand(CliBuffer_t *buffer)
+void ANAOChannelValueCommand(CliBuffer_t *buffer, void *channel)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -76,46 +74,19 @@ void ANAOChannelValueCommand(CliBuffer_t *buffer)
     }
 }
 
-const CommandDefinition anaoChanCommands[] = {
+const CommandDefinition_t anaoChanCommands[] = {
   DEFINE_COMMAND("VALU", ANAOChannelValueCommand),
   DEFINE_COMMAND("MODE", ANAOChannelModeCommand),  
 };
 
-const uint8_t anaoChanCommandCount = sizeof(anaoChanCommands) / sizeof(anaoChanCommands[0]);
-
-
-void ANAOChannelCommand(CliBuffer_t *buffer, uint8_t channel)
-{
-    if (channel >= 1 && channel <= 2)
+const CommandDefinition_t anaoCommands[] = {
     {
-        anaoChannel = channel;
-        
-        if (*buffer->InputPnt == ':')
-        {
-            ++buffer->InputPnt;
-            ProcessCommand(anaoChanCommands, anaoChanCommandCount, buffer, false);  
-        }
-        else
-        {
-            // Default to working with the value
-            ANAOChannelValueCommand(buffer);
-        }
-    }
-}
-
-const CommandDefinition anaoCommands[] = {
-  DEFINE_CHANNEL_COMMAND("CH", ANAOChannelCommand),  
+        .Command = "CH",
+        .Handle = ANAOChannelValueCommand,
+        .Children = anaoChanCommands,
+        .ChildrenCount = sizeof(anaoChanCommands) / sizeof(anaoChanCommands[0])
+    },
 };
 
-const uint8_t anaoCommandCount = sizeof(anaoCommands) / sizeof(anaoCommands[0]);
-
-void ANAOCommand(CliBuffer_t *buffer)
-{
-    if (*buffer->InputPnt == ':')
-    {
-        ++buffer->InputPnt;
-        ProcessCommand(anaoCommands, anaoCommandCount, buffer, false);
-    }
-}
-
+const CommandDefinition_t ANAOCommand = DEFINE_BRANCH("ANAO", anaoCommands);
 

@@ -12,8 +12,6 @@
 extern "C" {
 #endif
 
-    void StarCommand(CliBuffer_t *buffer);
-
 
 #ifdef	__cplusplus
 }

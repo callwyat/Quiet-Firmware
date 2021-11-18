@@ -7,9 +7,9 @@
 
 uint8_t servoChannel;
 
-#define SERVO_CHANNEL ((uint8_t)(servoChannel + SERVO_OFFSET))
+#define SERVO_CHANNEL (*((uint8_t*)channel) + SERVO_OFFSET)
 
-void SERVChannelModeCommand(CliBuffer_t *buffer)
+void SERVChannelModeCommand(CliBuffer_t *buffer, void *channel)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -52,7 +52,7 @@ void SERVChannelModeCommand(CliBuffer_t *buffer)
     }
 }
 
-void SERVChannelValueCommand(CliBuffer_t *buffer)
+void SERVChannelValueCommand(CliBuffer_t *buffer, void *channel)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -71,48 +71,19 @@ void SERVChannelValueCommand(CliBuffer_t *buffer)
     }
 }
 
-const CommandDefinition servChanCommands[] = {
+const CommandDefinition_t servChanCommands[] = {
   DEFINE_COMMAND("MODE", SERVChannelModeCommand),  
   DEFINE_COMMAND("VALU", SERVChannelValueCommand),  
 };
 
-const uint8_t servChanCommandCount = sizeof(servChanCommands) / sizeof(servChanCommands[0]);
-
-
-void SERVChannelCommand(CliBuffer_t *buffer, uint8_t channel)
-{
-    if (channel >= 1 && channel <= 10)
+const CommandDefinition_t servoCommands[] = {
     {
-        servoChannel = channel;
-        
-        if (*buffer->InputPnt == ':')
-        {
-            ++buffer->InputPnt;
-            ProcessCommand(servChanCommands, servChanCommandCount, buffer, false);  
-        }
-        else
-        {
-            // Default to working with the value
-            SERVChannelValueCommand(buffer);
-        }
+        .Command = "CH",
+        .Handle = SERVChannelValueCommand,
+        .Children = servChanCommands,
+        .ChildrenCount = sizeof(servChanCommands) / sizeof(servChanCommands[0])
     }
-}
-
-const CommandDefinition servoCommands[] = {
-  DEFINE_CHANNEL_COMMAND("CH", SERVChannelCommand),  
 };
 
-const uint8_t servoCommandCount = sizeof(servoCommands) / sizeof(servoCommands[0]);
-
-void SERVoCommand(CliBuffer_t *buffer)
-{
-    if (*buffer->InputPnt == ':')
-    {
-        ++buffer->InputPnt;
-        ProcessCommand(servoCommands, servoCommandCount, buffer, false);
-    }
-}
-
-
-
+const CommandDefinition_t SERVoCommand = DEFINE_BRANCH("SERV", servoCommands);
 

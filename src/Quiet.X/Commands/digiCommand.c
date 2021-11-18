@@ -2,7 +2,7 @@
 #include "../CLI/cli.h"
 #include "../constants.h"
 
-void DIGICommand(CliBuffer_t *buffer)
+void QueryDIGI(CliBuffer_t *buffer, void* v)
 {
     if (*buffer->InputPnt == '?')
     {
@@ -11,3 +11,7 @@ void DIGICommand(CliBuffer_t *buffer)
         NumberToString(buffer, DIN);
     }
 }
+
+const CommandDefinition_t DIGICommand = DEFINE_COMMAND("DIGI", QueryDIGI);
+        
+        

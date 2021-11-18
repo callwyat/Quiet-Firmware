@@ -12,8 +12,6 @@
 extern "C" {
 #endif
 
-    void SYSTemCommand(CliBuffer_t *buffer);
-
 #ifdef	__cplusplus
 }
 #endif
