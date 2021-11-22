@@ -36,9 +36,9 @@ extern "C" {
         
     typedef struct CommandDefinition
     {
-        const char Command[4];
+        const char Command[5];      // Needs to hold four letters and a null
         
-        const struct CommandDefinition* Children;
+        struct CommandDefinition* Children;
         uint8_t ChildrenCount;
         
         CommandHandle Handle;
@@ -58,6 +58,8 @@ extern "C" {
             .Children = &children[0],     \
             .ChildrenCount =  sizeof(children) / sizeof(children[0]),    \
         }
+    
+    void CliInit(void);
     
     bool SCPICompare(const char *reference, char *input);
     
