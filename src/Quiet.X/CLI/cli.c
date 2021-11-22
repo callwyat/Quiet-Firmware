@@ -110,20 +110,33 @@ void FFTilPunctuation(char **input)
 
 void ProcessCommand(CliBuffer_t *buffer)
 {
-    CommandDefinition_t* commandList = commands;
-    CommandDefinition_t* command = commandList;
+    CommandDefinition_t* commandList;
+    CommandDefinition_t* command;
 
+    if (*buffer->InputPnt == '*')
+    {
+        ++buffer->InputPnt;
+        commandList = StarCommand.Children;
+        command = commandList;
+    }
+    else
+    {
+        commandList = commands;
+        command = commandList;
+    }
+    
     char *inputEnd = &buffer->InputBuffer[buffer->InputLength];
     
     bool valid = true;
+    bool lockNumber = false;
+    uint8_t number;
     
     while (true)
     {
-        if (*buffer->InputPnt == '*')
+        if (!lockNumber)
         {
-            ++buffer->InputPnt;
-            commandList = StarCommand.Children;
-            command = commandList;
+            // Only parse the number once per command string.
+            number = 0;
         }
         
         const char* commandName = command->Command;
@@ -133,19 +146,18 @@ void ProcessCommand(CliBuffer_t *buffer)
             // FF to the end of the command
             while (*commandName++) ++buffer->InputPnt;
             
-            // look for numbers or some punctuation
-            uint8_t number = 0;
-            
             while (true)
             {
                 char c = *buffer->InputPnt++;
                 if (c == ':')           // Branch Deeper
                 {
+                    if (number > 0)
+                        lockNumber = true;
+                    
                     if (command->Children)
                     {
                         commandList = command->Children;
                         command = commandList;
-                        break;
                     }
                     else
                     {
@@ -153,7 +165,7 @@ void ProcessCommand(CliBuffer_t *buffer)
                     }
                     break;
                 }
-                else if (c == '?' || c == ' ' || c == ';'  || c == '\r' || c == '\n')      // Get a value
+                else if (c == '?' || c == ' ' || c == ';' || c == '\r' || c == '\n')      // Get a value
                 {
                     --buffer->InputPnt;
                     if (command->Handle)
@@ -171,6 +183,7 @@ void ProcessCommand(CliBuffer_t *buffer)
                 {
                     number *= 10;
                     number += c - '0';
+                    continue;
                 }
                 
                 // Check for end conditions
@@ -183,11 +196,14 @@ void ProcessCommand(CliBuffer_t *buffer)
                 {
                     *buffer->OutputPnt++ = ';';
                     ++buffer->InputPnt;
+                    
                     if (*buffer->InputPnt == ':')
                     {
                         ++buffer->InputPnt;
                         command = commands;
                         commandList = commands;
+                        
+                        lockNumber = false;
                     }
                     else
                     {
