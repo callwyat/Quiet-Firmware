@@ -54,17 +54,16 @@ CommandDefinition_t commands[16];
 
 void CliInit(void)
 {
-    commands[0] = PWMCommand;
-    commands[1] = SERVoCommand;
-    commands[2] = DIGOCommand;
-    commands[3] = ANAOCommand;
-    commands[4] = ANAICommand;
-    commands[5] = DIGICommand;
-    commands[6] = SYSTemCommand;
-    commands[7] = UARTCommand;
-    commands[8] = SPICommand;
-    commands[9] = DIAGnosticsCommand;
-    commands[10] = StarCommand;
+    commands[0] =  PWMCommand;
+    commands[1] =  SERVoCommand;
+    commands[2] =  DIGOCommand;
+    commands[3] =  ANAOCommand;
+    commands[4] =  ANAICommand;
+    commands[5] =  DIGICommand;
+    commands[6] =  SYSTemCommand;
+    commands[7] =  UARTCommand;
+    commands[8] =  SPICommand;
+    commands[9] =  DIAGnosticsCommand;
 }
 
 bool SCPICompare(const char *reference, char *input)
@@ -111,8 +110,8 @@ void FFTilPunctuation(char **input)
 
 void ProcessCommand(CliBuffer_t *buffer)
 {
-    const CommandDefinition_t* commandList = commands;
-    const CommandDefinition_t* command = commandList;
+    CommandDefinition_t* commandList = commands;
+    CommandDefinition_t* command = commandList;
 
     char *inputEnd = &buffer->InputBuffer[buffer->InputLength];
     
@@ -120,25 +119,33 @@ void ProcessCommand(CliBuffer_t *buffer)
     
     while (true)
     {
-        if (SCPICompare(command->Command, buffer->InputPnt))
+        if (*buffer->InputPnt == '*')
         {
-            const char* commandName = command->Command;
-            
+            ++buffer->InputPnt;
+            commandList = StarCommand.Children;
+            command = commandList;
+        }
+        
+        const char* commandName = command->Command;
+        
+        if (SCPICompare(commandName, buffer->InputPnt))
+        {
             // FF to the end of the command
-            while (*commandName++);
+            while (*commandName++) ++buffer->InputPnt;
             
             // look for numbers or some punctuation
             uint8_t number = 0;
             
             while (true)
             {
-                char c = *buffer->InputPnt;
+                char c = *buffer->InputPnt++;
                 if (c == ':')           // Branch Deeper
                 {
                     if (command->Children)
                     {
                         commandList = command->Children;
-                        command = commandList;   
+                        command = commandList;
+                        break;
                     }
                     else
                     {
@@ -148,7 +155,7 @@ void ProcessCommand(CliBuffer_t *buffer)
                 }
                 else if (c == '?' || c == ' ' || c == ';'  || c == '\r' || c == '\n')      // Get a value
                 {
-                    buffer->InputPnt++;
+                    --buffer->InputPnt;
                     if (command->Handle)
                     {
                         command->Handle(buffer, &number);
@@ -174,6 +181,7 @@ void ProcessCommand(CliBuffer_t *buffer)
                 
                 if (c == ';')
                 {
+                    *buffer->OutputPnt++ = ';';
                     ++buffer->InputPnt;
                     if (*buffer->InputPnt == ':')
                     {
@@ -183,9 +191,10 @@ void ProcessCommand(CliBuffer_t *buffer)
                     }
                     else
                     {
-                        --buffer->InputPnt;
                         command = commandList;
                     }
+                    
+                    break;
                 }
             }
         }

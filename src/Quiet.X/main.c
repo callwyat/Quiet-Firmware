@@ -185,6 +185,8 @@ void main(void)
     // Disable the Peripheral Interrupts
     //INTERRUPT_PeripheralInterruptDisable();
     
+    CliInit();
+    
     while (1)
     {
         USB_CDC_Tasks();
