@@ -72,8 +72,8 @@ void SERVChannelValueCommand(CliBuffer_t *buffer, void *channel)
 }
 
 const CommandDefinition_t servChanCommands[] = {
-  DEFINE_COMMAND("MODE", SERVChannelModeCommand),  
-  DEFINE_COMMAND("VALU", SERVChannelValueCommand),  
+    DEFINE_COMMAND("VALU", SERVChannelValueCommand),
+    DEFINE_COMMAND("MODE", SERVChannelModeCommand),
 };
 
 const CommandDefinition_t servoCommands[] = {

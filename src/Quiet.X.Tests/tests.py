@@ -20,7 +20,7 @@ class QueryTest():
 
     def __init__(self, command, response):
         super().__init__()
-
+        
         self.commands = [command + QUIET_TERMINATION]
         self.response = f'{response}({QUIET_TERMINATION})'
 
@@ -54,8 +54,9 @@ def output_test(com, command, count, mode, value):
         full_command = f'{command}:CH{i}:MODE {mode};VALUE {value};MODE?\r\n'
         com.write(full_command.encode())
         
-        expected = f',,{mode}\r\n'
-        response = com.read_until().decode()
+        expected = f';;{mode}\r\n'
+        response = com.read_until()
+        response = response.decode()
         if response != expected:
             fail_string = generate_fail_message(full_command, expected, response)
             print(fail_string)
@@ -84,10 +85,11 @@ def command_test(com, number_mode='DECI'):
         QueryTest('*IDN?', 'Y@ Technologies,Qy@ Board,.*?,[2-9]\\.[0-9]'),
 
         QueryTest('DIGI?', number_pattern_8),
+        QueryTest('DIGInputs?', number_pattern_8),
 
         QueryChannelTest('ANAI:CH#?', 1, 4, number_pattern_16),
 
-        QueryTest('DIGO?', number_pattern_8),
+        QueryTest('DIGOutputs?', number_pattern_8),
         QueryChannelTest('DIGO:CH#?', 1, 8, number_pattern_16),
         QueryChannelTest('DIGO:CH#:VALU?', 1, 8, number_pattern_16),
         QueryChannelTest('DIGO:CH#:MODE?', 1, 8, '\\bDISC\\b'),
@@ -102,7 +104,7 @@ def command_test(com, number_mode='DECI'):
 
         QueryChannelTest('SERV:CH#?', 1, 10, number_pattern_16),
         QueryChannelTest('SERV:CH#:VALU?', 1, 10, number_pattern_16),
-        QueryChannelTest('SERV:CH#:MODE?', 1, 10, OUTPUT_MODE_PATTERN), 
+        QueryChannelTest('SERVo:CH#:MODE?', 1, 10, OUTPUT_MODE_PATTERN), 
     ]
 
     print('Starting Command Tests')
@@ -151,7 +153,7 @@ def analog_stability_test(com, number_mode='DECI'):
     for i in range(1, 10000):
 
         com.write('ANAI:CH1?;CH2?;CH3?;CH4?\r\n'.encode())
-        response_raw = com.read_until().decode().strip().split(',')
+        response_raw = com.read_until().decode().strip().split(';')
 
         i = 0
         for response in response_raw:
@@ -191,7 +193,7 @@ def parse_test(com, number_mode='DECI'):
             com.write(command.encode())
             response = com.read_until().decode()
 
-            expected = f',{val}\r\n'
+            expected = f';{val}\r\n'
             if response != expected:
                 fail_string = generate_fail_message(command, expected, response)
                 print(fail_string)
@@ -209,7 +211,7 @@ def parse_test(com, number_mode='DECI'):
             com.write(command.encode())
             response = com.read_until().decode()
 
-            expected = f',0x{format(val, "02X" if val <= 0xFF else "04X")}\r\n'
+            expected = f';0x{format(val, "02X" if val <= 0xFF else "04X")}\r\n'
             if response != expected:
                 fail_string = generate_fail_message(command, expected, response)
                 print(fail_string)
@@ -269,7 +271,7 @@ def run_quiet_test(com):
 
     output_mode_test(com)
 
-    # uart_test(com)
+    uart_test(com)
 
     # TODO: Test the manipulation of settings
 

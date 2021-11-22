@@ -70,8 +70,8 @@ void PWMChannelValueCommand(CliBuffer_t *buffer, void *channel)
 }
 
 const CommandDefinition_t pwmChanCommands[] = {
-  DEFINE_COMMAND("MODE", PWMChannelModeCommand),  
-  DEFINE_COMMAND("VALU", PWMChannelValueCommand),  
+    DEFINE_COMMAND("VALU", PWMChannelValueCommand),
+    DEFINE_COMMAND("MODE", PWMChannelModeCommand),
 };
 
 const CommandDefinition_t pwmCommands[] = {

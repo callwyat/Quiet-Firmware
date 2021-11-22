@@ -78,8 +78,8 @@ void DIGOChannelValueCommand(CliBuffer_t *buffer, void *channel)
 }
 
 const CommandDefinition_t digoChanCommands[] = {
-  DEFINE_COMMAND("MODE", DIGOChannelModeCommand),  
-  DEFINE_COMMAND("VALU", DIGOChannelValueCommand),  
+    DEFINE_COMMAND("VALU", DIGOChannelValueCommand),  
+    DEFINE_COMMAND("MODE", DIGOChannelModeCommand),  
 };
 
 const CommandDefinition_t digoCommands[] = {
