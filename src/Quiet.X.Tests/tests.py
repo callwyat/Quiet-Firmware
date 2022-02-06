@@ -41,6 +41,13 @@ class QueryChannelTest():
     def check_response(self, response):
         return re.search(self.response, response)
 
+def write(input):
+    com.write(f'{input}\r\n'.encode())
+
+def query(input):
+    write(input)
+    return com.read_until().decode()
+
 def generate_fail_message(command, expected, response):
     return (f"Test Failed\nSent:     {repr(command)}\n" +
           f"Expected: {repr(expected)}\n" +
@@ -51,8 +58,8 @@ def print_fail_message(command, expected, response):
 
 def output_test(com, command, count, mode, value):
     for i in range(1, count + 1):
-        full_command = f'{command}:CH{i}:MODE {mode};VALUE {value};MODE?\r\n'
-        com.write(full_command.encode())
+        full_command = f'{command}:CH{i}:MODE {mode};VALUE {value};MODE?'
+        write(full_command)
         
         expected = f';;{mode}\r\n'
         response = com.read_until()
@@ -68,13 +75,46 @@ def output_test(com, command, count, mode, value):
 
         time.sleep(1)
 
+default_test_results = [ 
+    'DISC', 
+    'DISC', 
+    'DISC', 
+    'DISC', 
+    'DISC', 
+    'DISC', 
+    'DISC', 
+    'DISC', 
+    'PWM',
+    'PWM',
+    ]
 
+def defaults_test(com):
+
+    # Restore factory defaults
+    write(f'SYST:REST FACT')
+
+    i = 1
+    for expectation in default_test_results:
+        result = query(f'SERV:CH{i}:MODE?').strip()
+    
+        if result == expectation:
+            if VERBOSE:
+                print(f'Default CH{i} -> Pass')
+        else:
+            if EXIT_ON_FAIL:
+                raise Exception(f'Channel {i} failed default test. Expected "{expectation}" Received "{result}"')
+            else:
+                print(f'Default CH{i} -> FAIL')
+
+        i += 1
+
+    
 
 def command_test(com, number_mode='DECI'):
 
     if number_mode == 'DECI' or number_mode == 'HEX':
         # Changed the number mode
-        com.write(f'SYST:NUMB {number_mode}\r\n'.encode())
+        write(f'SYST:NUMB {number_mode}')
     else:
         raise Exception(f'Invalid Number mode {number_mode}. Must be \'DECI\' or \'HEX\'')
 
@@ -113,7 +153,7 @@ def command_test(com, number_mode='DECI'):
 
         for command in test.commands:
 
-            com.write(command.encode())
+            write(command)
 
             response = com.read_until().decode()
             test_result = test.check_response(response)
@@ -126,8 +166,7 @@ def command_test(com, number_mode='DECI'):
 
             else:
                 # Get the time to execute the command
-                com.write('DIAG?\r\n'.encode())
-                value_string = com.read_until().decode().strip()
+                value_string = query('DIAG?').strip()
                 if number_mode == 'HEX':
                     execution_time = int(value_string[2:], 16)
                 else:
@@ -142,7 +181,7 @@ def analog_stability_test(com, number_mode='DECI'):
 
     if number_mode == 'DECI' or number_mode == 'HEX':
         # Changed the number mode
-        com.write(f'SYST:NUMB {number_mode}\r\n'.encode())
+        write(f'SYST:NUMB {number_mode}')
     else:
         raise Exception(f'Invalid Number mode {number_mode}. Must be \'DECI\' or \'HEX\'')
 
@@ -152,8 +191,7 @@ def analog_stability_test(com, number_mode='DECI'):
     aMin = [ 10000, 10000, 10000, 10000]
     for i in range(1, 10000):
 
-        com.write('ANAI:CH1?;CH2?;CH3?;CH4?\r\n'.encode())
-        response_raw = com.read_until().decode().strip().split(';')
+        response_raw = query('ANAI:CH1?;CH2?;CH3?;CH4?').strip().split(';')
 
         i = 0
         for response in response_raw:
@@ -176,7 +214,7 @@ def parse_test(com, number_mode='DECI'):
     
     if number_mode == 'DECI' or number_mode == 'HEX':
         # Changed the number mode
-        com.write(f'SYST:NUMB {number_mode}\r\n'.encode())
+        write(f'SYST:NUMB {number_mode}')
     else:
         raise Exception(f'Invalid Number mode {number_mode}. Must be \'DECI\' or \'HEX\'')
 
@@ -189,9 +227,8 @@ def parse_test(com, number_mode='DECI'):
             if VERBOSE:
                 print(f'Testing             => {val}')
 
-            command = f'ANAO:CH1 {val};CH1?\r\n'
-            com.write(command.encode())
-            response = com.read_until().decode()
+            command = f'ANAO:CH1 {val};CH1?'
+            response = query(command)
 
             expected = f';{val}\r\n'
             if response != expected:
@@ -208,8 +245,7 @@ def parse_test(com, number_mode='DECI'):
                 print(f'Testing             => {hex(val)}')
 
             command = f'ANAO:CH1 {hex(val)};CH1?\r\n'
-            com.write(command.encode())
-            response = com.read_until().decode()
+            response = query(command)
 
             expected = f';0x{format(val, "02X" if val <= 0xFF else "04X")}\r\n'
             if response != expected:
@@ -234,7 +270,7 @@ def output_mode_test(com):
 def uart_test(com):
     print('UART Tests')
 
-    com.write('UART:BAUD 115200'.encode())
+    write('UART:BAUD 115200')
     
     data = ''
     for i in range(0, 64):
@@ -244,11 +280,11 @@ def uart_test(com):
         header_size = len(data_size)
 
         packet = f'#{header_size}{data_size}{data}'
-        com.write(f'UART:WRIT {packet}\r\n'.encode())
+        write(f'UART:WRIT {packet}')
 
         time.sleep(0.001 * i)
-        com.write('UART:READ?\r\n'.encode())
-        response = com.read_until().decode()
+        
+        response = query('UART:READ?')
 
         if response != packet + '\r\n':
             fail_string = f'UART Test Failed at: {i}'
@@ -259,7 +295,9 @@ def uart_test(com):
     print('UART Test Complete')
 def run_quiet_test(com):
 
-    com.write('*RST\r\n'.encode())
+    write('*RST')
+
+    defaults_test(com)
 
     command_test(com, 'DECI')
 
