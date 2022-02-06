@@ -84,7 +84,23 @@ LDLIBSOPTIONS=
 # fixDeps replaces a bunch of sed/cat/printf statements that slow down the build
 FIXDEPS=fixDeps
 
-.build-conf:  ${BUILD_SUBPROJECTS}
+# The following macros may be used in the pre and post step lines
+_/_=/
+ShExtension=.sh
+Device=PIC18F46J53
+ProjectDir=/Users/callwyat/Development/Quiet/src/Quiet.X
+ProjectName=Quiet
+ConfName=default
+ImagePath=dist/default/${IMAGE_TYPE}/Quiet.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
+ImageDir=dist/default/${IMAGE_TYPE}
+ImageName=Quiet.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
+ifeq ($(TYPE_IMAGE), DEBUG_RUN)
+IsDebug="true"
+else
+IsDebug="false"
+endif
+
+.build-conf:  .pre ${BUILD_SUBPROJECTS}
 ifneq ($(INFORMATION_MESSAGE), )
 	@echo $(INFORMATION_MESSAGE)
 endif
@@ -700,6 +716,11 @@ dist/${CND_CONF}/${IMAGE_TYPE}/Quiet.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTF
 	
 endif
 
+.pre:
+	@echo "--------------------------------------"
+	@echo "User defined pre-build step: [python ${ProjectDir}/scripts/build_info.py]"
+	@python ${ProjectDir}/scripts/build_info.py
+	@echo "--------------------------------------"
 
 # Subprojects
 .build-subprojects:
