@@ -40,6 +40,15 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 │   └———:SAVEState
 │   └———:RESToreState
 │   └———:NUMBerformat
+│   └———:INFOrmation
+│       └———:COMMit
+│       │   └———:HASH
+│       │   └———:AUTHor
+│       │   └———:DATEtime
+│       └———:BUILd
+│           └———:VERSion
+│           └———:USERname
+│           └———:DATEtime
 └———DIAGnostics
 ```
 
