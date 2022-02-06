@@ -8,7 +8,7 @@ build_info_path = '/Users/callwyat/Development/Quiet/src/Quiet.X/' + build_info_
 statusStream = os.popen('git status')
 statusLines = str.join('\n', statusStream.readlines())
 
-clean_tree = '' if 'Clean' in statusLines else '~'
+clean_tree = '' if 'working tree clean' in statusLines else '~'
 
 with open(build_info_path, 'w') as f:
 
