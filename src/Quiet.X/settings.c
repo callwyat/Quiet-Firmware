@@ -19,16 +19,16 @@
     .SerialNumber = { '{', 'S', 'e', 'r', 'i', 'a', 'l', ' ',       \
     'N', 'u', 'm', 'b', 'e', 'r', '}', '\x00'},                     \
     .OutputSettings = {                                             \
+        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
+        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
+        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
+        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
+        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
+        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
+        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
+        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
         DEFINE_OUTPUT_SETTING(0x0FF, OUT_PWM),                      \
         DEFINE_OUTPUT_SETTING(0x0FF, OUT_PWM),                      \
-        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
-        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
-        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
-        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
-        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
-        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
-        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
-        DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
     }                                                               \
 } 
 
