@@ -3,6 +3,7 @@
 #include "../constants.h"
 #include "../settings.h"
 #include "../outputs.h"
+#include "../buildInfo.h"
 
 void SYSTSerilalNumber(CliBuffer_t *buffer, void* v)
 {
@@ -121,11 +122,67 @@ void SYSTNumberCommand(CliBuffer_t *buffer, void* v)
     }
 }
 
-const CommandDefinition_t SYSTemChildrenCommands[] = {
+#define INFO_STRING_METHOD(name, input)         \
+void name(CliBuffer_t *buffer, void* v)         \
+{                                               \
+    if (*buffer->InputPnt == '?')               \
+    {                                           \
+        ++buffer->InputPnt;                     \
+                                                \
+        *buffer->OutputPnt++ = '"';             \
+        const char *c = input;                  \
+                                                \
+        while (*c)                              \
+        {                                       \
+            *buffer->OutputPnt++ = *c++;        \
+        }                                       \
+                                                \
+        *buffer->OutputPnt++ = '"';             \
+    }                                           \
+}                           
+
+INFO_STRING_METHOD(COMMitHash, COMMIT_HASH)
+INFO_STRING_METHOD(COMMitAuthor, COMMIT_AUTHOR)
+INFO_STRING_METHOD(COMMitDate, COMMIT_DATE)
+
+CommandDefinition_t COMMitInfoChildrenCommands[] = {
+    DEFINE_COMMAND("HASH", COMMitHash),
+    DEFINE_COMMAND("AUTH", COMMitAuthor),
+    DEFINE_COMMAND("DATE", COMMitDate),
+};
+
+INFO_STRING_METHOD(BUILdDate, BUILD_DATE)
+INFO_STRING_METHOD(BUILdUser, BUILD_USER)
+
+void BUILdVersion(CliBuffer_t *buffer, void* v) 
+{                                               
+    if (*buffer->InputPnt == '?')               
+    {                                           
+        ++buffer->InputPnt;                     
+                                                
+        *buffer->OutputPnt++ = '"';             
+        NumberToString(buffer, __XC8_VERSION);
+        *buffer->OutputPnt++ = '"';             
+    }                                           
+} 
+
+CommandDefinition_t BUILdInfoChildrenCommands[] = {
+    DEFINE_COMMAND("USER", BUILdUser),   
+    DEFINE_COMMAND("DATE", BUILdDate),
+    DEFINE_COMMAND("VERS", BUILdVersion),
+};
+
+CommandDefinition_t InfoChildrenCommands[] = {
+    DEFINE_BRANCH("COMM", COMMitInfoChildrenCommands), 
+    DEFINE_BRANCH("BUIL", BUILdInfoChildrenCommands),  
+};
+
+CommandDefinition_t SYSTemChildrenCommands[] = {
     DEFINE_COMMAND("REST", SYSTRestore),
     DEFINE_COMMAND("SAVE", SYSTSave),
     DEFINE_COMMAND("SERI", SYSTSerilalNumber),
     DEFINE_COMMAND("NUMB", SYSTNumberCommand),
+    DEFINE_BRANCH("INFO", InfoChildrenCommands),
 };
 
 const CommandDefinition_t SYSTemCommand = DEFINE_BRANCH("SYST", SYSTemChildrenCommands);
