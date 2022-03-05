@@ -17,22 +17,7 @@ void SERVChannelModeCommand(CliBuffer_t *buffer, void *channel)
         
         OutputMode_e mode = GetOutputMode(SERVO_CHANNEL);
         
-        const char* word;
-        
-        switch (mode)
-        {                
-            case OUT_PWM:
-                word = PWMWord;
-                break;
-                
-            case OUT_SERVO:
-                word = ServoWord;
-                break;
-                
-            case OUT_DISCREET:
-                word = DISCREETWord;
-                break;
-        }
+        const char* word = OutputModeToString(mode);
         
         CopyWordToOutBuffer(buffer, word);
     }

@@ -18,14 +18,23 @@ extern "C" {
 const char* DISCREETWord = "DISC";
 const char* PWMWord = "PWM";
 const char* ServoWord = "SERV";
+const char* UARTWord = "UART";
+const char* SPIWord = "SPI";
+const char* I2CWord = "I2C";
+
 
 typedef enum {
-    OUT_DISCREET = 1,
-    OUT_PWM      = 2,
-    OUT_SERVO    = 4,
+    OUT_DISCREET = 0x01,
+    OUT_PWM      = 0x02,
+    OUT_SERVO    = 0x04,
+    OUT_UART     = 0x08,
+    OUT_SPI      = 0x10,
+    OUT_I2C      = 0x20,
 } OutputMode_e;
 
 OutputMode_e GetOutputMode(uint8_t channel);
+
+const char* OutputModeToString(OutputMode_e mode);
 
 void SetOutputMode(uint8_t output, OutputMode_e mode);
 

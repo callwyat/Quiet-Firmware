@@ -92,6 +92,30 @@ OutputMode_e GetOutputMode(uint8_t channel)
     }
 }
 
+const char* OutputModeToString(OutputMode_e mode)
+{
+    switch (mode)
+    {
+        case OUT_DISCREET:
+            return DISCREETWord;
+
+        case OUT_PWM:
+            return PWMWord;
+
+        case OUT_SERVO:
+            return ServoWord;
+            
+        case OUT_UART:
+            return UARTWord;
+            
+        case OUT_SPI:
+            return SPIWord;
+            
+        default:
+            return "UNKNOWN";
+    }
+}
+
 void SetOutputMode(uint8_t output, OutputMode_e mode)
 {
     if (output >= OutputSetupsCount)

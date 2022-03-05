@@ -15,22 +15,7 @@ void DIGOChannelModeCommand(CliBuffer_t *buffer, void *channel)
         
         OutputMode_e mode = GetOutputMode(DIGOUT_CHANNEL);
         
-        const char* word;
-        
-        switch (mode)
-        {
-            case OUT_DISCREET:
-                word = DISCREETWord;
-                break;
-                
-            case OUT_PWM:
-                word = PWMWord;
-                break;
-                
-            case OUT_SERVO:
-                word = ServoWord;
-                break;
-        }
+        const char* word = OutputModeToString(mode);
         
         CopyWordToOutBuffer(buffer, word);
     }

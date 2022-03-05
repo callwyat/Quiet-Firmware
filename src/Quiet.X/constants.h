@@ -20,6 +20,7 @@ const char* VersionString = "2.0";
 
 #define DIN PORTD
 #define DOUT LATB
+#define DOUTTRIS TRISB
 
 #define USBLED LATEbits.LATE1
 
