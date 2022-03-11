@@ -9,6 +9,7 @@
 uint16_t servoValue[10];
 
 #define DIGO_OFFSET 0
+#define DIGO_COUNT 8
 
 typedef struct {
     volatile unsigned char *ValueRegister;
@@ -31,8 +32,8 @@ OutputSetup_t OutputSetups[] = {
     DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET, OUT_SERVO),
     DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET, OUT_SERVO),
     DEFINE_OUTPUT(&CCP3CON, OUT_DISCREET, OUT_SERVO),
-    DEFINE_OUTPUT(&CCP4CON, OUT_DISCREET, OUT_PWM | OUT_SERVO),
-    DEFINE_OUTPUT(&CCP5CON, OUT_DISCREET, OUT_PWM | OUT_SERVO),
+    DEFINE_OUTPUT(&CCP4CON, OUT_DISCREET, OUT_PWM | OUT_SERVO | OUT_I2C),
+    DEFINE_OUTPUT(&CCP5CON, OUT_DISCREET, OUT_PWM | OUT_SERVO | OUT_I2C),
     DEFINE_OUTPUT(&CCP6CON, OUT_DISCREET, OUT_PWM | OUT_SERVO),
     DEFINE_OUTPUT(&CCP7CON, OUT_DISCREET, OUT_PWM | OUT_SERVO),
     DEFINE_OUTPUT(&CCP1CON, OUT_PWM, OUT_SERVO),
@@ -111,6 +112,9 @@ const char* OutputModeToString(OutputMode_e mode)
         case OUT_SPI:
             return SPIWord;
             
+        case OUT_I2C:
+            return I2CWord;
+            
         default:
             return "UNKNOWN";
     }
@@ -123,7 +127,12 @@ void SetOutputMode(uint8_t output, OutputMode_e mode)
     
     OutputSetup_t *setup = &OutputSetups[output];
     
-    if (output >= DIGO_OFFSET && output <= (DIGO_OFFSET + 7))
+    if ((setup->AvalibleModes & mode) == 0)
+        return;
+    
+    setup->ActiveMode = mode;
+    
+    if (output >= DIGO_OFFSET && output < (DIGO_OFFSET + DIGO_COUNT))
     {
         if (mode == OUT_DISCREET)
         {
@@ -134,16 +143,29 @@ void SetOutputMode(uint8_t output, OutputMode_e mode)
             OutputMask &= ~(0x01 << (output - DIGO_OFFSET));
         }
         
-        // Outputs 4, 5, 6, and 7 need the CCP module turned on if not DISCREET
+        // Outputs 4, 5, 6, and 7 need the CCP module turned on if PWM or Servo
         if (output >= 4 && output <= 7)
         {
-            *setup->ControlRegister = mode == OUT_DISCREET ? 0x00 : 0x0C;
+            // Default to Discreet Mode
+            DOUTTRIS &= ~(0x01 << (output - DIGO_OFFSET));
+            *setup->ControlRegister = 0x00;
+            
+            switch (mode)
+            {
+                case OUT_PWM:
+                case OUT_SERVO:
+                    *setup->ControlRegister = 0x0C;
+                    break;
+                    
+                case OUT_I2C:
+                    DOUTTRIS |= 0x01 << (output - DIGO_OFFSET);
+                    break;
+                    
+                default:
+                    // Default is already loaded
+                    break;
+            }
         }
-    }
-    
-    if (setup->AvalibleModes & mode)
-    {
-        setup->ActiveMode = mode;
     }
 }
 
@@ -230,6 +252,12 @@ void SetOutputValue(uint8_t output, uint16_t value)
             case OUT_SERVO:
                 SetServoValue(output, value);
                 break;
+                
+            case OUT_UART:
+            case OUT_SPI:
+            case OUT_I2C:
+                // Nothing to do here
+                break;
         }
     }
 }
@@ -250,6 +278,11 @@ uint16_t GetOutputValue(uint8_t output)
                 
             case OUT_SERVO:
                 return GetServoValue(output);
+                
+            case OUT_UART:
+            case OUT_SPI:
+            case OUT_I2C:
+                return GetDiscreetOutput(output);
         }
     }
     

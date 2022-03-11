@@ -45,6 +45,7 @@
 */
 
 #include "i2c1_master.h"
+#include "device_config.h"
 #include <xc.h>
 
 // I2C1 STATES
@@ -538,6 +539,19 @@ i2c1_operations_t I2C1_CallbackRestartRead(void *funPtr)
 }
 
 
+uint24_t I2C1GetBaudRate(void)
+{
+    uint24_t period = SSP1ADD;
+    
+    return (_XTAL_FREQ / (4 * (period + 1)));   
+}
+
+void I2C1SetBaudRate(uint24_t rate)
+{
+    uint8_t period = ((_XTAL_FREQ / 4) / rate - 1);
+
+    SSP1ADD = period;
+}
 
 /* I2C1 Register Level interfaces */
 static inline bool I2C1_MasterOpen(void)
@@ -547,7 +561,7 @@ static inline bool I2C1_MasterOpen(void)
         SSP1STAT = 0x40;
         SSP1CON1 = 0x00;
         SSP1CON2 = 0x00;
-        SSP1ADD = 0x27;
+        // SSP1ADD = 0x27;
         SSP1CON1bits.SSPEN = 1;
         return true;
     }

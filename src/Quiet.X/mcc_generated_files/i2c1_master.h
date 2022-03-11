@@ -89,6 +89,22 @@ i2c1_operations_t I2C1_CallbackRestartRead(void *funPtr);
 void I2C1_Initialize(void);
 
 /**
+ * \brief Returns the real baud rate of the I2C 
+ * 
+ * \return The real world baud rate
+ */
+uint24_t I2C1GetBaudRate(void);
+
+/**
+ * \brief Takes a real baud and applies it to the MSSP module
+ * 
+ * \param[in] rate The real world rate to set the baud to
+ *
+ * \return Nothing
+ */
+void I2C1SetBaudRate(uint24_t rate);
+
+/**
  * \brief Open the I2C1 for communication
  *
  * \param[in] address The slave address to use in the transfer

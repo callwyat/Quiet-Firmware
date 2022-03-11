@@ -11,6 +11,7 @@ HEX8_PATTERN = "\\b0[xX]([0-9a-fA-F]{2})\\b"
 HEX16_PATTERN = "\\b0[xX]([0-9a-fA-F]{4}|[0-9a-fA-F]{2})\\b"
 HEX24_PATTERN = "\\b0[xX]([0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{2})\\b"
 INT16_PATTERN = '\\b[\\d]{1,5}\\b'
+INT24_PATTERN = '\\b[\\d]{1,8}\\b'
 OUTPUT_MODE_PATTERN = '\\b(DISC|PWM|SERV)\\b'
 
 VERBOSE = True
@@ -118,6 +119,7 @@ def command_test(com, number_mode='DECI'):
     else:
         raise Exception(f'Invalid Number mode {number_mode}. Must be \'DECI\' or \'HEX\'')
 
+    number_pattern_24 = HEX24_PATTERN if number_mode == 'HEX' else INT24_PATTERN
     number_pattern_16 = HEX16_PATTERN if number_mode == 'HEX' else INT16_PATTERN
     number_pattern_8 = HEX8_PATTERN if number_mode == 'HEX' else INT16_PATTERN
 
@@ -150,6 +152,10 @@ def command_test(com, number_mode='DECI'):
 
         QueryTest('SPI:BAUD?', number_pattern_24),
 
+        QueryTest('IIC:ENABle?', number_pattern_8),
+        QueryTest('IIC:BAUD?', number_pattern_24),
+        QueryTest('IIC:ADDRess?', number_pattern_8),
+
         QueryTest('SYST:INFO:COMM:HASH?', '"(~?[0-9a-fA-F]{40}~?)"'),
         QueryTest('SYST:INFO:COMM:AUTH?', '"((\w*) *)*"'),
         QueryTest('SYST:INFO:COMM:DATE?', '"(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})"'),
@@ -157,6 +163,8 @@ def command_test(com, number_mode='DECI'):
         QueryTest('SYST:INFO:BUIL:VERS?', '"(\\d{4})"'),
         QueryTest('SYST:INFO:BUIL:USER?', '"((\w*) *)*"'),
         QueryTest('SYST:INFO:BUIL:DATE?', '"(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})"'),
+
+
     ]
 
     print('Starting Command Tests')
@@ -316,11 +324,11 @@ def run_quiet_test(com):
     parse_test(com, 'DECI')
 
     parse_test(com, 'HEX')
-    
-    analog_stability_test(com, 'DECI')
 
     output_mode_test(com)
 
+    analog_stability_test(com, 'DECI')
+    
     uart_test(com)
 
     # TODO: Test the manipulation of settings

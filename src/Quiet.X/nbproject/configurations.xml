@@ -15,6 +15,7 @@
         <itemPath>Commands/systemCommand.h</itemPath>
         <itemPath>Commands/uartCommand.h</itemPath>
         <itemPath>Commands/spiCommand.h</itemPath>
+        <itemPath>Commands/i2cCommand.h</itemPath>
       </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"
@@ -74,6 +75,7 @@
         <itemPath>Commands/systemCommand.c</itemPath>
         <itemPath>Commands/uartCommand.c</itemPath>
         <itemPath>Commands/spiCommand.c</itemPath>
+        <itemPath>Commands/i2cCommand.c</itemPath>
       </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"
@@ -409,6 +411,8 @@
         <property key="memories.programmemory.ranges" value="0-fff7"/>
         <property key="memories.rww" value="true"/>
         <property key="poweroptions.powerenable" value="false"/>
+        <property key="programmerToGoFilePath"
+                  value="/Users/callwyat/Development/Quiet/src/Quiet.X/debug/default/Quiet_ptg"/>
         <property key="programmerToGoImageName" value="Quiet_ptg"/>
         <property key="programoptions.donoteraseauxmem" value="false"/>
         <property key="programoptions.eraseb4program" value="true"/>

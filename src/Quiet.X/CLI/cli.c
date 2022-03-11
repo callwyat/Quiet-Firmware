@@ -12,6 +12,7 @@
 #include "../Commands/servoCommand.h"
 #include "../Commands/uartCommand.h"
 #include "../Commands/spiCommand.h"
+#include "../Commands/i2cCommand.h"
 #include "../Commands/systemCommand.h"
 
 #include <stdbool.h>
@@ -45,6 +46,7 @@ extern CommandDefinition_t DIGICommand;
 extern CommandDefinition_t SYSTemCommand;
 extern CommandDefinition_t UARTCommand;
 extern CommandDefinition_t SPICommand;
+extern CommandDefinition_t IICCommand;
 extern CommandDefinition_t DIAGnosticsCommand;
 extern CommandDefinition_t StarCommand;
             
@@ -63,7 +65,8 @@ void CliInit(void)
     commands[6] =  SYSTemCommand;
     commands[7] =  UARTCommand;
     commands[8] =  SPICommand;
-    commands[9] =  DIAGnosticsCommand;
+    commands[9] =  IICCommand;
+    commands[10] =  DIAGnosticsCommand;
 }
 
 bool SCPICompare(const char *reference, char *input)
