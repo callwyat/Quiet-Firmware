@@ -146,6 +146,10 @@ def command_test(com, number_mode='DECI'):
         QueryChannelTest('SERV:CH#:VALU?', 1, 10, number_pattern_16),
         QueryChannelTest('SERVo:CH#:MODE?', 1, 10, OUTPUT_MODE_PATTERN), 
 
+        QueryTest('UART:BAUD?', number_pattern_24),
+
+        QueryTest('SPI:BAUD?', number_pattern_24),
+
         QueryTest('SYST:INFO:COMM:HASH?', '"(~?[0-9a-fA-F]{40}~?)"'),
         QueryTest('SYST:INFO:COMM:AUTH?', '"((\w*) *)*"'),
         QueryTest('SYST:INFO:COMM:DATE?', '"(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})"'),
