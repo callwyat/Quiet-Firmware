@@ -112,10 +112,10 @@ void UARTBaudCommand(CliBuffer_t *buffer, void* v)
     }
 }
 
-const CommandDefinition_t uartCommands[] = {
+CommandDefinition_t uartCommands[] = {
   DEFINE_COMMAND("READ", UARTReadCommand),
   DEFINE_COMMAND("WRIT", UARTWriteCommand),
   DEFINE_COMMAND("BAUD", UARTBaudCommand),
 };
-
-const CommandDefinition_t UARTCommand = DEFINE_BRANCH("UART", uartCommands);
+ 
+CommandDefinition_t UARTCommand = DEFINE_BRANCH("UART", uartCommands);
