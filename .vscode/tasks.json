@@ -1,0 +1,75 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build",
+            "type": "shell",
+
+            "options": {
+                "cwd": "${workspaceFolder}/src/Quiet.X"
+            },
+
+            "osx": {
+                "command": "make",
+            },
+
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Program",
+            "type": "shell",
+            "dependsOn": "Build",
+
+            "windows" :{
+                "options": {
+                    "cwd": "C:\\Program Files (x86)\\Microchip\\MPLABX\\v5.50\\mplab_ipe"
+                },
+                "command": "ipecmd.exe"
+            },
+
+            "osx" : {
+                "options": {
+                    "cwd": "/Applications/microchip/mplabx/v5.50/mplab_platform/mplab_ipe/bin"
+                },
+                "command": "./ipecmd.sh",
+            },
+
+            "args": [
+                "-P18F46J53",
+                "-F${workspaceFolder}/src/Quiet.X/dist/default/production/Quiet.X.production.hex",
+                "-TPPK4",
+                "-M",
+                "-I",
+                "-OL",
+            ],
+            "problemMatcher": [],
+        },
+        {
+            "label": "Test",
+            "type": "shell",
+
+            "dependsOn": "Program",
+
+            "windows" :{
+                "command": "py"
+            },
+
+            "osx" : {
+                "command": "python3",
+            },
+
+            "args": [
+                "${workspaceFolder}/src/Quiet.X.Tests/tests.py"
+            ],
+            
+            "problemMatcher": [],
+        }
+    ]
+}
+
