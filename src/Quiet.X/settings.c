@@ -18,6 +18,8 @@
     .NumberFormat = DecimalFormat,                                  \
     .SerialNumber = { '{', 'S', 'e', 'r', 'i', 'a', 'l', ' ',       \
     'N', 'u', 'm', 'b', 'e', 'r', '}', '\x00'},                     \
+    .UARTBaud = 0x01A0,         /* 9600 */                          \
+    .SPIBaud = 0x00,            /* 4 Mhz */                         \
     .OutputSettings = {                                             \
         DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
         DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
@@ -55,6 +57,9 @@ void SaveSettings()
     }
     
     settings.NumberFormat = GetNumberFormat();
+
+    settings.UARTBaud = (SPBRGH1 << 8) + SPBRG1;
+    settings.SPIBaud = SSP2CON1bits.SSPM;
     
     SetSettings(settings);
 }
@@ -79,5 +84,10 @@ void RestoreSettings(bool factory)
         SetOutputValue(i, outputSetting.Value);
     }
     
+    SPBRG1 = (uint8_t)settings.UARTBaud;
+    SPBRGH1 = settings.UARTBaud >> 8;
+
+    SSP2CON1bits.SSPM = settings.SPIBaud;
+
     SetNumberFormat(settings.NumberFormat);
 }

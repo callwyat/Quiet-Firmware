@@ -31,6 +31,8 @@ extern "C" {
         uint8_t Occupied;
         NumberFormat_e NumberFormat;
         char SerialNumber[16];
+        uint16_t UARTBaud;
+        uint8_t SPIBaud;
         OutputSettings_t OutputSettings[10];
     } QuietSettings_t;
 
