@@ -101,12 +101,12 @@ void UARTBaudCommand(CliBuffer_t *buffer, void* v)
     {
         ++buffer->InputPnt;
         
-        uint24_t buadRate = ParseInt24(&buffer->InputPnt);
+        uint24_t baudRate = ParseInt24(&buffer->InputPnt);
         
         // BaudRates below 60 cannot be generated with this the system clock
-        if (buadRate > 60)
+        if (baudRate > 60)
         {
-            EUART1_set_baud_rate(buadRate);
+            EUART1_set_baud_rate(baudRate);
         }
 
     }
