@@ -1,9 +1,9 @@
 
 import os
+import sys
 import datetime
 
-build_info_file_name = 'buildInfo.h'
-build_info_path = '/Users/callwyat/Development/Quiet/src/Quiet.X/' + build_info_file_name
+build_info_path = sys.argv[1]
 
 statusStream = os.popen('git status')
 statusLines = str.join('\n', statusStream.readlines())
@@ -43,4 +43,4 @@ with open(build_info_path, 'w') as f:
     f.write('\n')
 
 if clean_tree != '':
-    print('warning: "%s" build on an unclean working tree' % build_info_file_name)
+    print('warning: "%s" build on an unclean working tree' % build_info_path)
