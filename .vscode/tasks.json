@@ -4,17 +4,10 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build",
-            "type": "shell",
-
-            "options": {
-                "cwd": "${workspaceFolder}/src/Quiet.X"
-            },
-
-            "osx": {
-                "command": "make",
-            },
-
+            "label": "MPLABX Build",
+            "type": "mplabx",
+            "task": "build",
+            "projectFolder": "${workspaceFolder}/src/Quiet.X",
             "problemMatcher": [],
             "group": {
                 "kind": "build",
