@@ -11,6 +11,7 @@
 
 // The address to send the message to
 i2c1_address_t i2cTargetAddress = 0x00;
+bool i2cEnabled = false;
 
 void I2CEnableCommand(CliBuffer_t *buffer, void* v)
 {
@@ -23,12 +24,14 @@ void I2CEnableCommand(CliBuffer_t *buffer, void* v)
         
         if (c == '0' || c == 'F')
         {
+            i2cEnabled = false;
             I2C1_Close();
             SetOutputMode(I2C_DATA_OUTPUT, OUT_DISCREET);
             SetOutputMode(I2C_CLOCK_OUTPUT, OUT_DISCREET);
         }
         else if (c == '1' || c == 'T')
         {
+            i2cEnabled = true;
             SetOutputMode(I2C_DATA_OUTPUT, OUT_I2C);
             SetOutputMode(I2C_CLOCK_OUTPUT, OUT_I2C);
         }
@@ -65,7 +68,6 @@ void I2CTimeoutCommand(CliBuffer_t *buffer, void* v)
         {
             //TODO: Report invalid timeout
         }
-
     }
 }
 
@@ -94,7 +96,6 @@ void I2CBaudCommand(CliBuffer_t *buffer, void* v)
         {
             //TODO: Report invalid baud rate
         }
-
     }
 }
 
@@ -124,9 +125,7 @@ void I2CAddressCommand(CliBuffer_t *buffer, void *v)
 }
 
 void I2CWriteCommand(CliBuffer_t *buffer, void* v)
-{    
-    ++buffer->InputPnt;
-
+{
     if (*buffer->InputPnt == ' ')
     {
         ++buffer->InputPnt;
@@ -139,9 +138,13 @@ void I2CWriteCommand(CliBuffer_t *buffer, void* v)
             uint16_t writeCount = ParseIEEEHeader(buffer);
 
             // Check for an invalid number
-            if (&buffer->InputPnt[writeCount] < &buffer->OutputBuffer[CLI_BUFFER_SIZE])
+            if (&buffer->InputPnt[writeCount] >= &buffer->InputPnt[CLI_BUFFER_SIZE])
             {
                 // TODO: Invalid Write Count
+            }
+            else if (!i2cEnabled)
+            {
+                // TODO: Show message about IIC not being enabled
             }
             else if (writeCount != 0)
             {
@@ -161,9 +164,7 @@ void I2CWriteCommand(CliBuffer_t *buffer, void* v)
 }
 
 void I2CReadCommand(CliBuffer_t *buffer, void* v)
-{    
-    ++buffer->InputPnt;
-
+{
     if (*buffer->InputPnt == '?')
     {
         ++buffer->InputPnt;
@@ -176,6 +177,10 @@ void I2CReadCommand(CliBuffer_t *buffer, void* v)
             if (&buffer->InputPnt[readCount] >= &buffer->InputBuffer[CLI_BUFFER_SIZE])
             {
                 // TODO: Buffer Overflow Exception
+            }
+            else if (!i2cEnabled)
+            {
+                // TODO: Show message about IIC not being enabled
             }
             else if (readCount > 0)
             {
