@@ -5,6 +5,7 @@
 #include "../constants.h"
 #include "../outputs.h"
 #include "i2cCommand.h"
+#include "../mcc_generated_files/examples/i2c1_master_example.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -148,12 +149,7 @@ void I2CWriteCommand(CliBuffer_t *buffer, void* v)
             }
             else if (writeCount != 0)
             {
-                I2C1_SetBuffer(buffer->InputPnt, writeCount);
-                buffer->InputPnt += writeCount;
-
-                I2C1_Open(i2cTargetAddress);
-                I2C1_MasterWrite();
-                I2C1_Close();
+                I2C1_WriteNBytes(i2cTargetAddress, buffer->InputPnt, writeCount);
             }
             else
             {
@@ -185,7 +181,6 @@ void I2CReadCommand(CliBuffer_t *buffer, void* v)
             else if (readCount > 0)
             {
                 GenerateIEEEHeader(buffer, readCount);
-                I2C1_SetBuffer(buffer->InputPnt, readCount);
 
                 // Whip out any latent data in the output buffer
                 while (readCount > 0)
@@ -195,9 +190,7 @@ void I2CReadCommand(CliBuffer_t *buffer, void* v)
                     --readCount;
                 }
 
-                I2C1_Open(i2cTargetAddress);
-                I2C1_MasterRead();
-                I2C1_Close();
+                I2C1_ReadNBytes(i2cTargetAddress, buffer->OutputPnt, readCount);
             }
             else
             {
