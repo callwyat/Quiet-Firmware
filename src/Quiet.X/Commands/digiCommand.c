@@ -12,6 +12,6 @@ void QueryDIGI(CliBuffer_t *buffer, void* v)
     }
 }
 
-const CommandDefinition_t DIGICommand = DEFINE_COMMAND("DIGI", QueryDIGI);
+CommandDefinition_t DIGICommand = DEFINE_COMMAND("DIGI", QueryDIGI);
         
         

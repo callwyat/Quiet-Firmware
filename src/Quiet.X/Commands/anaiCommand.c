@@ -19,9 +19,9 @@ void QueryANAI(CliBuffer_t *buffer, void *v)
     }
 }
 
-const CommandDefinition_t ANAI_CH_Commands[] = {
+CommandDefinition_t ANAI_CH_Commands[] = {
     DEFINE_COMMAND("CH", QueryANAI),
 };
 
-const CommandDefinition_t ANAICommand = DEFINE_BRANCH("ANAI", ANAI_CH_Commands);
+CommandDefinition_t ANAICommand = DEFINE_BRANCH("ANAI", ANAI_CH_Commands);
 

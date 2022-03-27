@@ -7,7 +7,7 @@
 
 uint8_t servoChannel;
 
-#define SERVO_CHANNEL (*((uint8_t*)channel) + SERVO_OFFSET)
+#define SERVO_CHANNEL (uint8_t)(*((uint8_t*)channel) + SERVO_OFFSET)
 
 void SERVChannelModeCommand(CliBuffer_t *buffer, void *channel)
 {
@@ -56,12 +56,12 @@ void SERVChannelValueCommand(CliBuffer_t *buffer, void *channel)
     }
 }
 
-const CommandDefinition_t servChanCommands[] = {
+CommandDefinition_t servChanCommands[] = {
     DEFINE_COMMAND("VALU", SERVChannelValueCommand),
     DEFINE_COMMAND("MODE", SERVChannelModeCommand),
 };
 
-const CommandDefinition_t servoCommands[] = {
+CommandDefinition_t servoCommands[] = {
     {
         .Command = "CH",
         .Handle = SERVChannelValueCommand,
@@ -70,5 +70,5 @@ const CommandDefinition_t servoCommands[] = {
     }
 };
 
-const CommandDefinition_t SERVoCommand = DEFINE_BRANCH("SERV", servoCommands);
+CommandDefinition_t SERVoCommand = DEFINE_BRANCH("SERV", servoCommands);
 

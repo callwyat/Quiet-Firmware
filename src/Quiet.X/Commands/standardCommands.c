@@ -33,9 +33,9 @@ void RSTCommand(CliBuffer_t *buffer, void* v)
     RestoreSettings(false); 
 }
 
-const CommandDefinition_t starCommands[] = {
+CommandDefinition_t starCommands[] = {
   DEFINE_COMMAND("IDN", IDNCommand),
   DEFINE_COMMAND("RST", RSTCommand),
 };
 
-const CommandDefinition_t StarCommand = DEFINE_BRANCH("*", starCommands);
+CommandDefinition_t StarCommand = DEFINE_BRANCH("*", starCommands);

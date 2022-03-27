@@ -62,12 +62,12 @@ void DIGOChannelValueCommand(CliBuffer_t *buffer, void *channel)
     }
 }
 
-const CommandDefinition_t digoChanCommands[] = {
+CommandDefinition_t digoChanCommands[] = {
     DEFINE_COMMAND("VALU", DIGOChannelValueCommand),  
     DEFINE_COMMAND("MODE", DIGOChannelModeCommand),  
 };
 
-const CommandDefinition_t digoCommands[] = {
+CommandDefinition_t digoCommands[] = {
     {
         .Command = "CH",
         .Handle = DIGOChannelValueCommand,
@@ -86,7 +86,7 @@ void DIGODiscreetCommand(CliBuffer_t *buffer, void* v)
     }
 }
 
-const CommandDefinition_t DIGOCommand = {
+CommandDefinition_t DIGOCommand = {
     .Command = "DIGO",
     .Handle = DIGODiscreetCommand,
     .Children = digoCommands,

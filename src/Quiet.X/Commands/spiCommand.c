@@ -154,11 +154,11 @@ void SPIBaudCommand(CliBuffer_t *buffer, void* v)
     }
 }
 
-const CommandDefinition_t spiCommands[] = {
+CommandDefinition_t spiCommands[] = {
     DEFINE_COMMAND("EXCH", SPIExchangeCommand),
     DEFINE_COMMAND("CS", SPIChipSelectCommand),
     DEFINE_COMMAND("BAUD", SPIBaudCommand),
 };
 
-const CommandDefinition_t SPICommand = DEFINE_BRANCH("SPI", spiCommands);
+CommandDefinition_t SPICommand = DEFINE_BRANCH("SPI", spiCommands);
 

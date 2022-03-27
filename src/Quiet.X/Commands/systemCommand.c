@@ -185,4 +185,4 @@ CommandDefinition_t SYSTemChildrenCommands[] = {
     DEFINE_BRANCH("INFO", InfoChildrenCommands),
 };
 
-const CommandDefinition_t SYSTemCommand = DEFINE_BRANCH("SYST", SYSTemChildrenCommands);
+CommandDefinition_t SYSTemCommand = DEFINE_BRANCH("SYST", SYSTemChildrenCommands);

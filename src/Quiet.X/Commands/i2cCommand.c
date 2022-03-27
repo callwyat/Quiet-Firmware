@@ -59,7 +59,7 @@ void I2CTimeoutCommand(CliBuffer_t *buffer, void* v)
         
         if (timeout > 0)
         {
-            I2C1_SetTimeout(timeout);
+            I2C1_SetTimeout((uint8_t)timeout);
         }
         else
         {
@@ -114,7 +114,7 @@ void I2CAddressCommand(CliBuffer_t *buffer, void *v)
 
         if (addr >= 0)
         {
-            i2cTargetAddress = addr;
+            i2cTargetAddress = (uint8_t)addr;
         }
         else
         {
@@ -136,7 +136,7 @@ void I2CWriteCommand(CliBuffer_t *buffer, void* v)
             ++buffer->InputPnt;
 
             // Parse the number of bytes to write
-            int writeCount = ParseIEEEHeader(buffer);
+            uint16_t writeCount = ParseIEEEHeader(buffer);
 
             // Check for an invalid number
             if (&buffer->InputPnt[writeCount] < &buffer->OutputBuffer[CLI_BUFFER_SIZE])
