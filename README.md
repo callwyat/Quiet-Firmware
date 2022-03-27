@@ -28,12 +28,12 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 │       ├———:VALUe
 │       └———:MODE
 ├———:UART
-│   └———:WRITe
-│   └———:READ
+│   ├———:WRITe
+│   ├———:READ
 │   └———:BAUD
 ├———:SPI
-│   └———:EXCHange
-│   └———:CS
+│   ├———:EXCHange
+│   ├———:CS
 │   └———:BAUD
 ├———:IIC (I2C)
 │   └———:ENABled
@@ -43,18 +43,18 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 │   └———:READ
 │   └———:REPOrt
 ├———:SYSTem
-│   └———:SERIalNumber
-│   └———:SAVEState
-│   └———:RESToreState
-│   └———:NUMBerformat
+│   ├———:SERIalNumber
+│   ├———:SAVEState
+│   ├———:RESToreState
+│   ├———:NUMBerformat
 │   └———:INFOrmation
 │       └———:COMMit
-│       │   └———:HASH
-│       │   └———:AUTHor
+│       │   ├———:HASH
+│       │   ├———:AUTHor
 │       │   └———:DATEtime
 │       └———:BUILd
-│           └———:VERSion
-│           └———:USERname
+│           ├———:VERSion
+│           ├———:USERname
 │           └———:DATEtime
 └———DIAGnostics
 ```
