@@ -16,22 +16,7 @@ void ANAOChannelModeCommand(CliBuffer_t *buffer, void *channel)
         
         OutputMode_e mode = GetOutputMode(ANAOUT_CHANNEL);
         
-        const char* word;
-        
-        switch (mode)
-        {                
-            case OUT_PWM:
-                word = PWMWord;
-                break;
-                
-            case OUT_SERVO:
-                word = ServoWord;
-                break;
-                
-            case OUT_DISCREET:
-                // Not a valid option
-                break;
-        }
+        const char* word = OutputModeToString(mode);
         
         CopyWordToOutBuffer(buffer, word);
     }
@@ -74,12 +59,12 @@ void ANAOChannelValueCommand(CliBuffer_t *buffer, void *channel)
     }
 }
 
-const CommandDefinition_t anaoChanCommands[] = {
+CommandDefinition_t anaoChanCommands[] = {
   DEFINE_COMMAND("VALU", ANAOChannelValueCommand),
   DEFINE_COMMAND("MODE", ANAOChannelModeCommand),  
 };
 
-const CommandDefinition_t anaoCommands[] = {
+CommandDefinition_t anaoCommands[] = {
     {
         .Command = "CH",
         .Handle = ANAOChannelValueCommand,
@@ -88,5 +73,5 @@ const CommandDefinition_t anaoCommands[] = {
     },
 };
 
-const CommandDefinition_t ANAOCommand = DEFINE_BRANCH("ANAO", anaoCommands);
+CommandDefinition_t ANAOCommand = DEFINE_BRANCH("ANAO", anaoCommands);
 
