@@ -254,6 +254,11 @@ i2c1_error_t I2C1_MasterWrite(void)
     return I2C1_MasterOperation(false);
 }
 
+uint8_t I2C1_GetTimeOut(void)
+{
+    return I2C1_Status.time_out_value;
+}
+
 void I2C1_SetTimeOut(uint8_t timeOutValue)
 {
     I2C1_MasterDisableIrq();

@@ -7,11 +7,13 @@
 
 
 #include <xc.h>
+#include <stdint.h>
 #include "settings.h"
 #include "outputs.h"
 #include "constants.h"
 #include "CLI/cli.h"
 #include "mcc_generated_files/memory.h"
+#include "mcc_generated_files/i2c1_master.h"
 
 #define FACTORY_SETTINGS {                                          \
     .Occupied = 1,                                                  \
@@ -21,6 +23,7 @@
     .UARTBaud = 0x01A0,         /* 9600 */                          \
     .SPIBaud = 0x00,            /* 4 Mhz */                         \
     .I2CBaud = 0x27,            /* 100 kHz */                       \
+    .I2CTimeout = 0x80,                                             \
     .OutputSettings = {                                             \
         DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
         DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
@@ -62,6 +65,7 @@ void SaveSettings()
     settings.UARTBaud = (SPBRGH1 << 8) + SPBRG1;
     settings.SPIBaud = SSP2CON1bits.SSPM;
     settings.I2CBaud = SSP1ADD;
+    settings.I2CTimeout = I2C1_GetTimeout();
     
     SetSettings(settings);
 }
@@ -91,6 +95,7 @@ void RestoreSettings(bool factory)
 
     SSP2CON1bits.SSPM = settings.SPIBaud;
     SSP1ADD = settings.I2CBaud;
+    I2C1_SetTimeout(settings.I2CTimeout);
 
     SetNumberFormat(settings.NumberFormat);
 }

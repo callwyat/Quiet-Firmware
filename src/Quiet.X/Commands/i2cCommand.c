@@ -10,7 +10,7 @@
 #include <stdint.h>
 
 // The address to send the message to
-uint8_t i2cTargetAddress = 0x00;
+i2c1_address_t i2cTargetAddress = 0x00;
 
 void I2CEnableCommand(CliBuffer_t *buffer, void* v)
 {
@@ -38,6 +38,34 @@ void I2CEnableCommand(CliBuffer_t *buffer, void* v)
         ++buffer->InputPnt;
 
         *buffer->OutputPnt++ = GetOutputMode(I2C_CLOCK_OUTPUT) == OUT_I2C ? '1' : '0'; 
+    }
+}
+
+void I2CTimeoutCommand(CliBuffer_t *buffer, void* v)
+{
+    if (*buffer->InputPnt == '?')
+    {
+        ++buffer->InputPnt;
+        
+        uint24_t timeout = I2C1_GetTimeout();
+        
+        NumberToString(buffer, timeout);
+    }
+    else if (*buffer->InputPnt == ' ')
+    {
+        ++buffer->InputPnt;
+        
+        int16_t timeout = ParseInt(&buffer->InputPnt);
+        
+        if (timeout > 0)
+        {
+            I2C1_SetTimeout(timeout);
+        }
+        else
+        {
+            //TODO: Report invalid timeout
+        }
+
     }
 }
 
@@ -99,17 +127,35 @@ void I2CWriteCommand(CliBuffer_t *buffer, void* v)
 {    
     ++buffer->InputPnt;
 
-    if (*buffer->InputPnt == '#')
+    if (*buffer->InputPnt == ' ')
     {
         ++buffer->InputPnt;
 
-        // Parse the number of bytes to write
-        int i2cExchangeSize = ParseIEEEHeader(buffer);
-
-        // Check for an invalid number
-        if (i2cExchangeSize != 0)
+        if (*buffer->InputPnt == '#')
         {
-            // TODO
+            ++buffer->InputPnt;
+
+            // Parse the number of bytes to write
+            int writeCount = ParseIEEEHeader(buffer);
+
+            // Check for an invalid number
+            if (&buffer->InputPnt[writeCount] < &buffer->OutputBuffer[CLI_BUFFER_SIZE])
+            {
+                // TODO: Invalid Write Count
+            }
+            else if (writeCount != 0)
+            {
+                I2C1_SetBuffer(buffer->InputPnt, writeCount);
+                buffer->InputPnt += writeCount;
+
+                I2C1_Open(i2cTargetAddress);
+                I2C1_MasterWrite();
+                I2C1_Close();
+            }
+            else
+            {
+                // TODO: Invalid writeCount
+            }
         }
     }
 }
@@ -120,7 +166,39 @@ void I2CReadCommand(CliBuffer_t *buffer, void* v)
 
     if (*buffer->InputPnt == '?')
     {
-        // TODO
+        ++buffer->InputPnt;
+
+        if (*buffer->InputPnt == ' ')
+        {
+            // Get the number of bytes to read
+            int8_t readCount = ParseInt(&buffer->InputPnt);
+
+            if (&buffer->InputPnt[readCount] >= &buffer->InputBuffer[CLI_BUFFER_SIZE])
+            {
+                // TODO: Buffer Overflow Exception
+            }
+            else if (readCount > 0)
+            {
+                GenerateIEEEHeader(buffer, readCount);
+                I2C1_SetBuffer(buffer->InputPnt, readCount);
+
+                // Whip out any latent data in the output buffer
+                while (readCount > 0)
+                {
+                    *buffer->InputPnt++ = 0x00;
+
+                    --readCount;
+                }
+
+                I2C1_Open(i2cTargetAddress);
+                I2C1_MasterRead();
+                I2C1_Close();
+            }
+            else
+            {
+                // TODO: Invalid Read Count
+            }
+        }
     }
 }
 
@@ -143,6 +221,7 @@ CommandDefinition_t i2cCommands[] = {
     DEFINE_COMMAND("ADDR", I2CAddressCommand),
     DEFINE_COMMAND("ENAB", I2CEnableCommand),
     DEFINE_COMMAND("BAUD", I2CBaudCommand),
+    DEFINE_COMMAND("TIME", I2CTimeoutCommand),
 };
 
 CommandDefinition_t IICCommand = DEFINE_BRANCH("IIC", i2cCommands);

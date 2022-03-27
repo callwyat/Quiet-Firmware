@@ -34,6 +34,7 @@ extern "C" {
         uint16_t UARTBaud;
         uint8_t SPIBaud;
         uint8_t I2CBaud;
+        uint8_t I2CTimeout;
         OutputSettings_t OutputSettings[10];
     } QuietSettings_t;
 

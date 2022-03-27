@@ -149,6 +149,13 @@ i2c1_error_t I2C1_MasterWrite(void); // to be depreciated
 i2c1_error_t I2C1_MasterRead(void); // to be depreciated
 
 /**
+ * \brief Gets timeout to be used for I2C1 operations. Uses the Timeout driver.
+ *
+ * \return The timeout in ticks
+ */
+uint8_t I2C1_GetTimeout(void);
+
+/**
  * \brief Set timeout to be used for I2C1 operations. Uses the Timeout driver.
  *
  * \param[in] to Timeout in ticks

@@ -154,6 +154,7 @@ def command_test(com, number_mode='DECI'):
 
         QueryTest('IIC:ENABle?', number_pattern_8),
         QueryTest('IIC:BAUD?', number_pattern_24),
+        QueryTest('IIC:TIMEout?', number_pattern_16),
         QueryTest('IIC:ADDRess?', number_pattern_8),
 
         QueryTest('SYST:INFO:COMM:HASH?', '"(~?[0-9a-fA-F]{40}~?)"'),
@@ -328,7 +329,7 @@ def run_quiet_test(com):
     output_mode_test(com)
 
     analog_stability_test(com, 'DECI')
-    
+
     uart_test(com)
 
     # TODO: Test the manipulation of settings

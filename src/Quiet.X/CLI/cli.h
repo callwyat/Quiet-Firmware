@@ -15,6 +15,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
     
+#define CLI_BUFFER_SIZE 64
     typedef enum
     {
         HexFormat,
@@ -27,8 +28,8 @@ extern "C" {
         char *OutputPnt;
         uint8_t InputLength;
         void(*DataHandle)(struct CliBuffer *buffer);
-        char InputBuffer[64];
-        char OutputBuffer[64];
+        char InputBuffer[CLI_BUFFER_SIZE];
+        char OutputBuffer[CLI_BUFFER_SIZE];
     } CliBuffer_t;
     
     

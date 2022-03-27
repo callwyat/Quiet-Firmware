@@ -38,6 +38,7 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 ├———:IIC (I2C)
 │   └———:ENABled
 │   └———:BAUD
+│   └———:TIMEout
 │   └———:ADDRess
 │   └———:WRITe
 │   └———:READ
@@ -217,6 +218,10 @@ Read  -> "2022011909300901"
 #### Description
 Stores the current mode and value of each output and the following settings into non-volitive memory
 - SYST:NUMB
+- UART:BAUD
+- SPI:BAUD
+- IIC:BAUD
+- IIC:TIME
 
 These settings are read and applied on power-up
 #### Example
