@@ -36,12 +36,16 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 │   ├———:CS
 │   └———:BAUD
 ├———:IIC (I2C)
-│   └———:ENABled
-│   └———:BAUD
-│   └———:TIMEout
-│   └———:ADDRess
-│   └———:WRITe
-│   └———:READ
+│   ├———:ENABled
+│   ├———:BAUD
+│   ├———:TIMEout
+│   ├———:ADDRess
+│   ├———:WRITe
+│   │   ├———:REG1
+│   │   └———:REG2
+│   ├———:READ
+│   │   ├———:REG1
+│   │   └———:REG2
 │   └———:REPOrt
 ├———:SYSTem
 │   ├———:SERIalNumber
