@@ -54,12 +54,12 @@ void PWMChannelValueCommand(CliBuffer_t *buffer, void *channel)
     }
 }
 
-const CommandDefinition_t pwmChanCommands[] = {
+CommandDefinition_t pwmChanCommands[] = {
     DEFINE_COMMAND("VALU", PWMChannelValueCommand),
     DEFINE_COMMAND("MODE", PWMChannelModeCommand),
 };
 
-const CommandDefinition_t pwmCommands[] = {
+CommandDefinition_t pwmCommands[] = {
      {
         .Command = "CH",
         .Handle = PWMChannelValueCommand,
@@ -68,5 +68,5 @@ const CommandDefinition_t pwmCommands[] = {
      }
 };
 
-const CommandDefinition_t PWMCommand = DEFINE_BRANCH("PWM", pwmCommands);
+CommandDefinition_t PWMCommand = DEFINE_BRANCH("PWM", pwmCommands);
 
