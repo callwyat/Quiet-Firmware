@@ -15,7 +15,6 @@
         <itemPath>Commands/systemCommand.h</itemPath>
         <itemPath>Commands/uartCommand.h</itemPath>
         <itemPath>Commands/spiCommand.h</itemPath>
-        <itemPath>Commands/i2cCommand.h</itemPath>
       </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"
@@ -75,7 +74,6 @@
         <itemPath>Commands/systemCommand.c</itemPath>
         <itemPath>Commands/uartCommand.c</itemPath>
         <itemPath>Commands/spiCommand.c</itemPath>
-        <itemPath>Commands/i2cCommand.c</itemPath>
       </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"

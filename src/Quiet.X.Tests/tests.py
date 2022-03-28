@@ -152,10 +152,6 @@ def command_test(com, number_mode='DECI'):
 
         QueryTest('SPI:BAUD?', number_pattern_24),
 
-        QueryTest('IIC:ENABle?', number_pattern_8),
-        QueryTest('IIC:BAUD?', number_pattern_24),
-        QueryTest('IIC:ADDRess?', number_pattern_8),
-
         QueryTest('SYST:INFO:COMM:HASH?', '"(~?[0-9a-fA-F]{40}~?)"'),
         QueryTest('SYST:INFO:COMM:AUTH?', '"((\w*) *)*"'),
         QueryTest('SYST:INFO:COMM:DATE?', '"(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})"'),

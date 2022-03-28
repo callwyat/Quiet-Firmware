@@ -35,13 +35,6 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 │   ├———:EXCHange
 │   ├———:CS
 │   └———:BAUD
-├———:IIC (I2C)
-│   └———:ENABled
-│   └———:BAUD
-│   └———:ADDRess
-│   └———:WRITe
-│   └———:READ
-│   └———:REPOrt
 ├———:SYSTem
 │   ├———:SERIalNumber
 │   ├———:SAVEState
