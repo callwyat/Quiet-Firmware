@@ -17,6 +17,24 @@ uint16_t i2cRegisterAddress = 0x0000;
 // The size of the register to work with in the slave device in bytes
 uint8_t i2cRegisterSize = 1;
 
+#define I2C_ERROR_NONE 0x00
+#define I2C_ERROR_INVALID_BAUD 0x01
+#define I2C_ERROR_INVALID_TIMEOUT 0x02
+#define I2C_ERROR_INVALID_SLAVE_ADDRESS 0x03
+
+#define I2C_ERROR_DISABLED_WRITE 0x10
+#define I2C_ERROR_DISABLED_READ 0x11
+#define I2C_ERROR_NO_ACKNOWLEDGE 0x12
+
+#define I2C_ERROR_INVALID_RSIZE 0x20
+
+#define I2C_ERROR_BUFFER_OVERFLOW 0x30
+#define I2C_ERROR_INVALID_WRITE_SIZE 0x31
+#define I2C_ERROR_INVALID_READ_SIZE 0x32
+
+// The last generated error to occur
+uint8_t i2cErrorCode = I2C_ERROR_NONE;
+
 void I2CEnableCommand(CliBuffer_t *buffer, void* v)
 {
     if (*buffer->InputPnt == ' ')
@@ -66,7 +84,7 @@ void I2CTimeoutCommand(CliBuffer_t *buffer, void* v)
         }
         else
         {
-            //TODO: Report invalid timeout
+            i2cErrorCode = I2C_ERROR_INVALID_TIMEOUT;
         }
     }
 }
@@ -94,7 +112,7 @@ void I2CBaudCommand(CliBuffer_t *buffer, void* v)
         }
         else
         {
-            //TODO: Report invalid baud rate
+            i2cErrorCode = I2C_ERROR_INVALID_BAUD;
         }
     }
 }
@@ -119,7 +137,7 @@ void I2CAddressCommand(CliBuffer_t *buffer, void *v)
         }
         else
         {
-            //TODO: Report Invalid Address
+            i2cErrorCode = I2C_ERROR_INVALID_SLAVE_ADDRESS;
         }
     }
 }
@@ -140,11 +158,11 @@ void I2CWriteCommand(CliBuffer_t *buffer, void* v)
             // Check for an invalid number
             if (&buffer->InputPnt[writeCount] >= &buffer->InputPnt[CLI_BUFFER_SIZE])
             {
-                // TODO: Invalid Write Count
+                i2cErrorCode = I2C_ERROR_BUFFER_OVERFLOW;
             }
             else if (!I2C1_GetEnabled())
             {
-                // TODO: Show message about IIC not being enabled
+                i2cErrorCode = I2C_ERROR_DISABLED_WRITE;
             }
             else if (writeCount != 0)
             {
@@ -152,7 +170,7 @@ void I2CWriteCommand(CliBuffer_t *buffer, void* v)
             }
             else
             {
-                // TODO: Invalid writeCount
+                i2cErrorCode = I2C_ERROR_INVALID_WRITE_SIZE;
             }
         }
     }
@@ -171,11 +189,11 @@ void I2CReadCommand(CliBuffer_t *buffer, void* v)
 
             if (&buffer->InputPnt[readCount] >= &buffer->InputBuffer[CLI_BUFFER_SIZE])
             {
-                // TODO: Buffer Overflow Exception
+                i2cErrorCode = I2C_ERROR_BUFFER_OVERFLOW;
             }
             else if (!I2C1_GetEnabled())
             {
-                // TODO: Show message about IIC not being enabled
+                i2cErrorCode = I2C_ERROR_DISABLED_READ;
             }
             else if (readCount > 0)
             {
@@ -193,19 +211,20 @@ void I2CReadCommand(CliBuffer_t *buffer, void* v)
             }
             else
             {
-                // TODO: Invalid Read Count
+                i2cErrorCode = I2C_ERROR_INVALID_READ_SIZE;
             }
         }
     }
 }
 
-void I2CReportCommand(CliBuffer_t *buffer, void* v)
+void I2CErrorCommand(CliBuffer_t *buffer, void* v)
 {    
-    ++buffer->InputPnt;
-
     if (*buffer->InputPnt == '?')
     {
-        // TODO
+        ++buffer->InputPnt;
+        NumberToString(buffer, i2cErrorCode);
+
+        i2cErrorCode = I2C_ERROR_NONE;
     }
 }
 
@@ -229,12 +248,12 @@ void I2CRegisterWriteCommand(CliBuffer_t *buffer, void* v)
             }
             else
             {
-                // TODO: Error about a bad data size
+                i2cErrorCode = I2C_ERROR_INVALID_RSIZE;
             }
         }
         else
         {
-            // TODO: Error about I2C not being enabled
+            i2cErrorCode = I2C_ERROR_DISABLED_WRITE;
         }
     }
 }
@@ -259,14 +278,14 @@ void I2CRegisterReadCommand(CliBuffer_t *buffer, void* v)
             }
             else
             {
-                // TODO: Error about a bad data size
+                i2cErrorCode = I2C_ERROR_INVALID_RSIZE;
             }
 
             NumberToString(buffer, data);
         }
         else
         {
-            // TODO: Error about I2C not being enabled
+            i2cErrorCode = I2C_ERROR_DISABLED_READ;
         }
     }
 }
@@ -309,25 +328,26 @@ void I2CRegisterRegisterSizeCommand(CliBuffer_t *buffer, void* v)
         }
         else
         {
-            //TODO: Report Invalid Register Size
+            i2cErrorCode = I2C_ERROR_INVALID_RSIZE;
         }
     }
 }
 
 
 CommandDefinition_t i2cRegisterCommands[] = {
-    DEFINE_COMMAND("WRIT", I2CRegisterWriteCommand),
-    DEFINE_COMMAND("READ", I2CRegisterReadCommand),
     DEFINE_COMMAND("ADDR", I2CRegisterAddressCommand),
     DEFINE_COMMAND("RSIZ", I2CRegisterRegisterSizeCommand),
+    DEFINE_COMMAND("WRIT", I2CRegisterWriteCommand),
+    DEFINE_COMMAND("READ", I2CRegisterReadCommand),
+    DEFINE_COMMAND("ERRO", I2CErrorCommand),
 };
 
 CommandDefinition_t i2cCommands[] = {
     DEFINE_BRANCH("REGI", i2cRegisterCommands),
+    DEFINE_COMMAND("ADDR", I2CAddressCommand),
     DEFINE_COMMAND("WRIT", I2CWriteCommand),
     DEFINE_COMMAND("READ", I2CReadCommand),
-    DEFINE_COMMAND("REPO", I2CReportCommand),
-    DEFINE_COMMAND("ADDR", I2CAddressCommand),
+    DEFINE_COMMAND("ERRO", I2CErrorCommand),
     DEFINE_COMMAND("ENAB", I2CEnableCommand),
     DEFINE_COMMAND("BAUD", I2CBaudCommand),
     DEFINE_COMMAND("TIME", I2CTimeoutCommand),
