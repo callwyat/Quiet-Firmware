@@ -40,13 +40,12 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 │   ├———:BAUD
 │   ├———:TIMEout
 │   ├———:ADDRess
-│   ├———:WRITe
-│   │   ├———:REG1
-│   │   └———:REG2
-│   ├———:READ
-│   │   ├———:REG1
-│   │   └———:REG2
-│   └———:REPOrt
+│   ├———:REGIster
+│   │   ├———:ADDRess
+│   │   ├———:RSIZe
+│   │   ├———:WRITe
+│   │   └———:READ
+│   └———:ERROr
 ├———:SYSTem
 │   ├———:SERIalNumber
 │   ├———:SAVEState

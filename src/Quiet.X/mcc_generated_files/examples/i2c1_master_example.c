@@ -58,6 +58,7 @@ static i2c1_operations_t rd2RegCompleteHandler(void *ptr);
 static i2c1_operations_t wr1RegCompleteHandler(void *ptr);
 static i2c1_operations_t wr2RegCompleteHandler(void *ptr);
 static i2c1_operations_t rdBlkRegCompleteHandler(void *ptr);
+static i2c1_operations_t addrNackHandler(void *ptr);
 
 
 uint8_t I2C1_Read1ByteRegister(i2c1_address_t address, uint8_t reg)
@@ -67,7 +68,7 @@ uint8_t I2C1_Read1ByteRegister(i2c1_address_t address, uint8_t reg)
     while(!I2C1_Open(address)); // sit here until we get the bus..
     I2C1_SetDataCompleteCallback(rd1RegCompleteHandler,&returnValue);
     I2C1_SetBuffer(&reg,1);
-    I2C1_SetAddressNackCallback(NULL,NULL); //NACK polling?
+    I2C1_SetAddressNackCallback(addrNackHandler,NULL); //NACK polling?
     I2C1_MasterWrite();
     while(I2C1_BUSY == I2C1_Close()); // sit here until finished.
     
@@ -81,7 +82,7 @@ uint16_t I2C1_Read2ByteRegister(i2c1_address_t address, uint8_t reg)
     while(!I2C1_Open(address)); // sit here until we get the bus..
     I2C1_SetDataCompleteCallback(rd2RegCompleteHandler,&returnValue);
     I2C1_SetBuffer(&reg,1);
-    I2C1_SetAddressNackCallback(NULL,NULL); //NACK polling?
+    I2C1_SetAddressNackCallback(addrNackHandler,NULL); //NACK polling?
     I2C1_MasterWrite();
     while(I2C1_BUSY == I2C1_Close()); // sit here until finished.
   
@@ -93,7 +94,7 @@ void I2C1_Write1ByteRegister(i2c1_address_t address, uint8_t reg, uint8_t data)
     while(!I2C1_Open(address)); // sit here until we get the bus..
     I2C1_SetDataCompleteCallback(wr1RegCompleteHandler,&data);
     I2C1_SetBuffer(&reg,1);
-    I2C1_SetAddressNackCallback(NULL,NULL); //NACK polling?
+    I2C1_SetAddressNackCallback(addrNackHandler,NULL); //NACK polling?
     I2C1_MasterWrite();
     while(I2C1_BUSY == I2C1_Close()); // sit here until finished.
 }
@@ -103,7 +104,7 @@ void I2C1_Write2ByteRegister(i2c1_address_t address, uint8_t reg, uint16_t data)
     while(!I2C1_Open(address)); // sit here until we get the bus..
     I2C1_SetDataCompleteCallback(wr2RegCompleteHandler,&data);
     I2C1_SetBuffer(&reg,1);
-    I2C1_SetAddressNackCallback(NULL,NULL); //NACK polling?
+    I2C1_SetAddressNackCallback(addrNackHandler,NULL); //NACK polling?
     I2C1_MasterWrite();
     while(I2C1_BUSY == I2C1_Close()); // sit here until finished.
 }
@@ -112,7 +113,7 @@ void I2C1_WriteNBytes(i2c1_address_t address, uint8_t* data, size_t len)
 {
     while(!I2C1_Open(address)); // sit here until we get the bus..
     I2C1_SetBuffer(data,len);
-    I2C1_SetAddressNackCallback(NULL,NULL); //NACK polling?
+    I2C1_SetAddressNackCallback(addrNackHandler,NULL); //NACK polling?
     I2C1_MasterWrite();
     while(I2C1_BUSY == I2C1_Close()); // sit here until finished.
 }
@@ -134,9 +135,14 @@ void I2C1_ReadDataBlock(i2c1_address_t address, uint8_t reg, uint8_t *data, size
     while(!I2C1_Open(address)); // sit here until we get the bus..
     I2C1_SetDataCompleteCallback(rdBlkRegCompleteHandler,&bufferBlock);
     I2C1_SetBuffer(&reg,1);
-    I2C1_SetAddressNackCallback(NULL,NULL); //NACK polling?
+    I2C1_SetAddressNackCallback(addrNackHandler,NULL); //NACK polling?
     I2C1_MasterWrite();
     while(I2C1_BUSY == I2C1_Close()); // sit here until finished.
+}
+
+static i2c1_operations_t addrNackHandler(void *ptr)
+{
+    return I2C1_CONTINUE;
 }
 
 static i2c1_operations_t rd1RegCompleteHandler(void *ptr)

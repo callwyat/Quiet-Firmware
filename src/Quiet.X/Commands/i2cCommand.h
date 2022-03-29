@@ -11,9 +11,6 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
-
-#define I2C_DATA_OUTPUT 4
-#define I2C_CLOCK_OUTPUT 5
     
 #ifdef	__cplusplus
 }

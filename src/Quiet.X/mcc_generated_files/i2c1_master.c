@@ -46,6 +46,7 @@
 
 #include "i2c1_master.h"
 #include "device_config.h"
+#include "../outputs.h"
 #include <xc.h>
 
 // I2C1 STATES
@@ -174,6 +175,28 @@ void I2C1_Initialize()
     SSP1CON1bits.SSPEN = 0;
 }
 
+bool _i2cEnabled = false;
+void I2C1_SetEnabled(bool enabled)
+{
+    _i2cEnabled = enabled;
+    if (_i2cEnabled)
+    {
+        SetOutputMode(I2C_DATA_OUTPUT, OUT_I2C);
+        SetOutputMode(I2C_CLOCK_OUTPUT, OUT_I2C);
+    }
+    else
+    {
+        I2C1_Close();
+        SetOutputMode(I2C_DATA_OUTPUT, OUT_DISCREET);
+        SetOutputMode(I2C_CLOCK_OUTPUT, OUT_DISCREET);
+    }
+}
+
+bool inline I2C1_GetEnabled()
+{
+    return _i2cEnabled;
+}
+
 i2c1_error_t I2C1_Open(i2c1_address_t address)
 {
     i2c1_error_t returnValue = I2C1_BUSY;
@@ -263,7 +286,25 @@ void I2C1_SetTimeout(uint8_t timeOut)
 {
     I2C1_MasterDisableIrq();
     I2C1_Status.time_out_value = timeOut;
-    I2C1_MasterEnableIrq();
+    // I2C1_MasterEnableIrq();
+}
+
+void I2C1_SetSettings(i2c_settings settings)
+{
+    SSP1ADD = settings.Baud;
+    I2C1_SetTimeout(settings.Timeout);
+    I2C1_SetEnabled(settings.Enabled);
+}
+
+i2c_settings I2C1_GetSettings()
+{
+    i2c_settings result = {             \
+        .Baud = SSP1ADD,                \
+        .Timeout = I2C1_GetTimeout(),   \
+        .Enabled = I2C1_GetEnabled()    \
+    };
+    
+    return result;
 }
 
 void I2C1_SetBuffer(void *buffer, size_t bufferSize)
@@ -567,6 +608,7 @@ static inline bool I2C1_MasterOpen(void)
         SSP1CON1 = 0x08;
         SSP1CON2 = 0x00;
         // SSP1ADD = 0x27;
+        ODCON3 = 0x03;
         SSP1CON1bits.SSPEN = 1;
         return true;
     }
@@ -575,6 +617,8 @@ static inline bool I2C1_MasterOpen(void)
 
 static inline void I2C1_MasterClose(void)
 {
+    ODCON3 = 0x00;
+    
     //Disable I2C1
     SSP1CON1bits.SSPEN = 0;
 }

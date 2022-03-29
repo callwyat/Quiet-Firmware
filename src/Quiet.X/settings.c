@@ -22,8 +22,11 @@
     'N', 'u', 'm', 'b', 'e', 'r', '}', '\x00'},                     \
     .UARTBaud = 0x01A0,         /* 9600 */                          \
     .SPIBaud = 0x00,            /* 4 Mhz */                         \
-    .I2CBaud = 0x27,            /* 100 kHz */                       \
-    .I2CTimeout = 0x80,                                             \
+    .I2CSettings = {                                                \
+        .Enabled = false,       /* Disabled */                      \
+        .Baud = 0x27,           /* 100 kHz */                       \
+        .Timeout = 0x80,        /* Unsure */                        \
+    },                                                              \
     .OutputSettings = {                                             \
         DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
         DEFINE_OUTPUT_SETTING(0x000, OUT_DISCREET),                 \
@@ -64,8 +67,7 @@ void SaveSettings()
 
     settings.UARTBaud = (SPBRGH1 << 8) + SPBRG1;
     settings.SPIBaud = SSP2CON1bits.SSPM;
-    settings.I2CBaud = SSP1ADD;
-    settings.I2CTimeout = I2C1_GetTimeout();
+    settings.I2CSettings = I2C1_GetSettings();
     
     SetSettings(settings);
 }
@@ -94,8 +96,7 @@ void RestoreSettings(bool factory)
     SPBRGH1 = settings.UARTBaud >> 8;
 
     SSP2CON1bits.SSPM = settings.SPIBaud;
-    SSP1ADD = settings.I2CBaud;
-    I2C1_SetTimeout(settings.I2CTimeout);
+    I2C1_SetSettings(settings.I2CSettings);
 
     SetNumberFormat(settings.NumberFormat);
 }

@@ -14,6 +14,9 @@ extern "C" {
 
 #include <stdbool.h>
 #include <stdint.h>
+    
+#define I2C_DATA_OUTPUT 4
+#define I2C_CLOCK_OUTPUT 5
 
 const char* DISCREETWord = "DISC";
 const char* PWMWord = "PWM";
@@ -21,7 +24,6 @@ const char* ServoWord = "SERV";
 const char* UARTWord = "UART";
 const char* SPIWord = "SPI";
 const char* I2CWord = "I2C";
-
 
 typedef enum {
     OUT_DISCREET = 0x01,

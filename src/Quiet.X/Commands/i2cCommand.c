@@ -12,7 +12,10 @@
 
 // The address to send the message to
 i2c1_address_t i2cTargetAddress = 0x00;
-bool i2cEnabled = false;
+// The address of the register to work with in the slave device
+uint16_t i2cRegisterAddress = 0x0000;
+// The size of the register to work with in the slave device in bytes
+uint8_t i2cRegisterSize = 1;
 
 void I2CEnableCommand(CliBuffer_t *buffer, void* v)
 {
@@ -25,23 +28,19 @@ void I2CEnableCommand(CliBuffer_t *buffer, void* v)
         
         if (c == '0' || c == 'F')
         {
-            i2cEnabled = false;
-            I2C1_Close();
-            SetOutputMode(I2C_DATA_OUTPUT, OUT_DISCREET);
-            SetOutputMode(I2C_CLOCK_OUTPUT, OUT_DISCREET);
+            I2C1_SetEnabled(false);
         }
         else if (c == '1' || c == 'T')
         {
-            i2cEnabled = true;
-            SetOutputMode(I2C_DATA_OUTPUT, OUT_I2C);
-            SetOutputMode(I2C_CLOCK_OUTPUT, OUT_I2C);
+            I2C1_SetEnabled(true);
         }
+
     }
     else if (*buffer->InputPnt == '?')
     {
         ++buffer->InputPnt;
 
-        *buffer->OutputPnt++ = GetOutputMode(I2C_CLOCK_OUTPUT) == OUT_I2C ? '1' : '0'; 
+        *buffer->OutputPnt++ = I2C1_GetEnabled() ? '1' : '0'; 
     }
 }
 
@@ -143,7 +142,7 @@ void I2CWriteCommand(CliBuffer_t *buffer, void* v)
             {
                 // TODO: Invalid Write Count
             }
-            else if (!i2cEnabled)
+            else if (!I2C1_GetEnabled())
             {
                 // TODO: Show message about IIC not being enabled
             }
@@ -174,7 +173,7 @@ void I2CReadCommand(CliBuffer_t *buffer, void* v)
             {
                 // TODO: Buffer Overflow Exception
             }
-            else if (!i2cEnabled)
+            else if (!I2C1_GetEnabled())
             {
                 // TODO: Show message about IIC not being enabled
             }
@@ -210,9 +209,121 @@ void I2CReportCommand(CliBuffer_t *buffer, void* v)
     }
 }
 
+void I2CRegisterWriteCommand(CliBuffer_t *buffer, void* v)
+{
+    if (*buffer->InputPnt == ' ')
+    { 
+        ++buffer->InputPnt;
+        
+        int16_t data = ParseInt(&buffer->InputPnt);
 
+        if (I2C1_GetEnabled())
+        {
+            if (i2cRegisterSize == 2)
+            {
+                I2C1_Write2ByteRegister(i2cTargetAddress, i2cRegisterAddress, data);
+            }
+            else if (i2cRegisterSize == 1)
+            {
+                I2C1_Write1ByteRegister(i2cTargetAddress, i2cRegisterAddress, data);
+            }
+            else
+            {
+                // TODO: Error about a bad data size
+            }
+        }
+        else
+        {
+            // TODO: Error about I2C not being enabled
+        }
+    }
+}
+
+void I2CRegisterReadCommand(CliBuffer_t *buffer, void* v)
+{
+    if (*buffer->InputPnt == '?')
+    { 
+        ++buffer->InputPnt;
+        
+        if (I2C1_GetEnabled())
+        {
+            int16_t data;
+
+            if (i2cRegisterSize == 2)
+            {
+                data = I2C1_Read2ByteRegister(i2cTargetAddress, i2cRegisterAddress);
+            }
+            else if (i2cRegisterSize == 1)
+            {
+                data = I2C1_Read1ByteRegister(i2cTargetAddress, i2cRegisterAddress);
+            }
+            else
+            {
+                // TODO: Error about a bad data size
+            }
+
+            NumberToString(buffer, data);
+        }
+        else
+        {
+            // TODO: Error about I2C not being enabled
+        }
+    }
+}
+
+void I2CRegisterAddressCommand(CliBuffer_t *buffer, void* v)
+{
+    if (*buffer->InputPnt == '?')
+    {
+        ++buffer->InputPnt;
+        
+        NumberToString(buffer, i2cRegisterAddress);
+    }
+    else if (*buffer->InputPnt == ' ')
+    { 
+        ++buffer->InputPnt;
+        
+        int16_t address = ParseInt(&buffer->InputPnt);
+
+        i2cRegisterAddress = (uint16_t)address;
+    }
+}
+
+void I2CRegisterRegisterSizeCommand(CliBuffer_t *buffer, void* v)
+{
+    if (*buffer->InputPnt == '?')
+    {
+        ++buffer->InputPnt;
+        
+        NumberToString(buffer, i2cRegisterSize);
+    }
+    else if (*buffer->InputPnt == ' ')
+    { 
+        ++buffer->InputPnt;
+        
+        int16_t size = ParseInt(&buffer->InputPnt);
+
+        if (size >= 0 && size <= 2)
+        {
+            i2cRegisterSize = (uint8_t)size;
+        }
+        else
+        {
+            //TODO: Report Invalid Register Size
+        }
+    }
+}
+
+
+CommandDefinition_t i2cRegisterCommands[] = {
+    DEFINE_COMMAND("WRIT", I2CRegisterWriteCommand),
+    DEFINE_COMMAND("READ", I2CRegisterReadCommand),
+    DEFINE_COMMAND("ADDR", I2CRegisterAddressCommand),
+    DEFINE_COMMAND("RSIZ", I2CRegisterRegisterSizeCommand),
+};
 
 CommandDefinition_t i2cCommands[] = {
+    DEFINE_BRANCH("REGI", i2cRegisterCommands),
     DEFINE_COMMAND("WRIT", I2CWriteCommand),
     DEFINE_COMMAND("READ", I2CReadCommand),
     DEFINE_COMMAND("REPO", I2CReportCommand),

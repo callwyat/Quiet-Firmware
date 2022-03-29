@@ -15,6 +15,7 @@ extern "C" {
 #include "outputs.h"
 #include "CLI/cli.h"
 #include <stdint.h>
+#include "mcc_generated_files/i2c1_master.h"
 
     typedef struct {
         uint16_t Value;
@@ -33,8 +34,7 @@ extern "C" {
         char SerialNumber[16];
         uint16_t UARTBaud;
         uint8_t SPIBaud;
-        uint8_t I2CBaud;
-        uint8_t I2CTimeout;
+        i2c_settings I2CSettings;
         OutputSettings_t OutputSettings[10];
     } QuietSettings_t;
 
