@@ -44,7 +44,8 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 │   │   ├———:ADDRess
 │   │   ├———:RSIZe
 │   │   ├———:WRITe
-│   │   └———:READ
+│   │   ├———:READ
+│   │   └———:ERROr
 │   └———:ERROr
 ├———:SYSTem
 │   ├———:SERIalNumber
@@ -172,7 +173,7 @@ Gets or sets the baud rate for the UART port. Valid baud rates are from 60 to 4M
 Write -> UART:BAUD 115200
 Write -> UART:BAUD 9600
 Write -> UART:BAUD?
-Read  -> 9600
+Read  -> 9614
 ```
 
 ### SPI:EXCHange (Combination IEEE Write and Read)
@@ -207,6 +208,146 @@ Write -> SPI:BAUD?
 Read  -> 250000
 ```
 
+### IIC:ENABled \<value>
+#### Description
+Gets or sets the enable bit for the I2C Module.
+#### Notes
+The I2C modules uses the same pins as digital outputs 5 and 6. As such, these two pins must be cleared of any loads greater then 1mA to work. This includes the status LED for the output, and the Opto-Coupler Input.
+
+To use the I2C port ensure the following items are checked on digital outs 5 and 6:
+- The Opto-Couplers is not connected
+- The status LEDs are disabled by opening JP8
+- There are pull-up resister installed on the bus
+    - R8 and R9 can be used
+    - The recommended pull-up size is between 1k and 10k ohms
+#### Example
+```
+Write -> IIC:ENAB 1
+Write -> IIC:ENAB?
+Read  -> 1
+```
+
+### IIC:BAUD \<value>
+#### Description
+Gets or sets the baud rate for the I2C module to use. The default value is 100k. The acceptable range is from 16k and 1M. 
+#### Example
+```
+Write -> IIC:BAUD 400000
+Write -> IIC:BAUD?
+Read  -> 400000
+```
+
+### IIC:TIMEout \<value>
+#### Description
+Gets or sets the max amount of time, in milliseconds, that a transfer can take. This is useful if a slave device uses clock stretching. Acceptable values are between 10 and 255. The default value is 128.
+#### Example
+```
+Write -> IIC:TIME 100
+Write -> IIC:TIME?
+Read  -> 100
+```
+
+### IIC:ERROr?
+#### Description
+Gets the last reported error by the I2C system. The error code is cleared when read.
+#### Codes
+Code    | Meaning                                       |
+--------|-----------------------------------------------|
+0x00    | No Error                                      |
+0x01    | Attempted to set invalid baud rate            |
+0x02    | Attempted to set invalid timeout              |
+0x03    | Attempted to set invalid slave address        |
+0x10    | Attempted to write with I2C disabled          |
+0x11    | Attempted to read with I2C disabled           |
+0x12    | Slave device did not ACK with given address   |
+0x20    | Invalid register size                         |
+0x30    | Buffer overflow would occur                   |
+0x31    | Invalid number of bytes to write specified    |
+0x32    | Invalid number of bytes to read specified     |
+#### Example
+```
+Write -> SYST:NUMB HEX
+Write -> IIC:ERRO?
+Read  -> 0x01
+Write -> IIC:ERRO?
+Read  -> 0x00
+```
+
+### IIC:REGIster:ADDRess \<value>
+#### Description
+Gets or sets the register address for a IIC:REGI:WRITe or IIC:REGI:READ? command.
+#### Example
+```
+Write -> SYST:NUMB HEX
+Write -> IIC:REGI:ADDR 0xFF
+Write -> IIC:REGI:ADDR?
+Read  -> 0xFF
+```
+
+### IIC:REGIster:RSIZe \<value>
+#### Description
+Gets or sets the size, in bytes, of the register to read or write to. Valid values are 1 and 2. The default value is 1.
+#### Example
+```
+Write -> IIC:REGI:RSIZ 2
+Write -> IIC:REGI:RSIZ?
+Read  -> 2
+```
+
+### IIC:REGIster:WRITe \<value>
+#### Description
+Attempts the following actions with the I2C System:
+- Starts I2C transfer
+- Writes the Slave address specified by `IIC:ADDRess`
+- Writes the Register address specified by `IIC:REGIster:ADDRess`
+- Writes the first byte of the given value
+- Writes the second byte of the given value if `IIC:REGIster:RSIZe` is 2
+- Ends I2C transfer
+
+#### Example
+```
+Write -> IIC:ADDR 0x50
+Write -> IIC:REGI:ADDR 0x01
+Write -> IIC:REGI:RSIZ 2
+Write -> IIC:REGI:WRIT 0x1001
+Write -> IIC:ERRO?
+Read  -> 0
+
+Write -> IIC:ADDR 0x50;REGI:ADDR 0x01;RSIZ 2;WRIT 0x1001;ERRO?
+Read  -> ;;;;0
+```
+
+### IIC:REGIster:READ?
+#### Description
+Attempts the following actions with the I2C System:
+- Starts I2C transfer
+- Writes the Slave address specified by `IIC:ADDRess`
+- Writes the Register address specified by `IIC:REGIster:ADDRess`
+- Restarts the I2C transfer
+- Writes the Slave address specified by `IIC:ADDRess`
+- Reads one byte from the slave
+- Reads a second byte from the slave if `IIC:REGIster:RSIZe` is 2
+- Ends I2C transfer
+- Returns little ended value of the two bytes
+
+#### Example
+```
+Write -> SYST:NUMB HEX
+Write -> IIC:ADDR 0x50
+Write -> IIC:REGI:ADDR 0xFF
+Write -> IIC:REGI:RSIZ 2
+Write -> IIC:REGI:READ?
+Read  -> 0x1004
+Write -> IIC:ERRO?
+Read  -> 0x00
+
+Write -> IIC:ADDR 0x50;REGI:ADDR 0x01;RSIZ 2;READ?;ERRO?
+Read  -> ;;;0x1004;0x00
+```
+
+### IIC:REGIster:ERROr?
+#### Description
+The same as `IIC:ERROr`.
 ### SYSTem:SERIalnumber "\<value>"
 #### Description
 Gets the stored serial number. As there is no unique identifiers built into the hardware of the Qy@ Board, this command can also be used to set a Serial Number. The maximum length of the serial number is 16 charters. The serial number is also reported by the `*IDN?` command
