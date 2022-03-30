@@ -184,34 +184,42 @@ void I2CReadCommand(CliBuffer_t *buffer, void* v)
 
         if (*buffer->InputPnt == ' ')
         {
+            ++buffer->InputPnt;
+
             // Get the number of bytes to read
             int8_t readCount = ParseInt(&buffer->InputPnt);
 
             if (&buffer->InputPnt[readCount] >= &buffer->InputBuffer[CLI_BUFFER_SIZE])
             {
                 i2cErrorCode = I2C_ERROR_BUFFER_OVERFLOW;
+                CopyWordToOutBuffer(buffer, EmptyIEEEHeader);
             }
             else if (!I2C1_GetEnabled())
             {
                 i2cErrorCode = I2C_ERROR_DISABLED_READ;
+                CopyWordToOutBuffer(buffer, EmptyIEEEHeader);
             }
             else if (readCount > 0)
             {
                 GenerateIEEEHeader(buffer, readCount);
 
                 // Whip out any latent data in the output buffer
-                while (readCount > 0)
+                int8_t clearCount = readCount;
+                char *pnt = buffer->OutputPnt;
+                while (clearCount > 0)
                 {
-                    *buffer->InputPnt++ = 0x00;
-
-                    --readCount;
+                    *pnt++ = 0x00;
+                    --clearCount;
                 }
 
                 I2C1_ReadNBytes(i2cTargetAddress, buffer->OutputPnt, readCount);
+                
+                buffer->OutputPnt += readCount;
             }
             else
             {
-                i2cErrorCode = I2C_ERROR_INVALID_READ_SIZE;
+                i2cErrorCode = I2C_ERROR_INVALID_READ_SIZE;                
+                CopyWordToOutBuffer(buffer, EmptyIEEEHeader);
             }
         }
     }
@@ -234,7 +242,7 @@ void I2CRegisterWriteCommand(CliBuffer_t *buffer, void* v)
     { 
         ++buffer->InputPnt;
         
-        int16_t data = ParseInt(&buffer->InputPnt);
+        uint16_t data = ParseInt(&buffer->InputPnt);
 
         if (I2C1_GetEnabled())
         {

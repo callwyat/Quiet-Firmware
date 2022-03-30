@@ -1,7 +1,6 @@
 import serial
 import serial.tools.list_ports
 
-
 class quiet_coms():
 
     def __init__(self, port=None):
@@ -21,17 +20,29 @@ class quiet_coms():
         else:
             raise Exception('Unable to determine what to do with \'port\'')
 
-    def write(self, input):
-
+    def write(self, input:str):
         self.com.write(f'{input}\r\n'.encode())
 
-    def read(self):
-        return self.read().strip()
+    def read(self) -> str:
+        return self.read_raw().strip()
 
-    def read_raw(self):
+    def query(self, input:str) -> str:
+        self.com.flushInput()
+        self.write(input)
+        return self.read()
+
+    def query_int(self, input:str) -> int:
+        result = self.query(input).strip(';')
+
+        if '0x' in result:
+            return int(result[2:], 16)
+        else:
+            return int(result)
+
+    def read_raw(self) -> str:
         return self.com.read_until().decode()
 
-    def writeIEEE(self, command, data):
+    def writeIEEE(self, command:str, data:bytearray) -> None:
 
         # Generate the header
         data_size = str(len(data))
@@ -42,13 +53,18 @@ class quiet_coms():
         # Send header and data
         self.com.write(f'{command} {ieee_header}'.encode() + bytearray(data))
 
-    def queryIEEE(self, command):
+    def queryIEEE(self, command:str) -> bytearray:
 
+        self.com.flushInput()
         self.write(command)
 
-        headerSize = int(self.com.read(2)[1])
+        val = ''
+        while not '#' in val: 
+            val = self.com.read(1).decode()
 
-        dataSize = int(self.com.read(headerSize))
+        headerSize = int(self.com.read(1).decode())
+
+        dataSize = int(self.com.read(headerSize).decode())
 
         return self.com.read(dataSize)
         

@@ -46,6 +46,8 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 │   │   ├———:WRITe
 │   │   ├———:READ
 │   │   └———:ERROr
+│   ├———:WRITe
+│   ├———:READ
 │   └———:ERROr
 ├———:SYSTem
 │   ├———:SERIalNumber
@@ -246,33 +248,6 @@ Write -> IIC:TIME 100
 Write -> IIC:TIME?
 Read  -> 100
 ```
-
-### IIC:ERROr?
-#### Description
-Gets the last reported error by the I2C system. The error code is cleared when read.
-#### Codes
-Code    | Meaning                                       |
---------|-----------------------------------------------|
-0x00    | No Error                                      |
-0x01    | Attempted to set invalid baud rate            |
-0x02    | Attempted to set invalid timeout              |
-0x03    | Attempted to set invalid slave address        |
-0x10    | Attempted to write with I2C disabled          |
-0x11    | Attempted to read with I2C disabled           |
-0x12    | Slave device did not ACK with given address   |
-0x20    | Invalid register size                         |
-0x30    | Buffer overflow would occur                   |
-0x31    | Invalid number of bytes to write specified    |
-0x32    | Invalid number of bytes to read specified     |
-#### Example
-```
-Write -> SYST:NUMB HEX
-Write -> IIC:ERRO?
-Read  -> 0x01
-Write -> IIC:ERRO?
-Read  -> 0x00
-```
-
 ### IIC:REGIster:ADDRess \<value>
 #### Description
 Gets or sets the register address for a IIC:REGI:WRITe or IIC:REGI:READ? command.
@@ -358,6 +333,57 @@ Write -> SYST:SERI?
 Read  -> "2022011909300901"
 ```
 
+### IIC:WRITe (IEEE Write Only)
+#### Description
+Write the given data block to the device specified by `IIC:ADDR`
+
+#### Example
+```
+Write -> IIC:ADDR 0x50;
+Write -> IIC:WRIT #13ABC
+
+Write -> IIC:ADDR 0x0C;WRIT #13ABC
+```
+
+### IIC:READ? \<count> (IEEE Read Only)
+#### Description
+Reads the number of bytes specified by "count" from the slave device specified by `IIC:ADDR`.
+
+#### Example
+```
+Write -> IIC:ADDR 0x50;
+Write -> IIC:WRIT #11A
+Write -> IIC:READ? 2
+Read  -> #12BC
+
+Write -> IIC:ADDR 0x0C;WRIT #11A;READ? 2
+Read  -> ;;#2BC
+```
+
+### IIC:ERROr?
+#### Description
+Gets the last reported error by the I2C system. The error code is cleared when read.
+#### Codes
+Code    | Meaning                                       |
+--------|-----------------------------------------------|
+0x00    | No Error                                      |
+0x01    | Attempted to set invalid baud rate            |
+0x02    | Attempted to set invalid timeout              |
+0x03    | Attempted to set invalid slave address        |
+0x10    | Attempted to write with I2C disabled          |
+0x11    | Attempted to read with I2C disabled           |
+0x20    | Invalid register size                         |
+0x30    | Buffer overflow would occur                   |
+0x31    | Invalid number of bytes to write specified    |
+0x32    | Invalid number of bytes to read specified     |
+#### Example
+```
+Write -> SYST:NUMB HEX
+Write -> IIC:ERRO?
+Read  -> 0x01
+Write -> IIC:ERRO?
+Read  -> 0x00
+```
 ### SYSTem:SAVEstate (Write Only)
 #### Description
 Stores the current mode and value of each output and the following settings into non-volitive memory
