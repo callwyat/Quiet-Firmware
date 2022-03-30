@@ -118,6 +118,15 @@ void I2C1_Write2ByteRegister(i2c1_address_t address, uint8_t reg, uint16_t data)
 #endif
 }
 
+bool i2c_nacked = false;
+
+bool I2C1_LastOperationNACKed()
+{
+    bool result = i2c_nacked;
+    i2c_nacked = false;
+    return result;
+}
+
 void I2C1_WriteNBytes(i2c1_address_t address, uint8_t* data, size_t len)
 {
     while(!I2C1_Open(address)); // sit here until we get the bus..
@@ -151,6 +160,7 @@ void I2C1_ReadDataBlock(i2c1_address_t address, uint8_t reg, uint8_t *data, size
 
 static i2c1_operations_t addrNackHandler(void *ptr)
 {
+    i2c_nacked = true;
     return I2C1_CONTINUE;
 }
 
