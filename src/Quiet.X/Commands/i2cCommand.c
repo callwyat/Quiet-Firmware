@@ -27,6 +27,8 @@ uint8_t i2cRegisterSize = 1;
 #define I2C_ERROR_NO_ACKNOWLEDGE 0x12
 
 #define I2C_ERROR_INVALID_RSIZE 0x20
+#define I2C_ERROR_INVALID_REGISTER_ADDRESS 0x21
+#define I2C_ERROR_INVALID_REGISTER_VALUE 0x22
 
 #define I2C_ERROR_BUFFER_OVERFLOW 0x30
 #define I2C_ERROR_INVALID_WRITE_SIZE 0x31
@@ -78,7 +80,7 @@ void I2CTimeoutCommand(CliBuffer_t *buffer, void* v)
         
         int16_t timeout = ParseInt(&buffer->InputPnt);
         
-        if (timeout > 0)
+        if (timeout > 0 && timeout < 256)
         {
             I2C1_SetTimeout((uint8_t)timeout);
         }
@@ -106,7 +108,7 @@ void I2CBaudCommand(CliBuffer_t *buffer, void* v)
         uint24_t baudRate = ParseInt24(&buffer->InputPnt);
         
         // BaudRates below 16k cannot be generated with this the system clock
-        if (baudRate > 16000)
+        if (baudRate >= 16000 && baudRate <= 1000000)
         {
             I2C1SetBaudRate(baudRate);
         }
@@ -131,7 +133,7 @@ void I2CAddressCommand(CliBuffer_t *buffer, void *v)
         
         int16_t addr = ParseInt(&buffer->InputPnt);
 
-        if (addr >= 0)
+        if (addr >= 0 && addr < 128)
         {
             i2cTargetAddress = (uint8_t)addr;
         }
@@ -156,7 +158,7 @@ void I2CWriteCommand(CliBuffer_t *buffer, void* v)
             uint16_t writeCount = ParseIEEEHeader(buffer);
 
             // Check for an invalid number
-            if (&buffer->InputPnt[writeCount] >= &buffer->InputPnt[CLI_BUFFER_SIZE])
+            if (&buffer->InputPnt[writeCount] >= &buffer->InputBuffer[CLI_BUFFER_SIZE])
             {
                 i2cErrorCode = I2C_ERROR_BUFFER_OVERFLOW;
             }
@@ -189,7 +191,7 @@ void I2CReadCommand(CliBuffer_t *buffer, void* v)
             // Get the number of bytes to read
             int8_t readCount = ParseInt(&buffer->InputPnt);
 
-            if (&buffer->InputPnt[readCount] >= &buffer->InputBuffer[CLI_BUFFER_SIZE])
+            if (&buffer->OutputPnt[readCount] >= &buffer->OutputBuffer[CLI_BUFFER_SIZE])
             {
                 i2cErrorCode = I2C_ERROR_BUFFER_OVERFLOW;
                 CopyWordToOutBuffer(buffer, EmptyIEEEHeader);
@@ -252,7 +254,14 @@ void I2CRegisterWriteCommand(CliBuffer_t *buffer, void* v)
             }
             else if (i2cRegisterSize == 1)
             {
-                I2C1_Write1ByteRegister(i2cTargetAddress, i2cRegisterAddress, data);
+                if (data < 256)
+                {
+                    I2C1_Write1ByteRegister(i2cTargetAddress, i2cRegisterAddress, data);
+                }
+                else
+                {
+                    i2cErrorCode = I2C_ERROR_INVALID_REGISTER_VALUE;
+                }
             }
             else
             {
@@ -312,7 +321,14 @@ void I2CRegisterAddressCommand(CliBuffer_t *buffer, void* v)
         
         int16_t address = ParseInt(&buffer->InputPnt);
 
-        i2cRegisterAddress = (uint16_t)address;
+        if (address >= 0 && address < 256)
+        {
+            i2cRegisterAddress = (uint16_t)address;
+        }
+        else
+        {
+            i2cErrorCode = I2C_ERROR_INVALID_REGISTER_ADDRESS;
+        }
     }
 }
 
@@ -330,7 +346,7 @@ void I2CRegisterRegisterSizeCommand(CliBuffer_t *buffer, void* v)
         
         int16_t size = ParseInt(&buffer->InputPnt);
 
-        if (size >= 0 && size <= 2)
+        if (size >= 1 && size <= 2)
         {
             i2cRegisterSize = (uint8_t)size;
         }

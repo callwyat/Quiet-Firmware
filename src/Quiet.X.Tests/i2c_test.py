@@ -1,11 +1,9 @@
-import serial
-import serial.tools.list_ports
 import quiet_coms
 import time
 
 if 'EXIT_ON_FAIL' not in locals():
     VERBOSE = True
-    EXIT_ON_FAIL = True
+    EXIT_ON_FAIL = False
 class quiet_i2c():
 
     def __init__(self, quiet:quiet_coms.quiet_coms) -> None:
@@ -37,7 +35,7 @@ class quiet_i2c():
         self.quiet.write('IIC:ENAB 0')
 
     def error(self) -> int:
-        error_int = self.quiet.query_int('IIC:EERO')
+        error_int = self.quiet.query_int('IIC:ERRO?')
 
         return error_int
 
@@ -81,15 +79,126 @@ def _i2c_raw_read_test(i: quiet_i2c, address:int, expected:bytearray):
     elif VERBOSE:
         print(f'RAW\t{hex(address)} <- {response}')
 
+def _i2c_check_error(i: quiet_i2c, error_name: str, expectation: int):
+
+    error = i.error()
+
+    if error != expectation:
+        message = f'Failure {error_name}. Expected {hex(expectation)} received {hex(error)}'
+        if EXIT_ON_FAIL:
+            raise Exception(message)
+        else:
+            print(message)
+    elif VERBOSE:
+        print(f'{error_name.ljust(32)} Pass')
+
+
+def _i2c_check_lower_limit(i: quiet_i2c, command:str, low:int, error_name:str, error_code, delay:int=0):
+    
+    i.quiet.write(f'{command} {low - 1}')
+    if delay > 0:
+        time.sleep(delay)
+
+    _i2c_check_error(i, f'UNDER {error_name}', error_code)
+
+    i.quiet.write(f'{command} {low}')
+    if delay > 0:
+        time.sleep(delay)
+
+    _i2c_check_error(i, f'LOWER {error_name}', 0x00)
+
+def _i2c_check_upper_limit(i: quiet_i2c, command:str, high:int, error_name:str, error_code, delay:int=0):
+
+    i.quiet.write(f'{command} {high}')
+    if delay > 0:
+        time.sleep(delay)
+
+    _i2c_check_error(i, f'UPPER {error_name}', 0x00)
+
+    i.quiet.write(f'{command} {high + 1}')
+    if delay > 0:
+        time.sleep(delay)
+
+    _i2c_check_error(i, f'OVER  {error_name}', error_code)
+
+def _i2c_check_limit(i: quiet_i2c, command:str, low:int, high:int, error_name:str, error_code):
+
+    _i2c_check_lower_limit(i, command, low, error_name, error_code)
+
+    _i2c_check_upper_limit(i, command, high, error_name, error_code)
+
+def i2c_test_errors(i: quiet_i2c) -> bool:
+
+    # Clear Errors
+    i.error()
+    
+    i.disable()
+    _i2c_check_error(i, 'ERROR_NONE', 0x00)
+
+    _i2c_check_limit(i, 'IIC:BAUD', 16000, 1000000, 'INVALID_BAUD', 0x01)
+
+    _i2c_check_limit(i, 'IIC:TIME', 1, 255, 'INVALID_TIMEOUT', 0x02)
+
+    _i2c_check_limit(i, 'IIC:ADDR', 0, 127, 'INVALID_ADDRESS', 0x03)
+
+    _i2c_check_limit(i, 'IIC:REGI:RSIZ', 1, 2, 'INVALID_RSIZE', 0x20)
+
+    _i2c_check_limit(i, 'IIC:REGI:ADDR', 0, 255, 'INVALID_REGISTER_ADDRESS', 0x21)
+
+    i.quiet.write('IIC:REGI:WRIT 1')
+    _i2c_check_error(i, 'ERROR_DISABLED_WRITE', 0x10)
+
+    i.quiet.query('IIC:REGI:READ?')
+    i.quiet.com.flushInput()
+    _i2c_check_error(i, 'ERROR_DISABLED_READ', 0x11)
+    
+    i.quiet.write('IIC:WRIT #11A')
+    _i2c_check_error(i, 'ERROR_DISABLED_WRITE', 0x10)
+
+    i.quiet.query('IIC:READ? 2')
+    _i2c_check_error(i, 'ERROR_DISABLED_READ', 0x11)
+
+    i.enable()
+
+    try:
+        i.quiet.write('IIC:REGI:ADDR 0xFF;RSIZ 1')
+        i.quiet.com.flushInput()
+        _i2c_check_upper_limit(i, 'IIC:REGI:WRIT', 255, 'INVALID_REGISTER_VALUE', 0x22, 0.1)
+
+        i.quiet.write('IIC:WRIT #10')
+        i.quiet.com.flushInput()
+        time.sleep(0.1)
+        _i2c_check_error(i, 'I2C_ERROR_INVALID_WRITE_SIZE', 0x31)
+
+        i.quiet.write('IIC:READ? 0')
+        i.quiet.com.flushInput()
+        time.sleep(0.1)
+        _i2c_check_error(i, 'I2C_ERROR_INVALID_READ_SIZE', 0x32)
+
+        i.quiet.write('IIC:WRIT #2520AAAAAAAAA1BBBBBBBBB2CCCCCCCCC3DDDDDDDDD4EEEEEEEEE5F')
+        i.quiet.com.flushInput()
+        time.sleep(0.1)
+        _i2c_check_error(i, 'I2C_ERROR_BUFFER_OVERFLOW', 0x30)
+
+        i.quiet.query('IIC:READ? 64')
+        i.quiet.com.flushInput()
+        time.sleep(0.1)
+        _i2c_check_error(i, 'I2C_ERROR_BUFFER_OVERFLOW', 0x30)
+
+    finally:
+        i.disable()
+
 def i2c_test(i: quiet_i2c) -> bool:
 
     # Get the communications setup
     if type(i) == quiet_i2c:
         pass
     elif type(i) == quiet_coms.quiet_coms:
-        i = quiet_i2c(qCom)
-    elif type(i) == serial.Serial:
-        i = quiet_i2c(quiet_i2c(i))
+        i = quiet_i2c(i)
+    else:
+        raise Exception('Unsure what to do with "i"')
+
+    i.quiet.write('*RST')
 
     i.enable()
     try:
@@ -111,17 +220,16 @@ def i2c_test(i: quiet_i2c) -> bool:
         i.disable()
 
 if __name__ == "__main__":
-    ports = list(serial.tools.list_ports.comports())
-    for p in ports:        
-        if p.product and 'Qy@ Board' in p.product:
-            qPort = p.device
-            break
 
-    com = serial.Serial(port=qPort, timeout=30)
+    qPorts = quiet_coms.find_quiet_ports()
 
-    qCom = quiet_coms.quiet_coms(com)
+    quite = quiet_coms.quiet_coms(port=qPorts[0])
 
-    i2c_test(qCom)
+    q2c = quiet_i2c(quite)
+
+    i2c_test(q2c)
+
+    i2c_test_errors(q2c)
 
     print('All I2C Tests Passed')
 
