@@ -232,8 +232,15 @@ void I2CErrorCommand(CliBuffer_t *buffer, void* v)
     if (*buffer->InputPnt == '?')
     {
         ++buffer->InputPnt;
+        
+        // Check for a NACK
+        if (I2C1_LastOperationNACKed() && i2cErrorCode == 0)
+        {
+            i2cErrorCode = I2C_ERROR_NO_ACKNOWLEDGE;
+        }
+        
         NumberToString(buffer, i2cErrorCode);
-
+                
         i2cErrorCode = I2C_ERROR_NONE;
     }
 }

@@ -3,7 +3,7 @@ import time
 
 if 'EXIT_ON_FAIL' not in locals():
     VERBOSE = True
-    EXIT_ON_FAIL = False
+    EXIT_ON_FAIL = True
 class quiet_i2c():
 
     def __init__(self, quiet:quiet_coms.quiet_coms) -> None:
@@ -131,6 +131,16 @@ def i2c_test_errors(i: quiet_i2c) -> bool:
 
     # Clear Errors
     i.error()
+
+    # Verify the second hook works
+    if i.quiet.query_int('IIC:REGI:ERRO?') != 0:
+        messsage = 'Failure "IIC:REGI:ERRO?" Command'
+        if EXIT_ON_FAIL:
+            raise Exception(messsage)
+        else:
+            print(messsage)
+    elif VERBOSE:
+        print('IIC:REGI:ERRO?                   Pass')
     
     i.disable()
     _i2c_check_error(i, 'ERROR_NONE', 0x00)
@@ -158,10 +168,11 @@ def i2c_test_errors(i: quiet_i2c) -> bool:
     i.quiet.query('IIC:READ? 2')
     _i2c_check_error(i, 'ERROR_DISABLED_READ', 0x11)
 
+    i.quiet.write('*RST')
     i.enable()
 
     try:
-        i.quiet.write('IIC:REGI:ADDR 0xFF;RSIZ 1')
+        i.quiet.write('IIC:ADDR 0x50;REGI:ADDR 0xFF;RSIZ 1')
         i.quiet.com.flushInput()
         _i2c_check_upper_limit(i, 'IIC:REGI:WRIT', 255, 'INVALID_REGISTER_VALUE', 0x22, 0.1)
 
@@ -184,6 +195,10 @@ def i2c_test_errors(i: quiet_i2c) -> bool:
         i.quiet.com.flushInput()
         time.sleep(0.1)
         _i2c_check_error(i, 'I2C_ERROR_BUFFER_OVERFLOW', 0x30)
+
+        i.quiet.write('IIC:ADDR 0x10;WRIT #13ABC')
+        time.sleep(0.1)
+        _i2c_check_error(i, 'I2C_ERROR_NO_ACKNOWLEDGE', 0x12)
 
     finally:
         i.disable()
@@ -231,5 +246,7 @@ if __name__ == "__main__":
 
     i2c_test_errors(q2c)
 
+    i2c_test(q2c)
+    
     print('All I2C Tests Passed')
 
