@@ -386,7 +386,10 @@ Code    | Meaning                                       |
 0x03    | Attempted to set invalid slave address        |
 0x10    | Attempted to write with I2C disabled          |
 0x11    | Attempted to read with I2C disabled           |
+0x12    | Slave device did not ACK with given address   |
 0x20    | Invalid register size                         |
+0x21    | Invalid register address                      |
+0x22    | Invalid register value                        |
 0x30    | Buffer overflow would occur                   |
 0x31    | Invalid number of bytes to write specified    |
 0x32    | Invalid number of bytes to read specified     |
