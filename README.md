@@ -9,6 +9,7 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 ```scpi
 :
 ├———:*IDN?
+├———:*RST
 ├———:DIGInput?
 │   └———:CHannel<n>
 │       └———:VALUe
@@ -73,12 +74,20 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 ### *IDN? (Query Only)
 #### Description
 A required SCPI command that returns the identity of the device. The response is formatted as follows `{Manufacture Name},{Product Name},{Serial Number},{Firmware Version}`. Unfortunately, the serial number can not be programed in but can be manually set by the user with the `:SYST:SERI` command.
-
 #### Example
 ```
 Write -> *IDN?
 Read  -> Y@ Technologies,Qy@ Board,{Serial Number},2.2
 ```
+
+### *RST (Write Only)
+#### Description
+A required SCPI command. Preforms the same operation as `SYSTem:RESTorestate`
+#### Example
+```
+Write -> *RST
+```
+
 ### DIGInputs? (Query Only)
 #### Description
 Quires all the digital inputs and returns binary weighted value
@@ -431,7 +440,8 @@ Write -> SYST:SAVE
 Reads and applies all the settings stored in non-volatile memory effectively putting the board back into the power on state. Optionally the `FACTory` parameter can be given that will restore the board back to the settings used when first programed.
 #### Example
 ```
-SYST:REST
+Write -> SYST:REST
+Write -> SYST:REST FACT
 ```
 
 ### SYSTem:NUMBerformat HEX|DECImal
