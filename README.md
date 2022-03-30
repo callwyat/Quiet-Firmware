@@ -323,15 +323,6 @@ Read  -> ;;;0x1004;0x00
 ### IIC:REGIster:ERROr?
 #### Description
 The same as `IIC:ERROr`.
-### SYSTem:SERIalnumber "\<value>"
-#### Description
-Gets the stored serial number. As there is no unique identifiers built into the hardware of the Qy@ Board, this command can also be used to set a Serial Number. The maximum length of the serial number is 16 charters. The serial number is also reported by the `*IDN?` command
-#### Example
-```
-Write -> SYST:SERI "2022011909300901"
-Write -> SYST:SERI?
-Read  -> "2022011909300901"
-```
 
 ### IIC:WRITe (IEEE Write Only)
 #### Description
@@ -384,6 +375,16 @@ Read  -> 0x01
 Write -> IIC:ERRO?
 Read  -> 0x00
 ```
+### SYSTem:SERIalnumber "\<value>"
+#### Description
+Gets the stored serial number. As there is no unique identifiers built into the hardware of the Qy@ Board, this command can also be used to set a Serial Number. The maximum length of the serial number is 16 charters. The serial number is also reported by the `*IDN?` command
+#### Example
+```
+Write -> SYST:SERI "2022011909300901"
+Write -> SYST:SERI?
+Read  -> "2022011909300901"
+```
+
 ### SYSTem:SAVEstate (Write Only)
 #### Description
 Stores the current mode and value of each output and the following settings into non-volitive memory
