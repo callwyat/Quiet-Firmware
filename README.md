@@ -7,8 +7,11 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 
 ## Command Tree
 ```scpi
+:
 ├———:*IDN?
 ├———:DIGInput?
+│   └———:CHannel<n>
+│       └———:VALUe
 ├———:ANAInput
 │   └———:CHannel<n>
 ├———:DIGOutput
@@ -78,12 +81,32 @@ Read  -> Y@ Technologies,Qy@ Board,{Serial Number},2.x
 ```
 ### DIGInputs? (Query Only)
 #### Description
-Quires all the Digital inputs and returns the hexadecimal value.
+Quires all the digital inputs and returns binary weighted value
 
 #### Example
 ```
 Write -> DIGI?
 Read  -> 0xFF
+```
+
+### DIGInputs:CHannel\<n>? (Query Only)
+#### Description
+Quires the value of a single digital input specified by `n`
+
+#### Example
+```
+Write -> DIGI:CH1?
+Read  -> 1
+```
+
+### DIGInputs:CHannel\<n>:VALUe? (Query Only)
+#### Description
+Quires the value of a single digital input specified by `n`
+
+#### Example
+```
+Write -> DIGI:CH8:VALUe?
+Read  -> 1
 ```
 
 ### ANAInputs:CHannel\<N>? (Query Only)

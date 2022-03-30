@@ -117,6 +117,8 @@ def command_test(quite: quiet_coms.quiet_coms, number_mode='DECI'):
 
         QueryTest('DIGI?', number_pattern_8),
         QueryTest('DIGInputs?', number_pattern_8),
+        QueryChannelTest('DIGI:CH#?', 1, 8, number_pattern_8),
+        QueryChannelTest('DIGI:CH#:VALU?', 1, 8, number_pattern_8),
 
         QueryChannelTest('ANAI:CH#?', 1, 4, number_pattern_16),
 
@@ -265,6 +267,6 @@ if __name__ == "__main__":
     quite = quiet_coms.quiet_coms(qPorts[0])
 
     run_quiet_test(quite)
-
+    
     print("All Tests Passed")
 
