@@ -1,14 +1,17 @@
 # Qy@ Board
 ## Hardware Overview
-The Qy@ (Quiet) Board was designed to add easy IO to a computer. It connects to a computer via USB as a virtual COM Port, or can be connected though a serial adapter as well (pending). The Qy@ Board has 8 Digital Inputs, 4 12-bit analog inputs sampled at 1k Hz, 8 Digital Outputs and 2 Analog Outputs. Four of the Digital Outputs can be used in PWM Mode, and all outputs (the 2 Analog and 8 Digital) can be used in Servo Mode enabling control of 10 servo motors at once. The Qy@ Board also has a SPI, and UART Port that can be used for small communication applications.
+The Qy@ (Quiet) Board was designed to add easy IO to a computer. It connects to a computer via USB as a virtual COM Port. The Qy@ Board has 8 Digital Inputs, 4 12-bit analog inputs sampled at 1k Hz, 8 Digital Outputs and 2 Analog Outputs. Four of the Digital Outputs can be used in PWM Mode, and all outputs (the 2 Analog and 8 Digital) can be used in Servo Mode enabling control of 10 servo motors at once. The Qy@ Board also has a SPI, UART, and I2C Port that can be used for small communication applications.
 
 ## Firmware Overview
 Commands are formatted using the SCPI (Standard Communication for Programable Instruments) format.
 
 ## Command Tree
 ```scpi
+:
 ├———:*IDN?
 ├———:DIGInput?
+│   └———:CHannel<n>
+│       └———:VALUe
 ├———:ANAInput
 │   └———:CHannel<n>
 ├———:DIGOutput
@@ -66,24 +69,44 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 └———DIAGnostics
 ```
 
-## Command Breakdown
+## Command Descriptions
 ### *IDN? (Query Only)
 #### Description
-A required SCPI command that returns the identity of the device. The response is formatted as follows `{Manufacture Name},{Product Name},{Serial Number},{Firmware Version}`. Unfortunately, the serial number can not be programed in and instead must be set by the user using `:SYST:SERI` command.
+A required SCPI command that returns the identity of the device. The response is formatted as follows `{Manufacture Name},{Product Name},{Serial Number},{Firmware Version}`. Unfortunately, the serial number can not be programed in but can be manually set by the user with the `:SYST:SERI` command.
 
 #### Example
 ```
 Write -> *IDN?
-Read  -> Y@ Technologies,Qy@ Board,{Serial Number},2.x
+Read  -> Y@ Technologies,Qy@ Board,{Serial Number},2.2
 ```
 ### DIGInputs? (Query Only)
 #### Description
-Quires all the Digital inputs and returns the hexadecimal value.
+Quires all the digital inputs and returns binary weighted value
 
 #### Example
 ```
 Write -> DIGI?
 Read  -> 0xFF
+```
+
+### DIGInputs:CHannel\<n>? (Query Only)
+#### Description
+Quires the value of a single digital input specified by `n`
+
+#### Example
+```
+Write -> DIGI:CH1?
+Read  -> 1
+```
+
+### DIGInputs:CHannel\<n>:VALUe? (Query Only)
+#### Description
+Quires the value of a single digital input specified by `n`
+
+#### Example
+```
+Write -> DIGI:CH8:VALUe?
+Read  -> 1
 ```
 
 ### ANAInputs:CHannel\<N>? (Query Only)
@@ -400,7 +423,7 @@ These settings are read and applied on power-up
 Write -> SYST:SAVE
 ```
 
-### SYSTem:RESTorstate [FACTory] (Write Only)
+### SYSTem:RESTorestate [FACTory] (Write Only)
 #### Description
 Reads and applies all the settings stored in non-volatile memory effectively putting the board back into the power on state. Optionally the `FACTory` parameter can be given that will restore the board back to the settings used when first programed.
 #### Example
@@ -424,7 +447,7 @@ Read  -> HEX
 ```
 ### DIAGnostics? (Query Only)
 #### Description
-Returns the number of micro seconds it took to execute the last command. Useful if trying to optimise commands.
+Returns the number of micro seconds it took to execute the last command. Useful if trying to optimize commands.
 
 #### Example
 ```

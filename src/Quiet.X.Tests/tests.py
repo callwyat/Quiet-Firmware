@@ -1,9 +1,7 @@
 
-
-import serial
-import serial.tools.list_ports
 import re
 import time
+import quiet_coms
 
 QUIET_TERMINATION = '\r\n'
 BOOL_PATTERN = '\\b[01]\\b'
@@ -42,13 +40,6 @@ class QueryChannelTest():
     def check_response(self, response):
         return re.search(self.response, response)
 
-def write(input):
-    com.write(f'{input}\r\n'.encode())
-
-def query(input):
-    write(input)
-    return com.read_until().decode()
-
 def generate_fail_message(command, expected, response):
     return (f"Test Failed\nSent:     {repr(command)}\n" +
           f"Expected: {repr(expected)}\n" +
@@ -57,14 +48,12 @@ def generate_fail_message(command, expected, response):
 def print_fail_message(command, expected, response):
     print(generate_fail_message(command, expected, response))
 
-def output_test(com, command, count, mode, value):
+def output_test(quite: quiet_coms.quiet_coms, command, count, mode, value):
     for i in range(1, count + 1):
         full_command = f'{command}:CH{i}:MODE {mode};VALUE {value};MODE?'
-        write(full_command)
+        response = quite.query_raw(full_command)
         
         expected = f';;{mode}\r\n'
-        response = com.read_until()
-        response = response.decode()
         if response != expected:
             fail_string = generate_fail_message(full_command, expected, response)
             print(fail_string)
@@ -92,11 +81,11 @@ default_test_results = [
 def defaults_test(com):
 
     # Restore factory defaults
-    write(f'SYST:REST FACT')
+    quite.write(f'SYST:REST FACT')
 
     i = 1
     for expectation in default_test_results:
-        result = query(f'SERV:CH{i}:MODE?').strip()
+        result = quite.query(f'SERV:CH{i}:MODE?')
     
         if result == expectation:
             if VERBOSE:
@@ -111,11 +100,11 @@ def defaults_test(com):
 
     
 
-def command_test(com, number_mode='DECI'):
+def command_test(quite: quiet_coms.quiet_coms, number_mode='DECI'):
 
     if number_mode == 'DECI' or number_mode == 'HEX':
         # Changed the number mode
-        write(f'SYST:NUMB {number_mode}')
+        quite.write(f'SYST:NUMB {number_mode}')
     else:
         raise Exception(f'Invalid Number mode {number_mode}. Must be \'DECI\' or \'HEX\'')
 
@@ -128,6 +117,8 @@ def command_test(com, number_mode='DECI'):
 
         QueryTest('DIGI?', number_pattern_8),
         QueryTest('DIGInputs?', number_pattern_8),
+        QueryChannelTest('DIGI:CH#?', 1, 8, number_pattern_8),
+        QueryChannelTest('DIGI:CH#:VALU?', 1, 8, number_pattern_8),
 
         QueryChannelTest('ANAI:CH#?', 1, 4, number_pattern_16),
 
@@ -164,8 +155,6 @@ def command_test(com, number_mode='DECI'):
         QueryTest('SYST:INFO:BUIL:VERS?', '"(\\d{4})"'),
         QueryTest('SYST:INFO:BUIL:USER?', '"((\w*) *)*"'),
         QueryTest('SYST:INFO:BUIL:DATE?', '"(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})"'),
-
-
     ]
 
     print('Starting Command Tests')
@@ -174,9 +163,7 @@ def command_test(com, number_mode='DECI'):
 
         for command in test.commands:
 
-            write(command)
-
-            response = com.read_until().decode()
+            response = quite.query_raw(command)
             test_result = test.check_response(response)
 
             if not test_result:
@@ -187,55 +174,22 @@ def command_test(com, number_mode='DECI'):
 
             else:
                 # Get the time to execute the command
-                value_string = query('DIAG?').strip()
+                value_string = quite.query('DIAG?')
                 if number_mode == 'HEX':
                     execution_time = int(value_string[2:], 16)
                 else:
                     execution_time = int(value_string, 10)
 
                 if VERBOSE:
-                    print(f"{command.strip().ljust(16)} ( {str(execution_time).ljust(5)} ) =>   {response.strip()}")
+                    print(f"{command.strip().ljust(16)} ( {str(execution_time).strip().ljust(5)} ) =>   {response.strip()}")
 
     print('Command Tests Passed')
 
-def analog_stability_test(com, number_mode='DECI'):
-
-    if number_mode == 'DECI' or number_mode == 'HEX':
-        # Changed the number mode
-        write(f'SYST:NUMB {number_mode}')
-    else:
-        raise Exception(f'Invalid Number mode {number_mode}. Must be \'DECI\' or \'HEX\'')
-
-    print('Analog Input Stability Test')
-
-    aMax = [0, 0, 0, 0]
-    aMin = [ 10000, 10000, 10000, 10000]
-    for i in range(1, 10000):
-
-        response_raw = query('ANAI:CH1?;CH2?;CH3?;CH4?').strip().split(';')
-
-        i = 0
-        for response in response_raw:
-            r = int(response[2:], 16) if number_mode == 'HEX' else int(response, 10)
-
-            if r < aMin[i]:
-                aMin[i] = r
-            if r > aMax[i]:
-                aMax[i] = r
-
-            i += 1
-
-    for i in range(0, 4):
-        print(f'{i + 1}  =>  Max: ' + str(aMax[i]).ljust(8) +  
-        f'Min: ' + str(aMin[i]).ljust(8) + f'Range: {aMax[i] - aMin[i]}')
-
-    print('Analog Input Stability Test Complete')
-
-def parse_test(com, number_mode='DECI'):
+def parse_test(quite: quiet_coms.quiet_coms, number_mode='DECI'):
     
     if number_mode == 'DECI' or number_mode == 'HEX':
         # Changed the number mode
-        write(f'SYST:NUMB {number_mode}')
+        quite.write(f'SYST:NUMB {number_mode}')
     else:
         raise Exception(f'Invalid Number mode {number_mode}. Must be \'DECI\' or \'HEX\'')
 
@@ -249,7 +203,7 @@ def parse_test(com, number_mode='DECI'):
                 print(f'Testing             => {val}')
 
             command = f'ANAO:CH1 {val};CH1?'
-            response = query(command)
+            response = quite.query_raw(command)
 
             expected = f';{val}\r\n'
             if response != expected:
@@ -266,7 +220,7 @@ def parse_test(com, number_mode='DECI'):
                 print(f'Testing             => {hex(val)}')
 
             command = f'ANAO:CH1 {hex(val)};CH1?\r\n'
-            response = query(command)
+            response = quite.query_raw(command)
 
             expected = f';0x{format(val, "02X" if val <= 0xFF else "04X")}\r\n'
             if response != expected:
@@ -277,75 +231,42 @@ def parse_test(com, number_mode='DECI'):
 
     print('Parse Test Passed')
 
-def output_mode_test(com):
+def output_mode_test(quite: quiet_coms.quiet_coms):
     print('Outputs Test')
 
-    output_test(com, 'SERV', 10, 'SERV', '0x3FF')
+    output_test(quite, 'SERV', 10, 'SERV', '0x3FF')
 
-    output_test(com, 'PWM', 6, 'PWM', '0x3FF')
+    output_test(quite, 'PWM', 6, 'PWM', '0x3FF')
 
-    output_test(com, 'DIGO', 8, 'DISC', 0)
+    output_test(quite, 'DIGO', 8, 'DISC', 0)
 
     print('Outputs Test Complete')
 
-def uart_test(com):
-    print('UART Tests')
 
-    write('UART:BAUD 115200')
-    
-    data = ''
-    for i in range(0, 64):
+def run_quiet_test(quite: quiet_coms.quiet_coms):
 
-        data += 'U'
-        data_size = str(len(data))
-        header_size = len(data_size)
+    quite.write('*RST')
 
-        packet = f'#{header_size}{data_size}{data}'
-        write(f'UART:WRIT {packet}')
+    defaults_test(quite)
 
-        time.sleep(0.001 * i)
-        
-        response = query('UART:READ?')
+    command_test(quite, 'DECI')
 
-        if response != packet + '\r\n':
-            fail_string = f'UART Test Failed at: {i}'
-            print(fail_string)
-            if EXIT_ON_FAIL:
-                raise Exception(fail_string)
+    parse_test(quite, 'DECI')
 
-    print('UART Test Complete')
-def run_quiet_test(com):
+    parse_test(quite, 'HEX')
 
-    write('*RST')
-
-    defaults_test(com)
-
-    command_test(com, 'DECI')
-
-    parse_test(com, 'DECI')
-
-    parse_test(com, 'HEX')
-
-    output_mode_test(com)
-
-    analog_stability_test(com, 'DECI')
-
-    uart_test(com)
+    output_mode_test(quite)
 
     # TODO: Test the manipulation of settings
 
 
 if __name__ == "__main__":
-    ports = list(serial.tools.list_ports.comports())
-    for p in ports:        
-        if p.product and 'Qy@ Board' in p.product:
-            qPort = p.device
-            break
 
-    com = serial.Serial(port=qPort, timeout=1)
+    qPorts = quiet_coms.find_quiet_ports()
 
-    if  run_quiet_test(com):
-        print("All Tests Passed")
+    quite = quiet_coms.quiet_coms(qPorts[0])
 
+    run_quiet_test(quite)
     
+    print("All Tests Passed")
 

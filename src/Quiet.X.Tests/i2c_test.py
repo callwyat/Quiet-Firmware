@@ -3,8 +3,9 @@ import serial.tools.list_ports
 import quiet_coms
 import time
 
-VERBOSE = True
-EXIT_ON_FAIL = True
+if 'EXIT_ON_FAIL' not in locals():
+    VERBOSE = True
+    EXIT_ON_FAIL = True
 class quiet_i2c():
 
     def __init__(self, quiet:quiet_coms.quiet_coms) -> None:
