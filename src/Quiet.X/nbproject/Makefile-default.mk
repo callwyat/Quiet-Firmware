@@ -734,8 +734,8 @@ endif
 
 .pre:
 	@echo "--------------------------------------"
-	@echo "User defined pre-build step: [python3 scripts/build_info.py buildInfo.h]"
-	@python3 scripts/build_info.py buildInfo.h
+	@echo "User defined pre-build step: [python scripts/build_info.py buildInfo.h]"
+	@python scripts/build_info.py buildInfo.h
 	@echo "--------------------------------------"
 
 # Subprojects

@@ -7,7 +7,7 @@ from inspect import currentframe, getframeinfo
 statusStream = os.popen('git status')
 statusLines = str.join('\n', statusStream.readlines())
 
-clean_tree = '' if 'working tree clean' in statusLines else '~'
+clean_tree = '' if 'working tree clean' in statusLines or 'working directory clean' in statusLines else '~'
 
 def generate_build_info(write):
     write('/////////////////////////////////////////////////////////////')
