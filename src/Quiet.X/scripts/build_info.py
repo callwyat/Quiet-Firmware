@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import sys
 import datetime
@@ -53,4 +54,4 @@ else:
 
 if clean_tree != '':
     frameinfo = getframeinfo(currentframe())
-    print(f'scripts/build_info.py:{frameinfo.lineno}:0: warning: "{build_info_path}" built from an unclean working tree')
+    print('scripts/build_info.py:%s:0: warning: "%s" built from an unclean working tree' % (frameinfo.lineno, build_info_path))
