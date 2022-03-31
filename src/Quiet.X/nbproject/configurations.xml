@@ -133,11 +133,11 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>pk4hybrid</platformTool>
         <languageToolchain>XC8</languageToolchain>
-        <languageToolchainVersion>2.10</languageToolchainVersion>
+        <languageToolchainVersion>2.36</languageToolchainVersion>
         <platform>4</platform>
       </toolsSet>
       <packs>
-        <pack name="PIC18F-J_DFP" vendor="Microchip" version="1.4.41"/>
+        <pack name="PIC18F-J_DFP" vendor="Microchip" version="1.5.44"/>
       </packs>
       <ScriptingSettings>
       </ScriptingSettings>
