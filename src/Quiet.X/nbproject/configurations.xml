@@ -159,7 +159,7 @@
       <makeCustomizationType>
         <makeCustomizationPreStepEnabled>true</makeCustomizationPreStepEnabled>
         <makeUseCleanTarget>false</makeUseCleanTarget>
-        <makeCustomizationPreStep>python3 ${ProjectDir}/scripts/build_info.py ${ProjectDir}/buildInfo.h</makeCustomizationPreStep>
+        <makeCustomizationPreStep>python3 scripts/build_info.py buildInfo.h</makeCustomizationPreStep>
         <makeCustomizationPostStepEnabled>false</makeCustomizationPostStepEnabled>
         <makeCustomizationPostStep></makeCustomizationPostStep>
         <makeCustomizationPutChecksumInUserID>false</makeCustomizationPutChecksumInUserID>
