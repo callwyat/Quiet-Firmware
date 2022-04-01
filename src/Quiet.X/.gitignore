@@ -1,9 +1,11 @@
 # Auto generated files
 /buildInfo.h
 
-/build/default/
-/dist/default/
-/build/PIC18F46J53/
-/dist/PIC18F46J53/
-/nbproject/private/
+# MPLABX Build files
+/build/
 /dist/
+
+/nbproject/private/
+/nbproject/Makefile-genesis.properties
+/nbproject/Package-default*
+/nbproject/Makefile-*.mk
