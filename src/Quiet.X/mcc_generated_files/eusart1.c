@@ -48,7 +48,6 @@
   Section: Included Files
 */
 #include "eusart1.h"
-#include "device_config.h"
 
 /**
   Section: Macro Declarations
@@ -71,8 +70,6 @@ volatile uint8_t eusart1RxBuffer[EUSART1_RX_BUFFER_SIZE];
 volatile eusart1_status_t eusart1RxStatusBuffer[EUSART1_RX_BUFFER_SIZE];
 volatile uint8_t eusart1RxCount;
 volatile eusart1_status_t eusart1RxLastError;
-
-UART_Modes_e ActiveMode = UMODE_USBUART;
 
 /**
   Section: EUSART1 APIs
@@ -130,52 +127,6 @@ void EUSART1_Initialize(void)
 
     // enable receive interrupt
     PIE1bits.RC1IE = 1;
-}
-
-void EUSART1_set_period(uint16_t period)
-{
-    uint8_t storage = TXSTA1;
-    TXSTA1 = 0x00;
-    SPBRG1 = (uint8_t)period & 0xFF;
-    SPBRGH1 = (uint8_t)(period >> 8);
-    TXSTA1 = storage;
-    
-    period *= 3;
-    
-    storage = RCSTA2;
-    RCSTA2 = 0x00;
-    SPBRG2 = (uint8_t)period & 0xFF;
-    SPBRGH2 = (uint8_t)(period >> 8);
-    RCSTA2 = storage;
-}
-
-void EUSART1_set_baud_rate(uint24_t rate)
-{
-    uint16_t period = (uint16_t)(_XTAL_FREQ / (4 * ((uint24_t)rate + 1)));
-    
-    EUSART1_set_period(period);
-}
-
-uint16_t EUSART1_get_period(void)
-{
-    return (uint16_t)((SPBRGH1 << 8) + SPBRG1);
-}
-
-uint24_t EUSART1_get_baud_rate(void)
-{
-    uint24_t period = EUSART1_get_period();
-    
-    return (_XTAL_FREQ / (4 * period)) - 1;   
-}
-
-UART_Modes_e EUSART1_get_mode(void)
-{
-    return ActiveMode;
-}
-
-void EUSART1_set_mode(UART_Modes_e mode)
-{
-    ActiveMode = mode;
 }
 
 bool EUSART1_is_tx_ready(void)

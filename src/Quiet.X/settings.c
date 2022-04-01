@@ -10,11 +10,11 @@
 #include <stdint.h>
 #include "settings.h"
 #include "outputs.h"
+#include "uart.h"
 #include "constants.h"
 #include "CLI/cli.h"
 #include "mcc_generated_files/memory.h"
 #include "mcc_generated_files/i2c1_master.h"
-#include "mcc_generated_files/eusart1.h"
 
 #define FACTORY_SETTINGS {                                          \
     .Occupied = 1,                                                  \
@@ -69,8 +69,8 @@ void SaveSettings()
     
     settings.NumberFormat = GetNumberFormat();
 
-    settings.UARTSettings.Baud = EUSART1_get_period();    
-    settings.UARTSettings.Mode = EUSART1_get_mode();
+    settings.UARTSettings.Baud = UART_get_period();    
+    settings.UARTSettings.Mode = UART_get_mode();
     
     settings.SPIBaud = SSP2CON1bits.SSPM;
     settings.I2CSettings = I2C1_GetSettings();
@@ -98,8 +98,8 @@ void RestoreSettings(bool factory)
         SetOutputValue(i, outputSetting.Value);
     }
     
-    EUSART1_set_period(settings.UARTSettings.Baud);    
-    EUSART1_set_mode(settings.UARTSettings.Mode);
+    UART_set_period(settings.UARTSettings.Baud);    
+    UART_set_mode(settings.UARTSettings.Mode);
 
     SSP2CON1bits.SSPM = settings.SPIBaud;
     I2C1_SetSettings(settings.I2CSettings);

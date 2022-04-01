@@ -1,8 +1,7 @@
 
 
 #include "../CLI/cli.h"
-#include "../mcc_generated_files/eusart1.h"
-#include "../mcc_generated_files/eusart2.h"
+#include "../uart.h"
 
 #define UART_ERROR_NONE 0x00
 
@@ -24,7 +23,7 @@ void UARTReadCommand(CliBuffer_t *buffer, void* v)
     {
         ++buffer->InputPnt;
         
-        uint8_t receivedData = EUSART2_get_rx_count();
+        uint8_t receivedData = UART_get_rx_count();
         
         uint8_t maxSendSize = (&buffer->OutputBuffer[sizeof(buffer->OutputBuffer)] - buffer->OutputPnt) - 4;
         
@@ -37,7 +36,7 @@ void UARTReadCommand(CliBuffer_t *buffer, void* v)
         
         while (receivedData-- > 0)
         {
-            *buffer->OutputPnt++ = EUSART2_Read();
+            *buffer->OutputPnt++ = UART_Read();
         }
     }
 }
@@ -53,7 +52,7 @@ void UARTLargeWrite(CliBuffer_t *buffer, void *v)
         // Read out the data in this buffer
         do
         {
-            EUSART1_Write((uint8_t)*buffer->InputPnt++);
+            UART_Write((uint8_t)*buffer->InputPnt++);
         } while (--uartReadSize > 0);
         
         ClearLargeDataHandle(buffer);
@@ -65,7 +64,7 @@ void UARTLargeWrite(CliBuffer_t *buffer, void *v)
         // Read out the data until all the data is read
         do 
         {
-            EUSART1_Write((uint8_t)*buffer->InputPnt++);
+            UART_Write((uint8_t)*buffer->InputPnt++);
         }   while (--bufferRemaining > 0);
 
         if (buffer->DataHandle)
@@ -92,7 +91,7 @@ void UARTWriteCommand(CliBuffer_t *buffer, void* v)
             uartReadSize = ParseIEEEHeader(buffer);
             
             // Check for an invalid number
-            if (EUSART1_get_mode() == UMODE_USBUART)
+            if (UART_get_mode() == UMODE_USBUART)
             {
                 if (uartReadSize != 0)
                 {
@@ -117,7 +116,7 @@ void UARTBaudCommand(CliBuffer_t *buffer, void* v)
     {
         ++buffer->InputPnt;
         
-        uint24_t baudRate = EUSART1_get_baud_rate();
+        uint24_t baudRate = UART_get_baud_rate();
         
         NumberToString(buffer, baudRate);
     }
@@ -130,7 +129,7 @@ void UARTBaudCommand(CliBuffer_t *buffer, void* v)
         // BaudRates below 60 cannot be generated with this the system clock
         if (baudRate > 60 && baudRate <= 1000000)
         {
-            EUSART1_set_baud_rate(baudRate);
+            UART_set_baud_rate(baudRate);
         }
         else
         {
@@ -151,7 +150,7 @@ void UARTModeCommand(CliBuffer_t *buffer, void* v)
 
         const char* word;
         
-        switch (EUSART1_get_mode())
+        switch (UART_get_mode())
         {
             case UMODE_USBUART:
                 word = USBUartWord;
@@ -172,15 +171,15 @@ void UARTModeCommand(CliBuffer_t *buffer, void* v)
         
         if (SCPICompare(USBUartWord, buffer->InputPnt))
         {
-            EUSART1_set_mode(UMODE_USBUART);
+            UART_set_mode(UMODE_USBUART);
         } 
         else if (SCPICompare(SCPIUartWord, buffer->InputPnt))
         {
-            EUSART1_set_mode(UMODE_SCPI);
+            UART_set_mode(UMODE_SCPI);
         }
         else if (SCPICompare(MODBusWord, buffer->InputPnt))
         {
-            EUSART1_set_mode(UMODE_MODBus);
+            UART_set_mode(UMODE_MODBus);
         }
         else
         {

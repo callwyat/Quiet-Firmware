@@ -13,10 +13,10 @@ extern "C" {
 #endif
 
 #include "outputs.h"
+#include "uart.h"
+#include "mcc_generated_files/i2c1_master.h"
 #include "CLI/cli.h"
 #include <stdint.h>
-#include "mcc_generated_files/i2c1_master.h"
-#include "mcc_generated_files/eusart1.h"
 
     typedef struct {
         uint16_t Value;
