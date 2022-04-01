@@ -164,13 +164,15 @@ void EUSART1_Initialize(void);
 */
 bool EUSART1_is_tx_ready(void);
 
-uint16_t EUART1_get_period(void);
+uint16_t EUSART1_get_period(void);
 
-uint24_t EUART1_get_baud_rate(void);
+void EUSART1_set_period(uint16_t rate);
 
-void EUART1_set_period(uint16_t rate);
+uint24_t EUSART1_get_baud_rate(void);
 
-void EUART1_set_baud_rate(uint24_t rate);
+void EUSART1_set_baud_rate(uint24_t rate);
+
+
 
 /**
   @Summary

@@ -68,7 +68,7 @@ void SaveSettings()
     
     settings.NumberFormat = GetNumberFormat();
 
-    settings.UARTSettings.Baud = EUART1_get_period();
+    settings.UARTSettings.Baud = EUSART1_get_period();
     settings.SPIBaud = SSP2CON1bits.SSPM;
     settings.I2CSettings = I2C1_GetSettings();
     
@@ -95,7 +95,7 @@ void RestoreSettings(bool factory)
         SetOutputValue(i, outputSetting.Value);
     }
     
-    EUART1_set_period(settings.UARTSettings.Baud);
+    EUSART1_set_period(settings.UARTSettings.Baud);
 
     SSP2CON1bits.SSPM = settings.SPIBaud;
     I2C1_SetSettings(settings.I2CSettings);

@@ -34,7 +34,8 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 ├———:UART
 │   ├———:WRITe
 │   ├———:READ
-│   └———:BAUD
+│   ├———:BAUD
+│   └———:ERRO
 ├———:SPI
 │   ├———:EXCHange
 │   ├———:CS
@@ -210,6 +211,19 @@ Write -> UART:BAUD?
 Read  -> 9614
 ```
 
+### UART:ERROr
+#### Description
+Gets the last reported error by the UART system. The error code is cleared when read.
+#### Codes
+Code    | Meaning                                       |
+--------|-----------------------------------------------|
+0x00    | No Error                                      |
+0x10    | Invalid Baud Rate                             |
+#### Example
+```
+Write -> UART:ERRO?
+Read  -> 0x00
+```
 ### SPI:EXCHange (Combination IEEE Write and Read)
 #### Description
 Writes the number of bytes specified by the IEEE header to the Serial Peripheral Interface (SPI). SPIs uses a synchronized shift register to clock bits in and out simultaneously. As such, every byte written to the SPI will return one byte.

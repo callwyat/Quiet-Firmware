@@ -4,6 +4,12 @@
 #include "../mcc_generated_files/eusart1.h"
 #include "../mcc_generated_files/eusart2.h"
 
+#define UART_ERROR_NONE 0x00
+
+#define UART_ERROR_INVALID_BAUD 0x10
+
+uint8_t uartErrorCode = UART_ERROR_NONE;
+
 
 void UARTReadCommand(CliBuffer_t *buffer, void* v)
 {
@@ -93,7 +99,7 @@ void UARTBaudCommand(CliBuffer_t *buffer, void* v)
     {
         ++buffer->InputPnt;
         
-        uint24_t baudRate = EUART1_get_baud_rate();
+        uint24_t baudRate = EUSART1_get_baud_rate();
         
         NumberToString(buffer, baudRate);
     }
@@ -104,11 +110,26 @@ void UARTBaudCommand(CliBuffer_t *buffer, void* v)
         uint24_t baudRate = ParseInt24(&buffer->InputPnt);
         
         // BaudRates below 60 cannot be generated with this the system clock
-        if (baudRate > 60)
+        if (baudRate > 60 && baudRate <= 1000000)
         {
-            EUART1_set_baud_rate(baudRate);
+            EUSART1_set_baud_rate(baudRate);
         }
+        else
+        {
+            uartErrorCode = UART_ERROR_INVALID_BAUD;
+        }
+    }
+}
 
+void UARTErrorCommand(CliBuffer_t *buffer, void* v)
+{
+    if (*buffer->InputPnt == '?')
+    {
+        ++buffer->InputPnt;
+        
+        NumberToString(buffer, uartErrorCode);
+                
+        uartErrorCode = UART_ERROR_NONE;
     }
 }
 
@@ -116,6 +137,7 @@ CommandDefinition_t uartCommands[] = {
   DEFINE_COMMAND("READ", UARTReadCommand),
   DEFINE_COMMAND("WRIT", UARTWriteCommand),
   DEFINE_COMMAND("BAUD", UARTBaudCommand),
+  DEFINE_COMMAND("ERRO", UARTErrorCommand),
 };
  
 CommandDefinition_t UARTCommand = DEFINE_BRANCH("UART", uartCommands);
