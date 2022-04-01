@@ -7,6 +7,13 @@
 #define UART_ERROR_NONE 0x00
 
 #define UART_ERROR_INVALID_BAUD 0x10
+#define UART_ERROR_INVALID_MODE 0x11
+#define UART_ERROR_INVALID_WRITE 0x12
+
+#define UART_ERROR_RECEIVE_OVERFLOW 0x20
+
+#define UART_ERROR_WRITE_MODE_ERROR 0x30
+#define UART_ERROR_READ_MODE_ERROR 0x31
 
 uint8_t uartErrorCode = UART_ERROR_NONE;
 
@@ -85,9 +92,20 @@ void UARTWriteCommand(CliBuffer_t *buffer, void* v)
             uartReadSize = ParseIEEEHeader(buffer);
             
             // Check for an invalid number
-            if (uartReadSize != 0)
+            if (EUSART1_get_mode() == UMODE_USBUART)
             {
-                UARTLargeWrite(buffer, v);
+                if (uartReadSize != 0)
+                {
+                    UARTLargeWrite(buffer, v);
+                }
+                else
+                {
+                    uartErrorCode = UART_ERROR_INVALID_WRITE;
+                }
+            }
+            else
+            {
+                uartErrorCode = UART_ERROR_WRITE_MODE_ERROR;
             }
         }
     }
@@ -121,6 +139,56 @@ void UARTBaudCommand(CliBuffer_t *buffer, void* v)
     }
 }
 
+const char* USBUartWord = "USBU";
+const char* SCPIUartWord = "SCPI";
+const char* MODBusWord = "MODB";
+
+void UARTModeCommand(CliBuffer_t *buffer, void* v)
+{
+    if (*buffer->InputPnt == '?')
+    {
+        ++buffer->InputPnt;
+
+        const char* word;
+        
+        switch (EUSART1_get_mode())
+        {
+            case UMODE_USBUART:
+                word = USBUartWord;
+            break;
+            case UMODE_SCPI:
+                word = SCPIUartWord;
+            break;
+            case UMODE_MODBus:
+                word = MODBusWord;
+            break;
+        }
+        
+        CopyWordToOutBuffer(buffer, word);
+    }
+    else if (*buffer->InputPnt == ' ')
+    {
+        ++buffer->InputPnt;
+        
+        if (SCPICompare(USBUartWord, buffer->InputPnt))
+        {
+            EUSART1_set_mode(UMODE_USBUART);
+        } 
+        else if (SCPICompare(SCPIUartWord, buffer->InputPnt))
+        {
+            EUSART1_set_mode(UMODE_SCPI);
+        }
+        else if (SCPICompare(MODBusWord, buffer->InputPnt))
+        {
+            EUSART1_set_mode(UMODE_MODBus);
+        }
+        else
+        {
+            uartErrorCode = UART_ERROR_INVALID_MODE;
+        }
+    }
+}
+
 void UARTErrorCommand(CliBuffer_t *buffer, void* v)
 {
     if (*buffer->InputPnt == '?')
@@ -137,6 +205,7 @@ CommandDefinition_t uartCommands[] = {
   DEFINE_COMMAND("READ", UARTReadCommand),
   DEFINE_COMMAND("WRIT", UARTWriteCommand),
   DEFINE_COMMAND("BAUD", UARTBaudCommand),
+  DEFINE_COMMAND("MODE", UARTModeCommand),
   DEFINE_COMMAND("ERRO", UARTErrorCommand),
 };
  

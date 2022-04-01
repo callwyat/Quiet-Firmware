@@ -27,10 +27,6 @@ extern "C" {
     .Value = value,                             \
     .Mode = mode,                               \
     }
-    
-    typedef struct {
-        uint16_t Baud;
-    } uart_settings_t;
 
 
     typedef struct {

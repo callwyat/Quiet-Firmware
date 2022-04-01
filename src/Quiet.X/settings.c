@@ -23,6 +23,7 @@
     'N', 'u', 'm', 'b', 'e', 'r', '}', '\x00'},                     \
     .UARTSettings = {                                               \
         .Baud = 0x01A0,         /* 9600 */                          \
+        .Mode = UMODE_USBUART                                             \
     },                                                              \
     .SPIBaud = 0x00,            /* 4 Mhz */                         \
     .I2CSettings = {                                                \
@@ -68,7 +69,9 @@ void SaveSettings()
     
     settings.NumberFormat = GetNumberFormat();
 
-    settings.UARTSettings.Baud = EUSART1_get_period();
+    settings.UARTSettings.Baud = EUSART1_get_period();    
+    settings.UARTSettings.Mode = EUSART1_get_mode();
+    
     settings.SPIBaud = SSP2CON1bits.SSPM;
     settings.I2CSettings = I2C1_GetSettings();
     
@@ -95,7 +98,8 @@ void RestoreSettings(bool factory)
         SetOutputValue(i, outputSetting.Value);
     }
     
-    EUSART1_set_period(settings.UARTSettings.Baud);
+    EUSART1_set_period(settings.UARTSettings.Baud);    
+    EUSART1_set_mode(settings.UARTSettings.Mode);
 
     SSP2CON1bits.SSPM = settings.SPIBaud;
     I2C1_SetSettings(settings.I2CSettings);

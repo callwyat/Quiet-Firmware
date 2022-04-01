@@ -82,6 +82,17 @@ typedef union {
     uint8_t status;
 }eusart1_status_t;
 
+typedef enum {
+    UMODE_USBUART,
+    UMODE_SCPI,
+    UMODE_MODBus
+} UART_Modes_e;
+
+typedef struct {
+    uint16_t Baud;
+    UART_Modes_e Mode;
+} uart_settings_t;
+    
 /**
  Section: Global variables
  */
@@ -172,7 +183,9 @@ uint24_t EUSART1_get_baud_rate(void);
 
 void EUSART1_set_baud_rate(uint24_t rate);
 
+UART_Modes_e EUSART1_get_mode(void);
 
+void EUSART1_set_mode(UART_Modes_e mode);
 
 /**
   @Summary
