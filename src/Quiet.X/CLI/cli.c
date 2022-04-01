@@ -1,26 +1,15 @@
 
-
-#include "cli.h"
-#include "../constants.h"
-
-#include "../Commands/standardCommands.h"
-#include "../Commands/digiCommand.h"
-#include "../Commands/digoCommand.h"
-#include "../Commands/anaiCommand.h"
-#include "../Commands/anaoCommand.h"
-#include "../Commands/pwmCommand.h"
-#include "../Commands/servoCommand.h"
-#include "../Commands/uartCommand.h"
-#include "../Commands/spiCommand.h"
-#include "../Commands/i2cCommand.h"
-#include "../Commands/systemCommand.h"
-
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
 #include <xc.h>
 #include "../mcc_generated_files/tmr1.h"
+
+#include "cli.h"
+#include "../constants.h"
+
+#include "../Commands/standardCommands.h"
 
 #define IS_NUMBER(c) (c >= '0' && c <= '9')
 
@@ -36,38 +25,7 @@ void DIAGnostics(CliBuffer_t *buffer, void* v)
 }
 
 CommandDefinition_t DIAGnosticsCommand = DEFINE_COMMAND("DIAG", DIAGnostics);
-
-extern CommandDefinition_t PWMCommand;
-extern CommandDefinition_t SERVoCommand;
-extern CommandDefinition_t DIGOCommand;
-extern CommandDefinition_t ANAOCommand;
-extern CommandDefinition_t ANAICommand;
-extern CommandDefinition_t DIGICommand;
-extern CommandDefinition_t SYSTemCommand;
-extern CommandDefinition_t UARTCommand;
-extern CommandDefinition_t SPICommand;
-extern CommandDefinition_t IICCommand;
-extern CommandDefinition_t DIAGnosticsCommand;
 extern CommandDefinition_t StarCommand;
-            
-
-// Put the commands that have the most branches towards the top
-CommandDefinition_t commands[16];
-
-void CliInit(void)
-{
-    commands[0] =  PWMCommand;
-    commands[1] =  SERVoCommand;
-    commands[2] =  DIGOCommand;
-    commands[3] =  ANAOCommand;
-    commands[4] =  ANAICommand;
-    commands[5] =  DIGICommand;
-    commands[6] =  SYSTemCommand;
-    commands[7] =  UARTCommand;
-    commands[8] =  SPICommand;
-    commands[9] =  IICCommand;
-    commands[10] =  DIAGnosticsCommand;
-}
 
 bool SCPICompare(const char *reference, char *input)
 {
@@ -111,7 +69,7 @@ void FFTilPunctuation(char **input)
 }
 
 
-void ProcessCommand(CliBuffer_t *buffer)
+void ProcessCommand(CliBuffer_t *buffer, CommandDefinition_t* commands)
 {
     CommandDefinition_t* commandList;
     CommandDefinition_t* command;
@@ -349,7 +307,7 @@ void CopyWordToOutBuffer(CliBuffer_t *buffer, const char* word)
 }
 
 volatile uint8_t stackPnt;
-void ProcessCLI(CliBuffer_t *buffer)
+void ProcessCLI(CliBuffer_t *buffer, CommandDefinition_t* commands)
 {    
     TMR1_WriteTimer(0x0000);
     TMR1_StartTimer();
@@ -359,7 +317,7 @@ void ProcessCLI(CliBuffer_t *buffer)
     
     *buffer->OutputPnt = 0x00;
     
-    ProcessCommand(buffer);
+    ProcessCommand(buffer, commands);
     
     // If something was placed in the output buffer, make sure it is terminated
     if (buffer->OutputBuffer[0] != 0x00)

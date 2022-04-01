@@ -48,6 +48,47 @@
 #include "settings.h"
 #include "constants.h"
 
+#include "../Commands/digiCommand.h"
+#include "../Commands/digoCommand.h"
+#include "../Commands/anaiCommand.h"
+#include "../Commands/anaoCommand.h"
+#include "../Commands/pwmCommand.h"
+#include "../Commands/servoCommand.h"
+#include "../Commands/uartCommand.h"
+#include "../Commands/spiCommand.h"
+#include "../Commands/i2cCommand.h"
+#include "../Commands/systemCommand.h"
+
+extern CommandDefinition_t PWMCommand;
+extern CommandDefinition_t SERVoCommand;
+extern CommandDefinition_t DIGOCommand;
+extern CommandDefinition_t ANAOCommand;
+extern CommandDefinition_t ANAICommand;
+extern CommandDefinition_t DIGICommand;
+extern CommandDefinition_t SYSTemCommand;
+extern CommandDefinition_t UARTCommand;
+extern CommandDefinition_t SPICommand;
+extern CommandDefinition_t IICCommand;
+extern CommandDefinition_t DIAGnosticsCommand;
+            
+// Put the commands that have the most branches towards the top
+CommandDefinition_t usbCommands[16];
+
+void CliInit(void)
+{
+    usbCommands[0] =  PWMCommand;
+    usbCommands[1] =  SERVoCommand;
+    usbCommands[2] =  DIGOCommand;
+    usbCommands[3] =  ANAOCommand;
+    usbCommands[4] =  ANAICommand;
+    usbCommands[5] =  DIGICommand;
+    usbCommands[6] =  SYSTemCommand;
+    usbCommands[7] =  UARTCommand;
+    usbCommands[8] =  SPICommand;
+    usbCommands[9] =  IICCommand;
+    usbCommands[10] =  DIAGnosticsCommand;
+}
+
 static CliBuffer_t usbBuffer;
 
 void USB_CDC_Tasks(void)
@@ -85,7 +126,7 @@ void USB_CDC_Tasks(void)
             }
             else
             {
-                ProcessCLI(&usbBuffer);
+                ProcessCLI(&usbBuffer, usbCommands);
 
                 putUSBUSART((uint8_t*)usbBuffer.OutputBuffer, 
                 (uint8_t)(usbBuffer.OutputPnt - usbBuffer.OutputBuffer));

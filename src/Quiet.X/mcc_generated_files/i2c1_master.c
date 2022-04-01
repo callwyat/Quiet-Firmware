@@ -284,6 +284,7 @@ uint8_t I2C1_GetTimeout(void)
 
 void I2C1_SetTimeout(uint8_t timeOut)
 {
+    // TODO: Verify the timeout actually does something
     I2C1_MasterDisableIrq();
     I2C1_Status.time_out_value = timeOut;
     // I2C1_MasterEnableIrq();
@@ -296,7 +297,7 @@ void I2C1_SetSettings(i2c_settings settings)
     I2C1_SetEnabled(settings.Enabled);
 }
 
-i2c_settings I2C1_GetSettings()
+i2c_settings I2C1_GetSettings(void)
 {
     i2c_settings result = {             \
         .Baud = SSP1ADD,                \

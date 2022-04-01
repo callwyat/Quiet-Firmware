@@ -54,19 +54,19 @@ extern "C" {
         }
     
 #define DEFINE_BRANCH(command, children) { \
-            .Command = command,           \
-            .Handle = 0x0000,             \
-            .Children = &children[0],     \
+            .Command = command,            \
+            .Handle = 0x0000,              \
+            .Children = &children[0],      \
             .ChildrenCount =  sizeof(children) / sizeof(children[0]),    \
         }
-    
-    void CliInit(void);
     
     bool SCPICompare(const char *reference, char *input);
     
     void FFTilPunctuation(char **input);
     
-    void ProcessCommand(CliBuffer_t *buffer);
+    void ProcessCLI(CliBuffer_t *buffer, CommandDefinition_t* commands);
+    
+    void ProcessCommand(CliBuffer_t *buffer, CommandDefinition_t* commands);
     
     void SetNumberFormat(NumberFormat_e format);
     
@@ -83,8 +83,6 @@ extern "C" {
     void GenerateIEEEHeader(CliBuffer_t *buffer, uint16_t dataSize);
     
     void CopyWordToOutBuffer(CliBuffer_t *buffer, const char* word);
-    
-    void ProcessCLI(CliBuffer_t *buffer);
     
     void SetLargeDataHandle(CliBuffer_t *buffer, CommandHandle handle);
     
