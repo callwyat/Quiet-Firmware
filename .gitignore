@@ -1,2 +1,9 @@
+
+# Files that git has already kept safe
 archive/
+
+# Python files
 __pycache__
+
+# MacOS specific files
+.DS_Store
