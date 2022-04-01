@@ -14,13 +14,16 @@
 #include "CLI/cli.h"
 #include "mcc_generated_files/memory.h"
 #include "mcc_generated_files/i2c1_master.h"
+#include "mcc_generated_files/eusart1.h"
 
 #define FACTORY_SETTINGS {                                          \
     .Occupied = 1,                                                  \
     .NumberFormat = DecimalFormat,                                  \
     .SerialNumber = { '{', 'S', 'e', 'r', 'i', 'a', 'l', ' ',       \
     'N', 'u', 'm', 'b', 'e', 'r', '}', '\x00'},                     \
-    .UARTBaud = 0x01A0,         /* 9600 */                          \
+    .UARTSettings = {                                               \
+        .Baud = 0x01A0,         /* 9600 */                          \
+    },                                                              \
     .SPIBaud = 0x00,            /* 4 Mhz */                         \
     .I2CSettings = {                                                \
         .Enabled = false,       /* Disabled */                      \
@@ -65,7 +68,7 @@ void SaveSettings()
     
     settings.NumberFormat = GetNumberFormat();
 
-    settings.UARTBaud = (SPBRGH1 << 8) + SPBRG1;
+    settings.UARTSettings.Baud = EUART1_get_period();
     settings.SPIBaud = SSP2CON1bits.SSPM;
     settings.I2CSettings = I2C1_GetSettings();
     
@@ -92,8 +95,7 @@ void RestoreSettings(bool factory)
         SetOutputValue(i, outputSetting.Value);
     }
     
-    SPBRG1 = (uint8_t)settings.UARTBaud;
-    SPBRGH1 = settings.UARTBaud >> 8;
+    EUART1_set_period(settings.UARTSettings.Baud);
 
     SSP2CON1bits.SSPM = settings.SPIBaud;
     I2C1_SetSettings(settings.I2CSettings);

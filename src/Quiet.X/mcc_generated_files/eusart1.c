@@ -130,10 +130,8 @@ void EUSART1_Initialize(void)
     PIE1bits.RC1IE = 1;
 }
 
-void EUART1_set_baud_rate(uint24_t rate)
+void EUART1_set_period(uint16_t period)
 {
-    uint16_t period = _XTAL_FREQ / (4 * ((uint24_t)rate + 1));
-            
     uint8_t storage = TXSTA1;
     TXSTA1 = 0x00;
     SPBRG1 = (uint8_t)period & 0xFF;
@@ -149,9 +147,21 @@ void EUART1_set_baud_rate(uint24_t rate)
     RCSTA2 = storage;
 }
 
+void EUART1_set_baud_rate(uint24_t rate)
+{
+    uint16_t period = (uint16_t)(_XTAL_FREQ / (4 * ((uint24_t)rate + 1)));
+    
+    EUART1_set_period(period);
+}
+
+uint16_t EUART1_get_period(void)
+{
+    return (uint16_t)((SPBRGH1 << 8) + SPBRG1);
+}
+
 uint24_t EUART1_get_baud_rate(void)
 {
-    uint24_t period = (SPBRGH1 << 8) + SPBRG1;
+    uint24_t period = EUART1_get_period();
     
     return (_XTAL_FREQ / (4 * period)) - 1;   
 }

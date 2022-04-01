@@ -16,6 +16,7 @@ extern "C" {
 #include "CLI/cli.h"
 #include <stdint.h>
 #include "mcc_generated_files/i2c1_master.h"
+#include "mcc_generated_files/eusart1.h"
 
     typedef struct {
         uint16_t Value;
@@ -27,13 +28,17 @@ extern "C" {
     .Mode = mode,                               \
     }
     
-    
+    typedef struct {
+        uint16_t Baud;
+    } uart_settings_t;
+
+
     typedef struct {
         uint8_t Occupied;
         NumberFormat_e NumberFormat;
         char SerialNumber[16];
-        uint16_t UARTBaud;
         uint8_t SPIBaud;
+        uart_settings_t UARTSettings;
         i2c_settings_t I2CSettings;
         OutputSettings_t OutputSettings[10];
     } QuietSettings_t;
