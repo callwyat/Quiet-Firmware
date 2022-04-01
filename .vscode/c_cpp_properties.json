@@ -4,11 +4,11 @@
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/Applications/microchip/xc8/v2.32/pic/include"
+                "/Applications/microchip/xc8/v2.36/pic/include"
             ],
             "defines": [],
             "macFrameworkPath": [],
-            "compilerPath": "/Applications/microchip/mplabx/v5.50/mplab_platform/bin/make",
+            "compilerPath": "/Applications/microchip/mplabx/v6.00/mplab_platform/bin/make",
             "cStandard": "c99",
             "cppStandard": "c++98",
             "intelliSenseMode": "${default}",
@@ -17,7 +17,7 @@
             "browse": {
                 "path": [
                     "${workspaceFolder}/**",
-                    "/Applications/microchip/xc8/v2.32/pic/include"
+                    "/Applications/microchip/xc8/v2.36/pic/include"
                 ],
                 "limitSymbolsToIncludedHeaders": true
             }
