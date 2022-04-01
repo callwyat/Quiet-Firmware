@@ -290,16 +290,16 @@ void I2C1_SetTimeout(uint8_t timeOut)
     // I2C1_MasterEnableIrq();
 }
 
-void I2C1_SetSettings(i2c_settings settings)
+void I2C1_SetSettings(i2c_settings_t settings)
 {
     SSP1ADD = settings.Baud;
     I2C1_SetTimeout(settings.Timeout);
     I2C1_SetEnabled(settings.Enabled);
 }
 
-i2c_settings I2C1_GetSettings(void)
+i2c_settings_t I2C1_GetSettings(void)
 {
-    i2c_settings result = {             \
+    i2c_settings_t result = {             \
         .Baud = SSP1ADD,                \
         .Timeout = I2C1_GetTimeout(),   \
         .Enabled = I2C1_GetEnabled()    \

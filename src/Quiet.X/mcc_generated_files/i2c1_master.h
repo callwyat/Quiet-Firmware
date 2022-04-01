@@ -79,7 +79,7 @@ typedef struct {
   uint8_t Baud    : 8;
   uint8_t Timeout : 8;
   uint8_t Enabled : 1;
-} i2c_settings;
+} i2c_settings_t;
 
 // common callback responses
 i2c1_operations_t I2C1_CallbackReturnStop(void *funPtr);
@@ -133,14 +133,14 @@ void I2C1SetBaudRate(uint24_t rate);
  *
  * \return Nothing
  */
-void I2C1_SetSettings(i2c_settings settings);
+void I2C1_SetSettings(i2c_settings_t settings);
 
 /**
  * \brief Returns all the settings used by the I2C
  * 
  * \return All the settings used by the I2C
  */
-i2c_settings I2C1_GetSettings();
+i2c_settings_t I2C1_GetSettings();
 
 /**
  * \brief Open the I2C1 for communication

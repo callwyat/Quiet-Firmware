@@ -34,7 +34,7 @@ extern "C" {
         char SerialNumber[16];
         uint16_t UARTBaud;
         uint8_t SPIBaud;
-        i2c_settings I2CSettings;
+        i2c_settings_t I2CSettings;
         OutputSettings_t OutputSettings[10];
     } QuietSettings_t;
 
