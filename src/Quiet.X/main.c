@@ -44,6 +44,7 @@
 #include "mcc_generated_files/mcc.h"
 #include "CLI/cli.h"
 #include "analogInputs.h"
+#include "uart.h"
 #include "outputs.h"
 #include "settings.h"
 #include "constants.h"
@@ -72,7 +73,8 @@ extern CommandDefinition_t IICCommand;
 extern CommandDefinition_t DIAGnosticsCommand;
             
 // Put the commands that have the most branches towards the top
-CommandDefinition_t usbCommands[16];
+CommandDefinition_t usbCommands[12];
+CommandDefinition_t uartCommands[9];
 
 void CliInit(void)
 {
@@ -87,6 +89,15 @@ void CliInit(void)
     usbCommands[8] =  SPICommand;
     usbCommands[9] =  IICCommand;
     usbCommands[10] =  DIAGnosticsCommand;
+
+    uartCommands[0] =  PWMCommand;
+    uartCommands[1] =  SERVoCommand;
+    uartCommands[2] =  DIGOCommand;
+    uartCommands[3] =  ANAOCommand;
+    uartCommands[4] =  ANAICommand;
+    uartCommands[5] =  DIGICommand;
+    uartCommands[6] =  SYSTemCommand;
+    uartCommands[7] =  DIAGnosticsCommand;
 }
 
 static CliBuffer_t usbBuffer;
@@ -136,6 +147,38 @@ void USB_CDC_Tasks(void)
     }
 
     CDCTxService();
+}
+
+static CliBuffer_t uartBuffer;
+
+void UART_SCPI_Task()
+{
+    while (UART_get_rx_count() > 1)
+    {
+        char c = UART_Read();
+        
+        if (uartBuffer.InputPnt < &uartBuffer.OutputBuffer[CLI_BUFFER_SIZE - 1])
+        {
+            *uartBuffer.InputPnt++ = c;
+        }
+
+        // NOTE: uartBuffer.DataHandle should never be set because the UART, SPI, and I2C 
+        // commands are not in it's tree
+        if (c == '\n')
+        {
+            uartBuffer.InputLength = (uint8_t)(uartBuffer.InputBuffer - uartBuffer.InputPnt);
+            uartBuffer.InputPnt = uartBuffer.InputBuffer;
+            ProcessCLI(&uartBuffer, uartCommands);
+
+            uint8_t outCount =  (uint8_t)(uartBuffer.OutputPnt - uartBuffer.OutputBuffer);
+
+            uartBuffer.OutputPnt = uartBuffer.OutputBuffer;
+            while (outCount > 0)
+            {
+                UART_Write(*uartBuffer.OutputPnt++);
+            }
+        }
+    }
 }
 
 typedef void(*TaskHandle)(void);
@@ -231,6 +274,11 @@ void main(void)
     while (1)
     {
         USB_CDC_Tasks();
+
+        if (UART_get_mode() == UMODE_SCPI)
+        {
+            UART_SCPI_Task();
+        }
     }
 }
 /**
