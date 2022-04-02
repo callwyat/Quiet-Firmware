@@ -35,6 +35,7 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 │   ├———:WRITe
 │   ├———:READ
 │   ├———:BAUD
+│   ├———:MODE
 │   └———:ERRO
 ├———:SPI
 │   ├———:EXCHange
@@ -209,6 +210,18 @@ Write -> UART:BAUD 115200
 Write -> UART:BAUD 9600
 Write -> UART:BAUD?
 Read  -> 9614
+```
+
+### UART:MODE USBUart|SCPI
+#### Description
+Gets or sets the active mode for the UART Port
+- USBUart: The port will act as a USB to TTY UART adapter. Use the WRITe command to send data, and the READ command to receive data
+- SCPI: Data received on this port will be interpreted as a SCPI command. The UART commands are not available to this input
+#### Example
+```
+Write -> UART:MODE SCPI
+Write -> UART:MODE?
+Read  -> SCPI
 ```
 
 ### UART:ERROr
