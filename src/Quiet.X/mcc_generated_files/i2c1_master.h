@@ -108,7 +108,7 @@ void I2C1_SetEnabled(bool enabled);
  *
  * \return Returns true if the I2C module is enabled
  */
-bool inline I2C1_GetEnabled();
+bool inline I2C1_GetEnabled(void);
 
 /**
  * \brief Returns the real baud rate of the I2C 
@@ -140,7 +140,7 @@ void I2C1_SetSettings(i2c_settings_t settings);
  * 
  * \return All the settings used by the I2C
  */
-i2c_settings_t I2C1_GetSettings();
+i2c_settings_t I2C1_GetSettings(void);
 
 /**
  * \brief Open the I2C1 for communication
