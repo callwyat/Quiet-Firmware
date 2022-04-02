@@ -41,6 +41,11 @@
     SOFTWARE.
 */
 
+// Disable function never called warning
+#pragma warning disable 520 
+// Disable function never called warning
+#pragma warning disable 2053
+
 #include "mcc_generated_files/mcc.h"
 #include "CLI/cli.h"
 #include "analogInputs.h"
