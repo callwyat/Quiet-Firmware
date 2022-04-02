@@ -59,6 +59,6 @@ void I2C1_WriteNBytes(i2c1_address_t address, uint8_t *data, size_t len);
 void I2C1_ReadNBytes(i2c1_address_t address, uint8_t *data, size_t len);
 void I2C1_ReadDataBlock(i2c1_address_t address, uint8_t reg, uint8_t *data, size_t len);
 
-bool I2C1_LastOperationNACKed();
+bool I2C1_LastOperationNACKed(void);
 
 #endif /* I2C1_MASTER_EXAMPLE_H */

@@ -13,7 +13,7 @@
 // The address to send the message to
 i2c1_address_t i2cTargetAddress = 0x00;
 // The address of the register to work with in the slave device
-uint16_t i2cRegisterAddress = 0x0000;
+uint8_t i2cRegisterAddress = 0x0000;
 // The size of the register to work with in the slave device in bytes
 uint8_t i2cRegisterSize = 1;
 
@@ -168,7 +168,7 @@ void I2CWriteCommand(CliBuffer_t *buffer, void* v)
             }
             else if (writeCount != 0)
             {
-                I2C1_WriteNBytes(i2cTargetAddress, buffer->InputPnt, writeCount);
+                I2C1_WriteNBytes(i2cTargetAddress, (uint8_t*)buffer->InputPnt, writeCount);
             }
             else
             {
@@ -189,7 +189,7 @@ void I2CReadCommand(CliBuffer_t *buffer, void* v)
             ++buffer->InputPnt;
 
             // Get the number of bytes to read
-            int8_t readCount = ParseInt(&buffer->InputPnt);
+            int8_t readCount = (int8_t)ParseInt(&buffer->InputPnt);
 
             if (&buffer->OutputPnt[readCount] >= &buffer->OutputBuffer[CLI_BUFFER_SIZE])
             {
@@ -203,7 +203,7 @@ void I2CReadCommand(CliBuffer_t *buffer, void* v)
             }
             else if (readCount > 0)
             {
-                GenerateIEEEHeader(buffer, readCount);
+                GenerateIEEEHeader(buffer, (uint16_t)readCount);
 
                 // Whip out any latent data in the output buffer
                 int8_t clearCount = readCount;
@@ -214,7 +214,7 @@ void I2CReadCommand(CliBuffer_t *buffer, void* v)
                     --clearCount;
                 }
 
-                I2C1_ReadNBytes(i2cTargetAddress, buffer->OutputPnt, readCount);
+                I2C1_ReadNBytes(i2cTargetAddress, (uint8_t*)buffer->OutputPnt, (size_t)readCount);
                 
                 buffer->OutputPnt += readCount;
             }
@@ -251,7 +251,7 @@ void I2CRegisterWriteCommand(CliBuffer_t *buffer, void* v)
     { 
         ++buffer->InputPnt;
         
-        uint16_t data = ParseInt(&buffer->InputPnt);
+        uint16_t data = (uint16_t)ParseInt(&buffer->InputPnt);
 
         if (I2C1_GetEnabled())
         {
@@ -263,7 +263,7 @@ void I2CRegisterWriteCommand(CliBuffer_t *buffer, void* v)
             {
                 if (data < 256)
                 {
-                    I2C1_Write1ByteRegister(i2cTargetAddress, i2cRegisterAddress, data);
+                    I2C1_Write1ByteRegister(i2cTargetAddress, i2cRegisterAddress, (uint8_t)data);
                 }
                 else
                 {
@@ -290,7 +290,7 @@ void I2CRegisterReadCommand(CliBuffer_t *buffer, void* v)
         
         if (I2C1_GetEnabled())
         {
-            int16_t data;
+            uint16_t data;
 
             if (i2cRegisterSize == 2)
             {
@@ -330,7 +330,7 @@ void I2CRegisterAddressCommand(CliBuffer_t *buffer, void* v)
 
         if (address >= 0 && address < 256)
         {
-            i2cRegisterAddress = (uint16_t)address;
+            i2cRegisterAddress = (uint8_t)address;
         }
         else
         {

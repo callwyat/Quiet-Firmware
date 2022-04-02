@@ -120,7 +120,7 @@ void I2C1_Write2ByteRegister(i2c1_address_t address, uint8_t reg, uint16_t data)
 
 bool i2c_nacked = false;
 
-bool I2C1_LastOperationNACKed()
+bool I2C1_LastOperationNACKed(void)
 {
     bool result = i2c_nacked;
     i2c_nacked = false;
