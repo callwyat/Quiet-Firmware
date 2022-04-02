@@ -8,7 +8,15 @@
             "type": "mplabx",
             "task": "build",
             "projectFolder": "${workspaceFolder}/src/Quiet.X",
-            "problemMatcher": [],
+            "problemMatcher": [
+                {
+                    "base": "$gcc",
+                    "fileLocation" : [
+                        "relative",
+                        "${workspaceFolder}/src/Quiet.X"
+                    ]
+                }
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
