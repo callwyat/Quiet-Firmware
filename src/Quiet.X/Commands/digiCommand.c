@@ -29,17 +29,7 @@ CommandDefinition_t digiChanCommands[] = {
 };
 
 CommandDefinition_t digiCommands[] = {
-    {
-        .Command = "CH",
-        .Handle = DIGIChannelValueCommand,
-        .Children = digiChanCommands,
-        .ChildrenCount = sizeof(digiChanCommands) / sizeof(digiChanCommands[0]),
-    }
+    DEFINE_COMMAND_W_BRANCH("CH", DIGIChannelValueCommand, digiChanCommands),
 };
 
-CommandDefinition_t DIGICommand = {
-    .Command = "DIGI",
-    .Handle = DIGIDiscreetCommand,
-    .Children = digiCommands,
-    .ChildrenCount = sizeof (digiCommands) / sizeof (digiCommands[0]),
-};
+CommandDefinition_t DIGICommand = DEFINE_COMMAND_W_BRANCH("DIGI", DIGIDiscreetCommand, digiCommands);

@@ -65,12 +65,7 @@ CommandDefinition_t anaoChanCommands[] = {
 };
 
 CommandDefinition_t anaoCommands[] = {
-    {
-        .Command = "CH",
-        .Handle = ANAOChannelValueCommand,
-        .Children = anaoChanCommands,
-        .ChildrenCount = sizeof(anaoChanCommands) / sizeof(anaoChanCommands[0])
-    },
+    DEFINE_COMMAND_W_BRANCH("CH", ANAOChannelValueCommand, anaoChanCommands),
 };
 
 CommandDefinition_t ANAOCommand = DEFINE_BRANCH("ANAO", anaoCommands);

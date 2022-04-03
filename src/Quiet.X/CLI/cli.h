@@ -60,6 +60,13 @@ extern "C" {
             .ChildrenCount =  sizeof(children) / sizeof(children[0]),    \
         }
     
+#define DEFINE_COMMAND_W_BRANCH(command, handle, children) { \
+            .Command = command,            \
+            .Handle = handle,              \
+            .Children = &children[0],      \
+            .ChildrenCount =  sizeof(children) / sizeof(children[0]),    \
+        }
+    
     bool SCPICompare(const char *reference, char *input);
     
     void FFTilPunctuation(char **input);

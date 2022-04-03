@@ -60,12 +60,7 @@ CommandDefinition_t pwmChanCommands[] = {
 };
 
 CommandDefinition_t pwmCommands[] = {
-     {
-        .Command = "CH",
-        .Handle = PWMChannelValueCommand,
-        .Children = pwmChanCommands,
-        .ChildrenCount = sizeof(pwmChanCommands) / sizeof(pwmChanCommands[0]),
-     }
+    DEFINE_COMMAND_W_BRANCH("CH", PWMChannelValueCommand, pwmChanCommands),
 };
 
 CommandDefinition_t PWMCommand = DEFINE_BRANCH("PWM", pwmCommands);

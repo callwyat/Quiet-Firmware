@@ -62,12 +62,7 @@ CommandDefinition_t servChanCommands[] = {
 };
 
 CommandDefinition_t servoCommands[] = {
-    {
-        .Command = "CH",
-        .Handle = SERVChannelValueCommand,
-        .Children = servChanCommands,
-        .ChildrenCount = sizeof(servChanCommands) / sizeof(servChanCommands[0])
-    }
+    DEFINE_COMMAND_W_BRANCH("CH", SERVChannelValueCommand, servChanCommands),
 };
 
 CommandDefinition_t SERVoCommand = DEFINE_BRANCH("SERV", servoCommands);

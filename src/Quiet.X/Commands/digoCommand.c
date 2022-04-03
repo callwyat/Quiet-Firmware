@@ -68,12 +68,7 @@ CommandDefinition_t digoChanCommands[] = {
 };
 
 CommandDefinition_t digoCommands[] = {
-    {
-        .Command = "CH",
-        .Handle = DIGOChannelValueCommand,
-        .Children = digoChanCommands,
-        .ChildrenCount = sizeof(digoChanCommands) / sizeof(digoChanCommands[0]),
-    }
+    DEFINE_COMMAND_W_BRANCH("CH", DIGOChannelValueCommand, digoChanCommands),
 };
 
 void DIGODiscreetCommand(CliBuffer_t *buffer, void* v)
@@ -86,9 +81,4 @@ void DIGODiscreetCommand(CliBuffer_t *buffer, void* v)
     }
 }
 
-CommandDefinition_t DIGOCommand = {
-    .Command = "DIGO",
-    .Handle = DIGODiscreetCommand,
-    .Children = digoCommands,
-    .ChildrenCount = sizeof(digoCommands) / sizeof(digoCommands[0]),
-};
+CommandDefinition_t DIGOCommand = DEFINE_COMMAND_W_BRANCH("DIGO", DIGODiscreetCommand, digoCommands);
