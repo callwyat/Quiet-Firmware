@@ -18,12 +18,12 @@ extern "C" {
 #define I2C_DATA_OUTPUT 4
 #define I2C_CLOCK_OUTPUT 5
 
-const char* DISCREETWord = "DISC";
-const char* PWMWord = "PWM";
-const char* ServoWord = "SERV";
-const char* UARTWord = "UART";
-const char* SPIWord = "SPI";
-const char* I2CWord = "I2C";
+extern const char* DISCREETWord;
+extern const char* PWMWord;
+extern const char* ServoWord;
+extern const char* UARTWord;
+extern const char* SPIWord;
+extern const char* I2CWord;
 
 typedef enum {
     OUT_DISCREET = 0x01,

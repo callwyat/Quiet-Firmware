@@ -25,7 +25,7 @@ void UARTReadCommand(CliBuffer_t *buffer, void* v)
         
         uint8_t receivedData = UART_get_rx_count();
         
-        uint8_t maxSendSize = (&buffer->OutputBuffer[sizeof(buffer->OutputBuffer)] - buffer->OutputPnt) - 4;
+        uint8_t maxSendSize = (uint8_t)(&buffer->OutputBuffer[sizeof(buffer->OutputBuffer)] - buffer->OutputPnt) - 4;
         
         if (receivedData > maxSendSize)
         {
@@ -45,7 +45,7 @@ uint16_t uartReadSize = 0;
 
 void UARTLargeWrite(CliBuffer_t *buffer, void *v)
 {
-    uint8_t bufferRemaining = &buffer->InputBuffer[buffer->InputLength] - buffer->InputPnt;
+    uint8_t bufferRemaining = (uint8_t)(&buffer->InputBuffer[buffer->InputLength] - buffer->InputPnt);
 
     if (uartReadSize <= bufferRemaining)
     {

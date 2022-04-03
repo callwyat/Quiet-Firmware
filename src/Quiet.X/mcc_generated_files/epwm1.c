@@ -87,6 +87,7 @@ void EPWM1_Initialize(void)
 	CCPTMRS0bits.C1TSEL = 0x0;
 }
 
+/**
 void EPWM1_LoadDutyValue(uint16_t dutyValue)
 {
    // Writing to 8 MSBs of pwm duty cycle in CCPRL register
@@ -95,7 +96,7 @@ void EPWM1_LoadDutyValue(uint16_t dutyValue)
    // Writing to 2 LSBs of pwm duty cycle in CCPCON register
     CCP1CON = ((uint8_t)(CCP1CON & 0xCF) | ((dutyValue & 0x0003)<<4));
 }
-/**
- End of File
+
+End of File
 */
 

@@ -119,7 +119,7 @@ void EPWM1_Initialize(void);
     EPWM1_LoadDutyValue(dutycycle);
     </code>
 */
-void EPWM1_LoadDutyValue(uint16_t dutyValue);
+// void EPWM1_LoadDutyValue(uint16_t dutyValue);
         
 #ifdef __cplusplus  // Provide C++ Compatibility
 

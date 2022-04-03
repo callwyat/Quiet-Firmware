@@ -119,7 +119,7 @@ void EPWM3_Initialize(void);
     EPWM3_LoadDutyValue(dutycycle);
     </code>
 */
-void EPWM3_LoadDutyValue(uint16_t dutyValue);
+// void EPWM3_LoadDutyValue(uint16_t dutyValue);
         
 #ifdef __cplusplus  // Provide C++ Compatibility
 

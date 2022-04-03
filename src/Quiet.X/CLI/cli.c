@@ -196,7 +196,7 @@ int16_t ParseInt(char** str)
     if (!IS_NUMBER(**str))
         return -1;
     
-    int16_t result = 0;
+    uint16_t result = 0;
     
     // Check if hex or int
     if (**str == '0')
@@ -228,7 +228,7 @@ int16_t ParseInt(char** str)
                     }
                     else
                     {
-                        return result;
+                        return (int16_t)result;
                     }
                 }
                 
@@ -250,7 +250,7 @@ int16_t ParseInt(char** str)
         ++(*str);
     }
     
-    return result;
+    return (int16_t)result;
 }
 
 uint24_t ParseInt24(char** str)
@@ -497,7 +497,7 @@ void NumberToString(CliBuffer_t *buffer, uint24_t input)
         case DecimalFormat:
             
             if (input < 10000)
-                Int14ToString(buffer, input);
+                Int14ToString(buffer, (uint16_t)input);
             else
                 Int24ToString(buffer, input);
             

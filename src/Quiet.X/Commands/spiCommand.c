@@ -11,7 +11,7 @@ uint16_t spiExchangeSize = 0;
 
 void SPILargeExchange(CliBuffer_t *buffer, void *v)
 {
-    uint8_t bufferRemaining = &buffer->InputBuffer[buffer->InputLength] - buffer->InputPnt;
+    uint8_t bufferRemaining = (uint8_t)(&buffer->InputBuffer[buffer->InputLength] - buffer->InputPnt);
 
     if (spiExchangeSize <= bufferRemaining)
     {

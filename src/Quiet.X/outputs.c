@@ -11,6 +11,12 @@ uint16_t servoValue[10];
 #define DIGO_OFFSET 0
 #define DIGO_COUNT 8
 
+#if DIGO_OFFSET == 0
+#define DIGO_VALID(value) (value < (DIGO_OFFSET + DIGO_COUNT))
+#else
+#define DIGO_VALID(value) (output >= DIGO_OFFSET && value < (DIGO_OFFSET + DIGO_COUNT))
+#endif
+
 typedef struct {
     volatile unsigned char *ValueRegister;
     volatile unsigned char *ControlRegister;
@@ -40,13 +46,20 @@ OutputSetup_t OutputSetups[] = {
     DEFINE_OUTPUT(&CCP2CON, OUT_PWM, OUT_SERVO),
 };
 
+const char* DISCREETWord = "DISC";
+const char* PWMWord = "PWM";
+const char* ServoWord = "SERV";
+const char* UARTWord = "UART";
+const char* SPIWord = "SPI";
+const char* I2CWord = "I2C";
+
 const uint8_t OutputSetupsCount = sizeof(OutputSetups) / sizeof(OutputSetups[0]);
 
 uint8_t OutputMask = 0xFF;
 
 void SetDiscreetOutput(uint8_t output, bool value)
 {
-    if (output >= DIGO_OFFSET && output <= (DIGO_OFFSET + 7))
+    if (DIGO_VALID(output))
     {
         output -= DIGO_OFFSET;
         
@@ -67,7 +80,7 @@ void SetDiscreetOutput(uint8_t output, bool value)
 
 bool GetDiscreetOutput(uint8_t output)
 {
-    if (output >= DIGO_OFFSET && output <= (DIGO_OFFSET + 7))
+    if (DIGO_VALID(output))
     {
         output -= DIGO_OFFSET;
         return (DOUT >> output) & 0x01;
@@ -132,7 +145,7 @@ void SetOutputMode(uint8_t output, OutputMode_e mode)
     
     setup->ActiveMode = mode;
     
-    if (output >= DIGO_OFFSET && output < (DIGO_OFFSET + DIGO_COUNT))
+    if (DIGO_VALID(output))
     {
         if (mode == OUT_DISCREET)
         {

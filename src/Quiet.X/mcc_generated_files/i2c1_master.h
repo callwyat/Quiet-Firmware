@@ -77,7 +77,7 @@ typedef i2c1_operations_t (*i2c1_callback_t)(void *funPtr);
 
 typedef struct {
   uint8_t Baud    : 8;
-  uint8_t Timeout : 8;
+  uint16_t Timeout;
   uint8_t Enabled : 1;
 } i2c_settings_t;
 
@@ -191,7 +191,7 @@ i2c1_error_t I2C1_MasterRead(void); // to be depreciated
  *
  * \return The timeout in ticks
  */
-uint8_t I2C1_GetTimeout(void);
+uint16_t I2C1_GetTimeout(void);
 
 /**
  * \brief Set timeout to be used for I2C1 operations. Uses the Timeout driver.
@@ -200,7 +200,7 @@ uint8_t I2C1_GetTimeout(void);
  *
  * \return Nothing
  */
-void I2C1_SetTimeout(uint8_t timeOut);
+void I2C1_SetTimeout(uint16_t timeOut);
 
 /**
  * \brief Sets up the data buffer to use, and number of bytes to transfer

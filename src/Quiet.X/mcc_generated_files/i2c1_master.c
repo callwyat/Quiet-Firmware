@@ -277,12 +277,12 @@ i2c1_error_t I2C1_MasterWrite(void)
     return I2C1_MasterOperation(false);
 }
 
-uint8_t I2C1_GetTimeout(void)
+uint16_t I2C1_GetTimeout(void)
 {
     return I2C1_Status.time_out_value;
 }
 
-void I2C1_SetTimeout(uint8_t timeOut)
+void I2C1_SetTimeout(uint16_t timeOut)
 {
     // TODO: Verify the timeout actually does something
     I2C1_MasterDisableIrq();
@@ -388,14 +388,14 @@ static i2c1_fsm_states_t I2C1_DO_IDLE(void)
 static i2c1_fsm_states_t I2C1_DO_SEND_ADR_READ(void)
 {
     I2C1_Status.addressNackCheck = 1;
-    I2C1_MasterSendTxData(I2C1_Status.address << 1 | 1);
+    I2C1_MasterSendTxData((uint8_t)(I2C1_Status.address << 1 | 1));
     return I2C1_RCEN;
 }
 
 static i2c1_fsm_states_t I2C1_DO_SEND_ADR_WRITE(void)
 {
     I2C1_Status.addressNackCheck = 1;
-    I2C1_MasterSendTxData(I2C1_Status.address << 1);
+    I2C1_MasterSendTxData((uint8_t)(I2C1_Status.address << 1));
     return I2C1_TX;
 }
 
@@ -595,7 +595,7 @@ uint24_t I2C1GetBaudRate(void)
 
 void I2C1SetBaudRate(uint24_t rate)
 {
-    uint8_t period = ((_XTAL_FREQ / 4) / rate - 1);
+    uint8_t period = (uint8_t)((_XTAL_FREQ / 4) / rate - 1);
 
     SSP1ADD = period;
 }

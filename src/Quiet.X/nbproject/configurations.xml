@@ -113,6 +113,7 @@
       <itemPath>analogInputs.c</itemPath>
       <itemPath>settings.c</itemPath>
       <itemPath>uart.c</itemPath>
+      <itemPath>constants.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -133,7 +134,7 @@
         <targetDevice>PIC18F46J53</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
-        <platformTool>noID</platformTool>
+        <platformTool>pk4hybrid</platformTool>
         <languageToolchain>XC8</languageToolchain>
         <languageToolchainVersion>2.36</languageToolchainVersion>
         <platform>4</platform>

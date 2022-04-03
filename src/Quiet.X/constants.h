@@ -14,11 +14,11 @@ extern "C" {
     
 #include <xc.h>
 
-const char* MakeString = "Y@ Technologies";
-const char* ModelString = "Qy@ Board";
-const char* VersionString = "2.0";
+extern const char* MakeString;
+extern const char* ModelString;
+extern const char* VersionString;
 
-const char* EmptyIEEEHeader = "#0";
+extern const char* EmptyIEEEHeader;
 
 #define DIN PORTD
 #define DOUT LATB
