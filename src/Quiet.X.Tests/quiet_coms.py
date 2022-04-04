@@ -1,7 +1,8 @@
+import time
 import serial
 import serial.tools.list_ports
 
-class quiet_coms():
+class QuietComs():
 
     def __init__(self, port=None):
         if type(port) == serial.Serial:
@@ -19,18 +20,83 @@ class quiet_coms():
         else:
             raise Exception('Unable to determine what to do with \'port\'')
 
+    def write_raw(self, input:str):
+        """ Writes the given input with no modification
+
+        Args:
+            input (str): The text to write to the quite board
+        """
+        self.com.write(input.encode())
+
     def write(self, input:str):
-        self.com.write(f'{input}\r\n'.encode())
+        """ Writes the given input adding termination
+
+        Args:
+            input (str): The input to write to the quite board
+        """
+        self.write_raw(f'{input}\r\n')
+
+    def read_raw(self) -> str:
+        """ Reads from the quite board return everyhing
+
+        Returns:
+            str: The data stored in the quiets buffer
+        """
+        return self.com.read_until().decode()
 
     def read(self) -> str:
+        """ Reads from the quite board stripping off whitespace
+
+        Returns:
+            str: The data from the quite board without the whitespace
+        """
         return self.read_raw().strip()
 
-    def query(self, input:str) -> str:
+    def query_raw(self, input:str, delay:int=0) -> str:
+        """ Writes the raw input to quite board and reads back the raw input
+
+        Args:
+            input (str): The raw string to write to the quite board
+            delay (int, optional): A time, in seconds, to delay between the write
+                and the read. Defaults to 0.
+
+        Returns:
+            str: The raw result from the quite board
+        """
+        self.com.flushInput()
+        self.write_raw(input)
+
+        if delay > 0:
+            time.sleep(delay)
+
+        return self.read_raw()
+
+    def query(self, input:str, delay:int=0) -> str:
+        """ Write the input, adding termination, and reads back the result without
+        whitespace
+
+        Args:
+            input (str): The text to write to the quite board
+            delay (int, optional): The time, in seconds, to delay between write
+                and read. Defaults to 0.
+
+        Returns:
+            str: The result from the quite board without whitespace
+        """
         self.com.flushInput()
         self.write(input)
         return self.read()
 
     def query_int(self, input:str) -> int:
+        """ Writes the given input to the quite board and attempts to parse the result
+        into an interger
+
+        Args:
+            input (str): The command to send to the quite board
+
+        Returns:
+            int: The interger value from the quite board
+        """
         result = self.query(input).strip(';')
 
         if '0x' in result:
@@ -38,15 +104,13 @@ class quiet_coms():
         else:
             return int(result)
 
-    def read_raw(self) -> str:
-        return self.com.read_until().decode()
-
-    def query_raw(self, input:str) -> str:
-        self.com.flushInput()
-        self.write(input)
-        return self.read_raw()
-
     def writeIEEE(self, command:str, data:bytearray) -> None:
+        """ Writes the given command and byte array to the quite board
+
+        Args:
+            command (str): The header before the data
+            data (bytearray): The raw bytes to write to the quite board
+        """
 
         # Generate the header
         data_size = str(len(data))
@@ -58,7 +122,15 @@ class quiet_coms():
         self.com.write(f'{command} {ieee_header}'.encode() + bytearray(data))
 
     def queryIEEE(self, command:str) -> bytearray:
+        """ Writes the given command to the quite board and attempts to read the IEEE
+        data block back
 
+        Args:
+            command (str): A command that invokes an IEEE Data Block header result
+
+        Returns:
+            bytearray: The Data Block from the quite board
+        """
         self.com.flushInput()
         self.write(command)
 
@@ -73,6 +145,11 @@ class quiet_coms():
         return self.com.read(dataSize)
         
 def find_quiet_ports() -> list:
+    """ Scans the computer ports for a port that is a quite board
+
+    Returns:
+        list: All ports that are quite boards
+    """
 
     ports = list(serial.tools.list_ports.comports())
     

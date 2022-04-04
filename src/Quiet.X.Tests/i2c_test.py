@@ -6,7 +6,7 @@ if 'EXIT_ON_FAIL' not in locals():
     EXIT_ON_FAIL = True
 class quiet_i2c():
 
-    def __init__(self, quiet:quiet_coms.quiet_coms) -> None:
+    def __init__(self, quiet:quiet_coms.QuietComs) -> None:
 
         self.quiet = quiet
         self.com = quiet.com
@@ -208,7 +208,7 @@ def i2c_test(i: quiet_i2c) -> bool:
     # Get the communications setup
     if type(i) == quiet_i2c:
         pass
-    elif type(i) == quiet_coms.quiet_coms:
+    elif type(i) == quiet_coms.QuietComs:
         i = quiet_i2c(i)
     else:
         raise Exception('Unsure what to do with "i"')
@@ -238,7 +238,7 @@ if __name__ == "__main__":
 
     qPorts = quiet_coms.find_quiet_ports()
 
-    quite = quiet_coms.quiet_coms(port=qPorts[0])
+    quite = quiet_coms.QuietComs(port=qPorts[0])
 
     q2c = quiet_i2c(quite)
 

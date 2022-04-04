@@ -1,6 +1,6 @@
 import quiet_coms
 
-def analog_stability_test(quite: quiet_coms.quiet_coms, number_mode='DECI'):
+def analog_stability_test(quite: quiet_coms.QuietComs, number_mode='DECI'):
 
     if number_mode == 'DECI' or number_mode == 'HEX':
         # Changed the number mode
@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
     qPorts = quiet_coms.find_quiet_ports()
 
-    quite = quiet_coms.quiet_coms(port=qPorts[0])
+    quite = quiet_coms.QuietComs(port=qPorts[0])
 
     if analog_stability_test(quite):
         print("All Tests Passed")

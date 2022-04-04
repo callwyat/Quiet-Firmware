@@ -4,7 +4,7 @@ import time
 if 'EXIT_ON_FAIL' not in locals():
     EXIT_ON_FAIL = True
 
-def uart_test(quite:quiet_coms.quiet_coms):
+def uart_loopback_test(quite:quiet_coms.QuietComs):
     print('UART Tests')
 
     quite.write('UART:BAUD 115200')
@@ -36,7 +36,8 @@ if __name__ == "__main__":
 
     qPorts = quiet_coms.find_quiet_ports()
 
-    quite = quiet_coms.quiet_coms(port=qPorts[0])
+    quite = quiet_coms.QuietComs(port=qPorts[0])
 
-    if uart_test(quite):
-        print("All Tests Passed")
+    uart_loopback_test(quite)
+
+    print('All Test Complete')

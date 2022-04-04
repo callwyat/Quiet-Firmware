@@ -48,9 +48,9 @@ def generate_fail_message(command, expected, response):
 def print_fail_message(command, expected, response):
     print(generate_fail_message(command, expected, response))
 
-def output_test(quite: quiet_coms.quiet_coms, command, count, mode, value):
+def output_test(quite: quiet_coms.QuietComs, command, count, mode, value):
     for i in range(1, count + 1):
-        full_command = f'{command}:CH{i}:MODE {mode};VALUE {value};MODE?'
+        full_command = f'{command}:CH{i}:MODE {mode};VALUE {value};MODE?\r\n'
         response = quite.query_raw(full_command)
         
         expected = f';;{mode}\r\n'
@@ -100,7 +100,7 @@ def defaults_test(com):
 
     
 
-def command_test(quite: quiet_coms.quiet_coms, number_mode='DECI'):
+def command_test(quite: quiet_coms.QuietComs, number_mode='DECI'):
 
     if number_mode == 'DECI' or number_mode == 'HEX':
         # Changed the number mode
@@ -194,7 +194,7 @@ def command_test(quite: quiet_coms.quiet_coms, number_mode='DECI'):
 
     print('Command Tests Passed')
 
-def parse_test(quite: quiet_coms.quiet_coms, number_mode='DECI'):
+def parse_test(quite: quiet_coms.QuietComs, number_mode='DECI'):
     
     if number_mode == 'DECI' or number_mode == 'HEX':
         # Changed the number mode
@@ -211,7 +211,7 @@ def parse_test(quite: quiet_coms.quiet_coms, number_mode='DECI'):
             if VERBOSE:
                 print(f'Testing             => {val}')
 
-            command = f'ANAO:CH1 {val};CH1?'
+            command = f'ANAO:CH1 {val};CH1?\r\n'
             response = quite.query_raw(command)
 
             expected = f';{val}\r\n'
@@ -240,7 +240,7 @@ def parse_test(quite: quiet_coms.quiet_coms, number_mode='DECI'):
 
     print('Parse Test Passed')
 
-def output_mode_test(quite: quiet_coms.quiet_coms):
+def output_mode_test(quite: quiet_coms.QuietComs):
     print('Outputs Test')
 
     output_test(quite, 'SERV', 10, 'SERV', '0x3FF')
@@ -252,7 +252,7 @@ def output_mode_test(quite: quiet_coms.quiet_coms):
     print('Outputs Test Complete')
 
 
-def run_quiet_test(quite: quiet_coms.quiet_coms):
+def run_quiet_test(quite: quiet_coms.QuietComs):
 
     quite.write('*RST')
 
@@ -273,7 +273,7 @@ if __name__ == "__main__":
 
     qPorts = quiet_coms.find_quiet_ports()
 
-    quite = quiet_coms.quiet_coms(qPorts[0])
+    quite = quiet_coms.QuietComs(qPorts[0])
 
     run_quiet_test(quite)
     
