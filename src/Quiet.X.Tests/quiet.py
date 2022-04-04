@@ -26,3 +26,28 @@ class Quiet(QuietComs):
             self.write(f'SYST:NUMB {mode}')
         else:
             raise Exception(f'Invalid Number mode {mode}. Must be \'DECI\' or \'HEX\'')
+
+    def set_and_verify(self, command:str, value, tolerance:float=0):
+
+        query_str = command.split(':')[-1]
+        full_command = f'{command} {value}:{query_str}?'
+
+        if type(value) == int:
+            response = self.query_int(full_command)
+
+            low_limit = value * (1 - tolerance)
+            high_rate = value * (1 + tolerance)
+
+            if response < low_limit or high_rate < response:
+                raise QuietSetError(f'{command} failed. Sent {value} Received {response}')
+
+        else:
+            response = self.query(full_command)
+
+            if response != value:
+                raise QuietSetError(f'{command} failed. Sent {value} Received {response}')
+
+class QuietSetError(Exception):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
+

@@ -71,6 +71,9 @@ extern CommandDefinition_t TESTCommand;
 CommandDefinition_t allCommands[16];
 CommandDefinition_t limitedCommands[16];
 
+static CliBuffer_t usbBuffer;
+static CliBuffer_t uartBuffer;
+
 void CliInit(void)
 {
     CommandDefinition_t* pnt = allCommands;
@@ -96,9 +99,10 @@ void CliInit(void)
     *pnt++ =  DIGICommand;
     *pnt++ =  SYSTemCommand;
     *pnt++ =  DIAGnosticsCommand;
+    
+    uartBuffer.InputPnt = uartBuffer.InputBuffer;
+    uartBuffer.OutputPnt = uartBuffer.OutputBuffer;
 }
-
-static CliBuffer_t usbBuffer;
 
 void USB_CDC_Tasks(void)
 {
@@ -147,11 +151,9 @@ void USB_CDC_Tasks(void)
     CDCTxService();
 }
 
-static CliBuffer_t uartBuffer;
-
 void UART_SCPI_Task()
 {
-    while (UART_get_rx_count() > 1)
+    while (UART_get_rx_count() > 0)
     {
         char c = UART_Read();
         
@@ -162,19 +164,29 @@ void UART_SCPI_Task()
 
         // NOTE: uartBuffer.DataHandle should never be set because the UART, SPI, and I2C 
         // commands are not in it's tree
-        if (c == '\n')
+        if (c == '\n' || c == '\r')
         {
-            uartBuffer.InputLength = (uint8_t)(uartBuffer.InputBuffer - uartBuffer.InputPnt);
-            uartBuffer.InputPnt = uartBuffer.InputBuffer;
-            ProcessCLI(&uartBuffer, limitedCommands);
-
-            uint8_t outCount =  (uint8_t)(uartBuffer.OutputPnt - uartBuffer.OutputBuffer);
-
-            uartBuffer.OutputPnt = uartBuffer.OutputBuffer;
-            while (outCount > 0)
+            if (uartBuffer.InputPnt > &uartBuffer.InputBuffer[2])
             {
-                UART_Write(*uartBuffer.OutputPnt++);
+                uartBuffer.InputLength = (uint8_t)(uartBuffer.InputBuffer - uartBuffer.InputPnt);
+                uartBuffer.InputPnt = uartBuffer.InputBuffer;
+                uartBuffer.OutputPnt = uartBuffer.OutputBuffer;
+
+                ProcessCLI(&uartBuffer, limitedCommands);
+       
+                uint8_t outCount = (uint8_t)(uartBuffer.OutputPnt - uartBuffer.OutputBuffer);
+
+
+                uartBuffer.OutputPnt = uartBuffer.OutputBuffer;
+
+                while (outCount > 0)
+                {
+                    UART_Write(*uartBuffer.OutputPnt++);
+                    --outCount;
+                }
             }
+            
+            uartBuffer.InputPnt = uartBuffer.InputBuffer;
         }
     }
 }
