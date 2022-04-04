@@ -67,12 +67,12 @@ extern CommandDefinition_t IICCommand;
 extern CommandDefinition_t DIAGnosticsCommand;
             
 // Put the commands that have the most branches towards the top
-CommandDefinition_t usbCommands[16];
-CommandDefinition_t uartCommands[16];
+CommandDefinition_t allCommands[16];
+CommandDefinition_t limitedCommands[16];
 
 void CliInit(void)
 {
-    CommandDefinition_t* pnt = usbCommands;
+    CommandDefinition_t* pnt = allCommands;
     *pnt++ =  PWMCommand;
     *pnt++ =  SERVoCommand;
     *pnt++ =  DIGOCommand;
@@ -85,7 +85,7 @@ void CliInit(void)
     *pnt++ =  SYSTemCommand;
     *pnt++ =  DIAGnosticsCommand;
 
-    pnt = uartCommands;
+    pnt = limitedCommands;
     *pnt++ =  PWMCommand;
     *pnt++ =  SERVoCommand;
     *pnt++ =  DIGOCommand;
@@ -133,7 +133,7 @@ void USB_CDC_Tasks(void)
             }
             else
             {
-                ProcessCLI(&usbBuffer, usbCommands);
+                ProcessCLI(&usbBuffer, allCommands);
 
                 putUSBUSART((uint8_t*)usbBuffer.OutputBuffer, 
                 (uint8_t)(usbBuffer.OutputPnt - usbBuffer.OutputBuffer));
@@ -164,7 +164,7 @@ void UART_SCPI_Task()
         {
             uartBuffer.InputLength = (uint8_t)(uartBuffer.InputBuffer - uartBuffer.InputPnt);
             uartBuffer.InputPnt = uartBuffer.InputBuffer;
-            ProcessCLI(&uartBuffer, uartCommands);
+            ProcessCLI(&uartBuffer, limitedCommands);
 
             uint8_t outCount =  (uint8_t)(uartBuffer.OutputPnt - uartBuffer.OutputBuffer);
 
