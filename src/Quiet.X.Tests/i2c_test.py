@@ -238,9 +238,9 @@ if __name__ == "__main__":
 
     qPorts = quiet_coms.find_quiet_ports()
 
-    quite = quiet_coms.QuietComs(port=qPorts[0])
+    quiet = quiet_coms.QuietComs(port=qPorts[0])
 
-    q2c = quiet_i2c(quite)
+    q2c = quiet_i2c(quiet)
 
     i2c_test(q2c)
 

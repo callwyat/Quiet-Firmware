@@ -1,10 +1,10 @@
 import quiet_coms
 
-def analog_stability_test(quite: quiet_coms.QuietComs, number_mode='DECI'):
+def analog_stability_test(quiet: quiet_coms.QuietComs, number_mode='DECI'):
 
     if number_mode == 'DECI' or number_mode == 'HEX':
         # Changed the number mode
-        quite.write(f'SYST:NUMB {number_mode}')
+        quiet.write(f'SYST:NUMB {number_mode}')
     else:
         raise Exception(f'Invalid Number mode {number_mode}. Must be \'DECI\' or \'HEX\'')
 
@@ -14,7 +14,7 @@ def analog_stability_test(quite: quiet_coms.QuietComs, number_mode='DECI'):
     aMin = [ 10000, 10000, 10000, 10000]
     for i in range(1, 10000):
 
-        response_raw = quite.query('ANAI:CH1?;CH2?;CH3?;CH4?').split(';')
+        response_raw = quiet.query('ANAI:CH1?;CH2?;CH3?;CH4?').split(';')
 
         i = 0
         for response in response_raw:
@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
     qPorts = quiet_coms.find_quiet_ports()
 
-    quite = quiet_coms.QuietComs(port=qPorts[0])
+    quiet = quiet_coms.QuietComs(port=qPorts[0])
 
-    if analog_stability_test(quite):
+    if analog_stability_test(quiet):
         print("All Tests Passed")

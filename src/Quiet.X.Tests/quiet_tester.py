@@ -1,6 +1,6 @@
 
 import re
-from quite import Quite
+from quiet import Quiet
 
 
 if 'EXIT_ON_FAIL' not in locals():
@@ -24,11 +24,11 @@ def generate_fail_message(command, expected, response):
           f"Expected: {repr(expected)}\n" +
           f"Received: {repr(response)}")
 
-class QuiteTester(Quite):
+class QuietTester(Quiet):
 
     def __init__(self, coms) -> None:
 
-        Quite.__init__(self, coms)
+        Quiet.__init__(self, coms)
 
     def query_test(self, command:str, expectation:str):
 

@@ -24,7 +24,7 @@ class QuietComs():
         """ Writes the given input with no modification
 
         Args:
-            input (str): The text to write to the quite board
+            input (str): The text to write to the quiet board
         """
         self.com.write(input.encode())
 
@@ -32,12 +32,12 @@ class QuietComs():
         """ Writes the given input adding termination
 
         Args:
-            input (str): The input to write to the quite board
+            input (str): The input to write to the quiet board
         """
         self.write_raw(f'{input}\r\n')
 
     def read_raw(self) -> str:
-        """ Reads from the quite board return everyhing
+        """ Reads from the quiet board return everyhing
 
         Returns:
             str: The data stored in the quiets buffer
@@ -45,23 +45,23 @@ class QuietComs():
         return self.com.read_until().decode()
 
     def read(self) -> str:
-        """ Reads from the quite board stripping off whitespace
+        """ Reads from the quiet board stripping off whitespace
 
         Returns:
-            str: The data from the quite board without the whitespace
+            str: The data from the quiet board without the whitespace
         """
         return self.read_raw().strip()
 
     def query_raw(self, input:str, delay:int=0) -> str:
-        """ Writes the raw input to quite board and reads back the raw input
+        """ Writes the raw input to quiet board and reads back the raw input
 
         Args:
-            input (str): The raw string to write to the quite board
+            input (str): The raw string to write to the quiet board
             delay (int, optional): A time, in seconds, to delay between the write
                 and the read. Defaults to 0.
 
         Returns:
-            str: The raw result from the quite board
+            str: The raw result from the quiet board
         """
         self.com.flushInput()
         self.write_raw(input)
@@ -76,26 +76,26 @@ class QuietComs():
         whitespace
 
         Args:
-            input (str): The text to write to the quite board
+            input (str): The text to write to the quiet board
             delay (int, optional): The time, in seconds, to delay between write
                 and read. Defaults to 0.
 
         Returns:
-            str: The result from the quite board without whitespace
+            str: The result from the quiet board without whitespace
         """
         self.com.flushInput()
         self.write(input)
         return self.read()
 
     def query_int(self, input:str) -> int:
-        """ Writes the given input to the quite board and attempts to parse the result
+        """ Writes the given input to the quiet board and attempts to parse the result
         into an interger
 
         Args:
-            input (str): The command to send to the quite board
+            input (str): The command to send to the quiet board
 
         Returns:
-            int: The interger value from the quite board
+            int: The interger value from the quiet board
         """
         result = self.query(input).strip(';')
 
@@ -105,11 +105,11 @@ class QuietComs():
             return int(result)
 
     def writeIEEE(self, command:str, data:bytearray) -> None:
-        """ Writes the given command and byte array to the quite board
+        """ Writes the given command and byte array to the quiet board
 
         Args:
             command (str): The header before the data
-            data (bytearray): The raw bytes to write to the quite board
+            data (bytearray): The raw bytes to write to the quiet board
         """
 
         # Generate the header
@@ -122,14 +122,14 @@ class QuietComs():
         self.com.write(f'{command} {ieee_header}'.encode() + bytearray(data))
 
     def queryIEEE(self, command:str) -> bytearray:
-        """ Writes the given command to the quite board and attempts to read the IEEE
+        """ Writes the given command to the quiet board and attempts to read the IEEE
         data block back
 
         Args:
             command (str): A command that invokes an IEEE Data Block header result
 
         Returns:
-            bytearray: The Data Block from the quite board
+            bytearray: The Data Block from the quiet board
         """
         self.com.flushInput()
         self.write(command)
@@ -145,10 +145,10 @@ class QuietComs():
         return self.com.read(dataSize)
         
 def find_quiet_ports() -> list:
-    """ Scans the computer ports for a port that is a quite board
+    """ Scans the computer ports for a port that is a quiet board
 
     Returns:
-        list: All ports that are quite boards
+        list: All ports that are quiet boards
     """
 
     ports = list(serial.tools.list_ports.comports())

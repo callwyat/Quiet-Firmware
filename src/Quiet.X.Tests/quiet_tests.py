@@ -1,16 +1,16 @@
 
 import time
 from quiet_coms import QuietComs, find_quiet_ports
-from quite_tester import *
+from quiet_tester import *
 
 VERBOSE = True
 EXIT_ON_FAIL = True
 
 
-def output_test(quite: QuietComs, command, count, mode, value):
+def output_test(quiet: QuietComs, command, count, mode, value):
     for i in range(1, count + 1):
         full_command = f'{command}:CH{i}:MODE {mode};VALUE {value};MODE?\r\n'
-        response = quite.query_raw(full_command)
+        response = quiet.query_raw(full_command)
         
         expected = f';;{mode}\r\n'
         if response != expected:
@@ -37,14 +37,14 @@ default_test_results = [
     'PWM',
     ]
 
-def defaults_test(quite:QuietComs):
+def defaults_test(quiet:QuietComs):
 
     # Restore factory defaults
-    quite.write(f'SYST:REST FACT')
+    quiet.write(f'SYST:REST FACT')
 
     i = 1
     for expectation in default_test_results:
-        result = quite.query(f'SERV:CH{i}:MODE?')
+        result = quiet.query(f'SERV:CH{i}:MODE?')
     
         if result == expectation:
             if VERBOSE:
@@ -59,7 +59,7 @@ def defaults_test(quite:QuietComs):
 
     
 
-def command_test(tester: QuiteTester, number_mode='DECI'):
+def command_test(tester: QuietTester, number_mode='DECI'):
 
     print('Starting Command Tests')
 
@@ -129,7 +129,7 @@ class ParseTest():
         self.end = end
         self.increment = increment
 
-def parse_test(quite: QuiteTester, number_mode='DECI'):
+def parse_test(quiet: QuietTester, number_mode='DECI'):
     
     tests = [
         ParseTest('TEST:PARS #;PARS?\r\n', 0, 1024, 1),
@@ -137,7 +137,7 @@ def parse_test(quite: QuiteTester, number_mode='DECI'):
         # TODO: Test ParseINT24 Method
     ]
 
-    quite.set_number_mode(number_mode)
+    quiet.set_number_mode(number_mode)
 
     print('Starting Parse Test')
     print_count = 0
@@ -152,7 +152,7 @@ def parse_test(quite: QuiteTester, number_mode='DECI'):
                     print(f'Tested to            => {val}')
                     print_count = print_count + test.increment * 10
 
-                response = quite.query_raw(test.command.replace('#', str(val)))
+                response = quiet.query_raw(test.command.replace('#', str(val)))
 
                 expected = f';{val}\r\n'
                 if response != expected:
@@ -169,7 +169,7 @@ def parse_test(quite: QuiteTester, number_mode='DECI'):
                     print(f'Testing             => {hex(val)}')
                     print_count = print_count + test.increment * 10
 
-                response = quite.query_raw(test.command.replace('#', hex(val)))
+                response = quiet.query_raw(test.command.replace('#', hex(val)))
 
                 expected = f';0x{format(val, "02X" if val <= 0xFF else "04X")}\r\n'
                 if response != expected:
@@ -180,19 +180,19 @@ def parse_test(quite: QuiteTester, number_mode='DECI'):
 
     print('Parse Test Passed')
 
-def output_mode_test(quite: QuietComs):
+def output_mode_test(quiet: QuietComs):
     print('Outputs Test')
 
-    output_test(quite, 'SERV', 10, 'SERV', '0x3FF')
+    output_test(quiet, 'SERV', 10, 'SERV', '0x3FF')
 
-    output_test(quite, 'PWM', 6, 'PWM', '0x3FF')
+    output_test(quiet, 'PWM', 6, 'PWM', '0x3FF')
 
-    output_test(quite, 'DIGO', 8, 'DISC', 0)
+    output_test(quiet, 'DIGO', 8, 'DISC', 0)
 
     print('Outputs Test Complete')
 
 
-def run_quiet_test(tester: QuiteTester):
+def run_quiet_test(tester: QuietTester):
 
     tester.write('*RST')
 
@@ -213,7 +213,7 @@ if __name__ == "__main__":
 
     qPort = find_quiet_ports()[0]
 
-    run_quiet_test(QuiteTester(qPort))
+    run_quiet_test(QuietTester(qPort))
     
     print("All Tests Passed")
 

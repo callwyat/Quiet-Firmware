@@ -1,7 +1,7 @@
 
 from quiet_coms import QuietComs
 
-class Quite(QuietComs):
+class Quiet(QuietComs):
     
     def __init__(self, coms) -> None:
         QuietComs.__init__(self, coms)
