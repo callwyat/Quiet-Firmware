@@ -140,6 +140,8 @@ def command_test(quite: quiet_coms.quiet_coms, number_mode='DECI'):
         QueryChannelTest('SERVo:CH#:MODE?', 1, 10, OUTPUT_MODE_PATTERN), 
 
         QueryTest('UART:BAUD?', number_pattern_24),
+        QueryTest('UART:MODE?', '\\b(USBU|SCPI)\\b'),
+        QueryTest('UART:ERR?', number_pattern_8),
 
         QueryTest('SPI:BAUD?', number_pattern_24),
 
@@ -147,6 +149,13 @@ def command_test(quite: quiet_coms.quiet_coms, number_mode='DECI'):
         QueryTest('IIC:BAUD?', number_pattern_24),
         QueryTest('IIC:TIMEout?', number_pattern_16),
         QueryTest('IIC:ADDRess?', number_pattern_8),
+        QueryTest('IIC:ERR?', number_pattern_8),
+
+        QueryTest('IIC:REGIster:ADDRess?', number_pattern_8),
+        QueryTest('IIC:REGIster:RSIZe?', number_pattern_8),
+        QueryTest('IIC:REGIster:ERRor?', number_pattern_8),
+
+        QueryTest('SYST:ERR?', number_pattern_8),
 
         QueryTest('SYST:INFO:COMM:HASH?', '"(~?[0-9a-fA-F]{40}~?)"'),
         QueryTest('SYST:INFO:COMM:AUTH?', '"((\w*) *)*"'),

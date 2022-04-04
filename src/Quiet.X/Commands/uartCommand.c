@@ -188,15 +188,25 @@ void UARTModeCommand(CliBuffer_t *buffer, void* v)
     }
 }
 
+uint8_t UARTPeakErrorCode(void)
+{
+    return uartErrorCode;
+}
+
+uint8_t UARTPopErrorCode(void)
+{
+    uint8_t result = uartErrorCode;
+    uartErrorCode = UART_ERROR_NONE;
+    return result;
+}
+
 void UARTErrorCommand(CliBuffer_t *buffer, void* v)
 {
     if (*buffer->InputPnt == '?')
     {
         ++buffer->InputPnt;
         
-        NumberToString(buffer, uartErrorCode);
-                
-        uartErrorCode = UART_ERROR_NONE;
+        NumberToString(buffer, UARTPopErrorCode());
     }
 }
 
@@ -205,7 +215,7 @@ CommandDefinition_t uartCommands[] = {
   DEFINE_COMMAND("WRIT", UARTWriteCommand),
   DEFINE_COMMAND("BAUD", UARTBaudCommand),
   DEFINE_COMMAND("MODE", UARTModeCommand),
-  DEFINE_COMMAND("ERRO", UARTErrorCommand),
+  DEFINE_COMMAND("ERR", UARTErrorCommand),
 };
  
 CommandDefinition_t UARTCommand = DEFINE_BRANCH("UART", uartCommands);

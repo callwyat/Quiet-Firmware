@@ -36,7 +36,7 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 │   ├———:READ
 │   ├———:BAUD
 │   ├———:MODE
-│   └———:ERRO
+│   └———:ERRo
 ├———:SPI
 │   ├———:EXCHange
 │   ├———:CS
@@ -51,11 +51,13 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 │   │   ├———:RSIZe
 │   │   ├———:WRITe
 │   │   ├———:READ
-│   │   └———:ERROr
+│   │   └———:ERRor
 │   ├———:WRITe
 │   ├———:READ
-│   └———:ERROr
+│   └———:ERRor
 ├———:SYSTem
+│   ├———:ERR
+│   │   └———:NEXT
 │   ├———:SERIalNumber
 │   ├———:SAVEState
 │   ├———:RESToreState
@@ -224,7 +226,7 @@ Write -> UART:MODE?
 Read  -> SCPI
 ```
 
-### UART:ERROr
+### UART:ERRor
 #### Description
 Gets the last reported error by the UART system. The error code is cleared when read.
 #### Codes
@@ -234,7 +236,7 @@ Code    | Meaning                                       |
 0x10    | Invalid Baud Rate                             |
 #### Example
 ```
-Write -> UART:ERRO?
+Write -> UART:ERR?
 Read  -> 0x00
 ```
 ### SPI:EXCHange (Combination IEEE Write and Read)
@@ -344,10 +346,10 @@ Write -> IIC:ADDR 0x50
 Write -> IIC:REGI:ADDR 0x01
 Write -> IIC:REGI:RSIZ 2
 Write -> IIC:REGI:WRIT 0x1001
-Write -> IIC:ERRO?
+Write -> IIC:ERR?
 Read  -> 0
 
-Write -> IIC:ADDR 0x50;REGI:ADDR 0x01;RSIZ 2;WRIT 0x1001;ERRO?
+Write -> IIC:ADDR 0x50;REGI:ADDR 0x01;RSIZ 2;WRIT 0x1001;ERR?
 Read  -> ;;;;0
 ```
 
@@ -375,13 +377,13 @@ Read  -> 0x1004
 Write -> IIC:ERRO?
 Read  -> 0x00
 
-Write -> IIC:ADDR 0x50;REGI:ADDR 0x01;RSIZ 2;READ?;ERRO?
+Write -> IIC:ADDR 0x50;REGI:ADDR 0x01;RSIZ 2;READ?;ERR?
 Read  -> ;;;0x1004;0x00
 ```
 
-### IIC:REGIster:ERROr?
+### IIC:REGIster:ERRor?
 #### Description
-The same as `IIC:ERROr`.
+The same as `IIC:ERRor`.
 
 ### IIC:WRITe (IEEE Write Only)
 #### Description
@@ -410,7 +412,7 @@ Write -> IIC:ADDR 0x0C;WRIT #11A;READ? 2
 Read  -> ;;#2BC
 ```
 
-### IIC:ERROr?
+### IIC:ERRor?
 #### Description
 Gets the last reported error by the I2C system. The error code is cleared when read.
 #### Codes
@@ -432,11 +434,44 @@ Code    | Meaning                                       |
 #### Example
 ```
 Write -> SYST:NUMB HEX
-Write -> IIC:ERRO?
+Write -> IIC:ERR?
 Read  -> 0x01
-Write -> IIC:ERRO?
+Write -> IIC:ERR?
 Read  -> 0x00
 ```
+
+### SYSTem:ERRor\[:NEXT\]?
+#### Description
+Queries all the the error systems and returns a summary of all the errors plus amy system specific errors. The system specific errors are cleared after the message is read. The summary bits are cleared by reading the corresponding systems error code e.g. `IIC:ERR?`
+
+#### Bitmap
+Bit     | Meaning                                       |
+--------|-----------------------------------------------|
+1       | Digital Input System                          |
+2       | Analog Input System                           |
+3       | Digital Output System                         |
+4       | Analog Output System                          |
+5       | PWM Output System                             |
+6       | Servo Output System                           |
+7       | UART System                                   |
+8       | SPI System                                    |
+9       | IIC System                                    |
+10 - 12 | Reserved for future use                       |
+13 - 16 | Systems Error Codes                           |
+
+#### System Error Codes
+Code    | Meaning                                       |
+--------|-----------------------------------------------|
+0x00    | No System Errors                              |
+
+#### Example
+```
+Write -> SYST:ERR?
+Read  -> 0
+Write -> SYST:ERR:NEXT?
+Read  -> 0
+```
+
 ### SYSTem:SERIalnumber "\<value>"
 #### Description
 Gets the stored serial number. As there is no unique identifiers built into the hardware of the Qy@ Board, this command can also be used to set a Serial Number. The maximum length of the serial number is 16 charters. The serial number is also reported by the `*IDN?` command

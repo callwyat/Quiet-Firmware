@@ -11,6 +11,7 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
+    uint8_t I2CPeakErrorCode(void);
     
 #ifdef	__cplusplus
 }

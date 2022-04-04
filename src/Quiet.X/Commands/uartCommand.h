@@ -12,6 +12,8 @@
 extern "C" {
 #endif
 
+    uint8_t UARTPeakErrorCode(void);
+
 #ifdef	__cplusplus
 }
 #endif

@@ -5,6 +5,43 @@
 #include "../outputs.h"
 #include "../buildInfo.h"
 
+#include "uartCommand.h"
+#include "i2cCommand.h"
+
+typedef union {
+    struct {
+        unsigned DIGIError : 1;
+        unsigned ANAIError : 1;
+        unsigned DIGOError : 1;
+        unsigned ANAOError : 1;
+        unsigned SERVError : 1;
+        unsigned UARTError : 1;
+        unsigned SPIError : 1;
+        unsigned IICError : 1;
+        unsigned : 3;
+        uint8_t  SYSTError : 4;
+    };
+    
+    struct {
+        uint16_t All;
+    };
+} error_summary_t;
+
+void SYSTErrorCommand(CliBuffer_t *buffer, void* v)
+{
+    if (*buffer->InputPnt == '?')
+    {
+        ++buffer->InputPnt;
+        
+        error_summary_t result = {
+          .UARTError = UARTPeakErrorCode() > 0,
+          .IICError = I2CPeakErrorCode() > 0,
+        };
+        
+        NumberToString(buffer, result.All);
+    }
+}
+
 void SYSTSerilalNumber(CliBuffer_t *buffer, void* v)
 {
     QuietSettings_t settings = GetSettings();
@@ -177,7 +214,12 @@ CommandDefinition_t InfoChildrenCommands[] = {
     DEFINE_BRANCH("BUIL", BUILdInfoChildrenCommands),  
 };
 
+CommandDefinition_t SYSTErrorChildren[] = {
+    DEFINE_COMMAND("NEXT", SYSTErrorCommand),
+};
+
 CommandDefinition_t SYSTemChildrenCommands[] = {
+    DEFINE_COMMAND_W_BRANCH("ERR", SYSTErrorCommand, SYSTErrorChildren),
     DEFINE_COMMAND("REST", SYSTRestore),
     DEFINE_COMMAND("SAVE", SYSTSave),
     DEFINE_COMMAND("SERI", SYSTSerilalNumber),

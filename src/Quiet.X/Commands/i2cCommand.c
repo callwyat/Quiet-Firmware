@@ -227,21 +227,31 @@ void I2CReadCommand(CliBuffer_t *buffer, void* v)
     }
 }
 
+uint8_t I2CPeakErrorCode(void)
+{
+    // Check for a NACK
+    if (I2C1_LastOperationNACKed() && i2cErrorCode == 0)
+    {
+        i2cErrorCode = I2C_ERROR_NO_ACKNOWLEDGE;
+    }
+    
+    return i2cErrorCode;
+}
+
+uint8_t I2CPopErrorCode(void)
+{
+    uint8_t result = I2CPeakErrorCode();
+    i2cErrorCode = I2C_ERROR_NONE;
+    return result;
+}
+
 void I2CErrorCommand(CliBuffer_t *buffer, void* v)
 {    
     if (*buffer->InputPnt == '?')
     {
         ++buffer->InputPnt;
         
-        // Check for a NACK
-        if (I2C1_LastOperationNACKed() && i2cErrorCode == 0)
-        {
-            i2cErrorCode = I2C_ERROR_NO_ACKNOWLEDGE;
-        }
-        
-        NumberToString(buffer, i2cErrorCode);
-                
-        i2cErrorCode = I2C_ERROR_NONE;
+        NumberToString(buffer, I2CPopErrorCode());
     }
 }
 
@@ -370,7 +380,7 @@ CommandDefinition_t i2cRegisterCommands[] = {
     DEFINE_COMMAND("RSIZ", I2CRegisterRegisterSizeCommand),
     DEFINE_COMMAND("WRIT", I2CRegisterWriteCommand),
     DEFINE_COMMAND("READ", I2CRegisterReadCommand),
-    DEFINE_COMMAND("ERRO", I2CErrorCommand),
+    DEFINE_COMMAND("ERR", I2CErrorCommand),
 };
 
 CommandDefinition_t i2cCommands[] = {
