@@ -77,6 +77,7 @@
         <itemPath>Commands/uartCommand.c</itemPath>
         <itemPath>Commands/spiCommand.c</itemPath>
         <itemPath>Commands/i2cCommand.c</itemPath>
+        <itemPath>Commands/testCommands.c</itemPath>
       </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"

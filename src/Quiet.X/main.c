@@ -65,6 +65,7 @@ extern CommandDefinition_t UARTCommand;
 extern CommandDefinition_t SPICommand;
 extern CommandDefinition_t IICCommand;
 extern CommandDefinition_t DIAGnosticsCommand;
+extern CommandDefinition_t TESTCommand;
             
 // Put the commands that have the most branches towards the top
 CommandDefinition_t allCommands[16];
@@ -84,6 +85,7 @@ void CliInit(void)
     *pnt++ =  IICCommand;
     *pnt++ =  SYSTemCommand;
     *pnt++ =  DIAGnosticsCommand;
+    *pnt++ =  TESTCommand;
 
     pnt = limitedCommands;
     *pnt++ =  PWMCommand;
