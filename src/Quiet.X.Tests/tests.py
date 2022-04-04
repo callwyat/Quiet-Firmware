@@ -1,54 +1,13 @@
 
-import re
 import time
-import quiet_coms
-
-QUIET_TERMINATION = '\r\n'
-BOOL_PATTERN = '\\b[01]\\b'
-HEX8_PATTERN = "\\b0[xX]([0-9a-fA-F]{2})\\b"
-HEX16_PATTERN = "\\b0[xX]([0-9a-fA-F]{4}|[0-9a-fA-F]{2})\\b"
-HEX24_PATTERN = "\\b0[xX]([0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{2})\\b"
-INT16_PATTERN = '\\b[\\d]{1,5}\\b'
-INT24_PATTERN = '\\b[\\d]{1,8}\\b'
-OUTPUT_MODE_PATTERN = '\\b(DISC|PWM|SERV)\\b'
+from quiet_coms import QuietComs, find_quiet_ports
+from quite_tester import *
 
 VERBOSE = True
 EXIT_ON_FAIL = True
 
-class QueryTest():
 
-    def __init__(self, command, response):
-        super().__init__()
-        
-        self.commands = [command + QUIET_TERMINATION]
-        self.response = f'{response}({QUIET_TERMINATION})'
-
-    def check_response(self, response):
-        return re.search(self.response, response)
-
-class QueryChannelTest():
-
-    def __init__(self, command, start, stop, response):
-        super().__init__()
-
-        self.commands = []
-        for i in range(start, stop + 1):
-            self.commands.append(command.replace('#', str(i)) + QUIET_TERMINATION)
-
-        self.response = f'{response}({QUIET_TERMINATION})'
-
-    def check_response(self, response):
-        return re.search(self.response, response)
-
-def generate_fail_message(command, expected, response):
-    return (f"Test Failed\nSent:     {repr(command)}\n" +
-          f"Expected: {repr(expected)}\n" +
-          f"Received: {repr(response)}")
-
-def print_fail_message(command, expected, response):
-    print(generate_fail_message(command, expected, response))
-
-def output_test(quite: quiet_coms.QuietComs, command, count, mode, value):
+def output_test(quite: QuietComs, command, count, mode, value):
     for i in range(1, count + 1):
         full_command = f'{command}:CH{i}:MODE {mode};VALUE {value};MODE?\r\n'
         response = quite.query_raw(full_command)
@@ -63,7 +22,7 @@ def output_test(quite: quiet_coms.QuietComs, command, count, mode, value):
         if VERBOSE:
             print(f'{command}:CH{i}'.ljust(10) + f' => {response.strip()}')
 
-        time.sleep(1)
+        time.sleep(0.2)
 
 default_test_results = [ 
     'DISC', 
@@ -78,7 +37,7 @@ default_test_results = [
     'PWM',
     ]
 
-def defaults_test(com):
+def defaults_test(quite:QuietComs):
 
     # Restore factory defaults
     quite.write(f'SYST:REST FACT')
@@ -100,147 +59,128 @@ def defaults_test(com):
 
     
 
-def command_test(quite: quiet_coms.QuietComs, number_mode='DECI'):
+def command_test(tester: QuiteTester, number_mode='DECI'):
 
-    if number_mode == 'DECI' or number_mode == 'HEX':
-        # Changed the number mode
-        quite.write(f'SYST:NUMB {number_mode}')
-    else:
-        raise Exception(f'Invalid Number mode {number_mode}. Must be \'DECI\' or \'HEX\'')
+    print('Starting Command Tests')
 
     number_pattern_24 = HEX24_PATTERN if number_mode == 'HEX' else INT24_PATTERN
     number_pattern_16 = HEX16_PATTERN if number_mode == 'HEX' else INT16_PATTERN
     number_pattern_8 = HEX8_PATTERN if number_mode == 'HEX' else INT16_PATTERN
 
-    queryTests = [
-        QueryTest('*IDN?', 'Y@ Technologies,Qy@ Board,.*?,[2-9]\\.[0-9]'),
+    tester.query_test('*IDN?', 'Y@ Technologies,Qy@ Board,.*?,[2-9]\\.[0-9]'),
 
-        QueryTest('DIGI?', number_pattern_8),
-        QueryTest('DIGInputs?', number_pattern_8),
-        QueryChannelTest('DIGI:CH#?', 1, 8, number_pattern_8),
-        QueryChannelTest('DIGI:CH#:VALU?', 1, 8, number_pattern_8),
+    tester.query_test('DIGI?', number_pattern_8),
+    tester.query_test('DIGInputs?', number_pattern_8),
+    tester.channel_query_test('DIGI:CH#?', 1, 8, number_pattern_8),
+    tester.channel_query_test('DIGI:CH#:VALU?', 1, 8, number_pattern_8),
 
-        QueryChannelTest('ANAI:CH#?', 1, 4, number_pattern_16),
+    tester.channel_query_test('ANAI:CH#?', 1, 4, number_pattern_16),
 
-        QueryTest('DIGOutputs?', number_pattern_8),
-        QueryChannelTest('DIGO:CH#?', 1, 8, number_pattern_16),
-        QueryChannelTest('DIGO:CH#:VALU?', 1, 8, number_pattern_16),
-        QueryChannelTest('DIGO:CH#:MODE?', 1, 8, '\\bDISC\\b'),
+    tester.query_test('DIGOutputs?', number_pattern_8),
+    tester.channel_query_test('DIGO:CH#?', 1, 8, number_pattern_16),
+    tester.channel_query_test('DIGO:CH#:VALU?', 1, 8, number_pattern_16),
+    tester.channel_query_test('DIGO:CH#:MODE?', 1, 8, '\\bDISC\\b'),
 
-        QueryChannelTest('ANAO:CH#?', 1, 2, number_pattern_16),
-        QueryChannelTest('ANAO:CH#:VALU?', 1, 2, number_pattern_16),
-        QueryChannelTest('ANAO:CH#:MODE?', 1, 2, '\\bPWM\\b'),
+    tester.channel_query_test('ANAO:CH#?', 1, 2, number_pattern_16),
+    tester.channel_query_test('ANAO:CH#:VALU?', 1, 2, number_pattern_16),
+    tester.channel_query_test('ANAO:CH#:MODE?', 1, 2, '\\bPWM\\b'),
 
-        QueryChannelTest('PWM:CH#?', 1, 6, number_pattern_16),
-        QueryChannelTest('PWM:CH#:VALU?', 1, 6, number_pattern_16),
-        QueryChannelTest('PWM:CH#:MODE?', 1, 6, OUTPUT_MODE_PATTERN), 
+    tester.channel_query_test('PWM:CH#?', 1, 6, number_pattern_16),
+    tester.channel_query_test('PWM:CH#:VALU?', 1, 6, number_pattern_16),
+    tester.channel_query_test('PWM:CH#:MODE?', 1, 6, OUTPUT_MODE_PATTERN), 
 
-        QueryChannelTest('SERV:CH#?', 1, 10, number_pattern_16),
-        QueryChannelTest('SERV:CH#:VALU?', 1, 10, number_pattern_16),
-        QueryChannelTest('SERVo:CH#:MODE?', 1, 10, OUTPUT_MODE_PATTERN), 
+    tester.channel_query_test('SERV:CH#?', 1, 10, number_pattern_16),
+    tester.channel_query_test('SERV:CH#:VALU?', 1, 10, number_pattern_16),
+    tester.channel_query_test('SERVo:CH#:MODE?', 1, 10, OUTPUT_MODE_PATTERN), 
 
-        QueryTest('UART:BAUD?', number_pattern_24),
-        QueryTest('UART:MODE?', '\\b(USBU|SCPI)\\b'),
-        QueryTest('UART:ERR?', number_pattern_8),
+    tester.query_test('UART:BAUD?', number_pattern_24),
+    tester.query_test('UART:MODE?', '\\b(USBU|SCPI)\\b'),
+    tester.query_test('UART:ERR?', number_pattern_8),
 
-        QueryTest('SPI:BAUD?', number_pattern_24),
+    tester.query_test('SPI:BAUD?', number_pattern_24),
 
-        QueryTest('IIC:ENABle?', number_pattern_8),
-        QueryTest('IIC:BAUD?', number_pattern_24),
-        QueryTest('IIC:TIMEout?', number_pattern_16),
-        QueryTest('IIC:ADDRess?', number_pattern_8),
-        QueryTest('IIC:ERR?', number_pattern_8),
+    tester.query_test('IIC:ENABle?', number_pattern_8),
+    tester.query_test('IIC:BAUD?', number_pattern_24),
+    tester.query_test('IIC:TIMEout?', number_pattern_16),
+    tester.query_test('IIC:ADDRess?', number_pattern_8),
+    tester.query_test('IIC:ERR?', number_pattern_8),
 
-        QueryTest('IIC:REGIster:ADDRess?', number_pattern_8),
-        QueryTest('IIC:REGIster:RSIZe?', number_pattern_8),
-        QueryTest('IIC:REGIster:ERRor?', number_pattern_8),
+    tester.query_test('IIC:REGIster:ADDRess?', number_pattern_8),
+    tester.query_test('IIC:REGIster:RSIZe?', number_pattern_8),
+    tester.query_test('IIC:REGIster:ERRor?', number_pattern_8),
 
-        QueryTest('SYST:ERR?', number_pattern_8),
+    tester.query_test('SYST:ERR?', number_pattern_8),
 
-        QueryTest('SYST:INFO:COMM:HASH?', '"(~?[0-9a-fA-F]{40}~?)"'),
-        QueryTest('SYST:INFO:COMM:AUTH?', '"((\w*) *)*"'),
-        QueryTest('SYST:INFO:COMM:DATE?', '"(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})"'),
+    tester.query_test('SYST:INFO:COMM:HASH?', '"(~?[0-9a-fA-F]{40}~?)"'),
+    tester.query_test('SYST:INFO:COMM:AUTH?', '"((\w*) *)*"'),
+    tester.query_test('SYST:INFO:COMM:DATE?', '"(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})"'),
 
-        QueryTest('SYST:INFO:BUIL:VERS?', '"(\\d{4})"'),
-        QueryTest('SYST:INFO:BUIL:USER?', '"((\w*) *)*"'),
-        QueryTest('SYST:INFO:BUIL:DATE?', '"(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})"'),
-    ]
-
-    print('Starting Command Tests')
-
-    for test in queryTests:
-
-        for command in test.commands:
-
-            response = quite.query_raw(command)
-            test_result = test.check_response(response)
-
-            if not test_result:
-                print_fail_message(command, test.response, response)
-
-                if EXIT_ON_FAIL:
-                    raise Exception(generate_fail_message(command, test.response, response))
-
-            else:
-                # Get the time to execute the command
-                value_string = quite.query('DIAG?')
-                if number_mode == 'HEX':
-                    execution_time = int(value_string[2:], 16)
-                else:
-                    execution_time = int(value_string, 10)
-
-                if VERBOSE:
-                    print(f"{command.strip().ljust(16)} ( {str(execution_time).strip().ljust(5)} ) =>   {response.strip()}")
+    tester.query_test('SYST:INFO:BUIL:VERS?', '"(\\d{4})"'),
+    tester.query_test('SYST:INFO:BUIL:USER?', '"((\w*) *)*"'),
+    tester.query_test('SYST:INFO:BUIL:DATE?', '"(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})"'),
 
     print('Command Tests Passed')
 
-def parse_test(quite: quiet_coms.QuietComs, number_mode='DECI'):
+class ParseTest():
+
+    def __init__(self, command:str, start:int, end:int, increment:int=1) -> None:
+        self.command = command
+        self.start = start
+        self.end = end
+        self.increment = increment
+
+def parse_test(quite: QuiteTester, number_mode='DECI'):
     
-    if number_mode == 'DECI' or number_mode == 'HEX':
-        # Changed the number mode
-        quite.write(f'SYST:NUMB {number_mode}')
-    else:
-        raise Exception(f'Invalid Number mode {number_mode}. Must be \'DECI\' or \'HEX\'')
+    tests = [
+        ParseTest('TEST:PARS #;PARS?\r\n', 0, 1024, 1),
+        ParseTest('TEST:PARS #;PARS?\r\n', 1030, 2**15, 11),
+        # TODO: Test ParseINT24 Method
+    ]
+
+    quite.set_number_mode(number_mode)
 
     print('Starting Parse Test')
+    print_count = 0
 
-    if number_mode == 'DECI':
-        # Test the parsing method
-        for val in range(0, 1024, 3):
+    for test in tests:
+        if number_mode == 'DECI':
 
-            if VERBOSE:
-                print(f'Testing             => {val}')
+            # Test the parsing method
+            for val in range(test.start, test.end, test.increment):
 
-            command = f'ANAO:CH1 {val};CH1?\r\n'
-            response = quite.query_raw(command)
+                if VERBOSE and val >= print_count:
+                    print(f'Tested to            => {val}')
+                    print_count = print_count + test.increment * 10
 
-            expected = f';{val}\r\n'
-            if response != expected:
-                fail_string = generate_fail_message(command, expected, response)
-                print(fail_string)
-                if EXIT_ON_FAIL:
-                    raise Exception(fail_string)
+                response = quite.query_raw(test.command.replace('#', str(val)))
 
-    else:
-        # Test the parsing method
-        for val in range(0, 1024, 3):
+                expected = f';{val}\r\n'
+                if response != expected:
+                    fail_string = generate_fail_message(test.command, expected, response)
+                    print(fail_string)
+                    if EXIT_ON_FAIL:
+                        raise Exception(fail_string)
 
-            if VERBOSE:
-                print(f'Testing             => {hex(val)}')
+        else:
+            # Test the parsing method
+            for val in range(test.start, test.end, test.increment):
 
-            command = f'ANAO:CH1 {hex(val)};CH1?\r\n'
-            response = quite.query_raw(command)
+                if VERBOSE and val >= print_count:
+                    print(f'Testing             => {hex(val)}')
+                    print_count = print_count + test.increment * 10
 
-            expected = f';0x{format(val, "02X" if val <= 0xFF else "04X")}\r\n'
-            if response != expected:
-                fail_string = generate_fail_message(command, expected, response)
-                print(fail_string)
-                if EXIT_ON_FAIL:
-                    raise Exception(fail_string)
+                response = quite.query_raw(test.command.replace('#', hex(val)))
+
+                expected = f';0x{format(val, "02X" if val <= 0xFF else "04X")}\r\n'
+                if response != expected:
+                    fail_string = generate_fail_message(test.command, expected, response)
+                    print(fail_string)
+                    if EXIT_ON_FAIL:
+                        raise Exception(fail_string)
 
     print('Parse Test Passed')
 
-def output_mode_test(quite: quiet_coms.QuietComs):
+def output_mode_test(quite: QuietComs):
     print('Outputs Test')
 
     output_test(quite, 'SERV', 10, 'SERV', '0x3FF')
@@ -252,30 +192,28 @@ def output_mode_test(quite: quiet_coms.QuietComs):
     print('Outputs Test Complete')
 
 
-def run_quiet_test(quite: quiet_coms.QuietComs):
+def run_quiet_test(tester: QuiteTester):
 
-    quite.write('*RST')
+    tester.write('*RST')
 
-    defaults_test(quite)
+    defaults_test(tester)
 
-    command_test(quite, 'DECI')
+    command_test(tester)
 
-    parse_test(quite, 'DECI')
+    parse_test(tester, 'DECI')
 
-    parse_test(quite, 'HEX')
+    parse_test(tester, 'HEX')
 
-    output_mode_test(quite)
+    output_mode_test(tester)
 
     # TODO: Test the manipulation of settings
 
 
 if __name__ == "__main__":
 
-    qPorts = quiet_coms.find_quiet_ports()
+    qPort = find_quiet_ports()[0]
 
-    quite = quiet_coms.QuietComs(qPorts[0])
-
-    run_quiet_test(quite)
+    run_quiet_test(QuiteTester(qPort))
     
     print("All Tests Passed")
 
