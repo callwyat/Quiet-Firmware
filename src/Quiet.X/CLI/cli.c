@@ -117,8 +117,7 @@ void ProcessCommand(CliBuffer_t *buffer, CommandDefinition_t* commands)
                     
                     if (command->Children)
                     {
-                        commandList = command->Children;
-                        command = commandList;
+                        command = commandList = command->Children;
                     }
                     else
                     {

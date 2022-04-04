@@ -210,7 +210,7 @@ void UARTErrorCommand(CliBuffer_t *buffer, void* v)
     }
 }
 
-CommandDefinition_t uartCommands[] = {
+CommandDefinition_t uartCommandChildren[] = {
   DEFINE_COMMAND("READ", UARTReadCommand),
   DEFINE_COMMAND("WRIT", UARTWriteCommand),
   DEFINE_COMMAND("BAUD", UARTBaudCommand),
@@ -218,4 +218,4 @@ CommandDefinition_t uartCommands[] = {
   DEFINE_COMMAND("ERR", UARTErrorCommand),
 };
  
-CommandDefinition_t UARTCommand = DEFINE_BRANCH("UART", uartCommands);
+CommandDefinition_t UARTCommand = DEFINE_BRANCH("UART", uartCommandChildren);

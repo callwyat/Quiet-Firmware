@@ -388,7 +388,7 @@ CommandDefinition_t i2cCommands[] = {
     DEFINE_COMMAND("ADDR", I2CAddressCommand),
     DEFINE_COMMAND("WRIT", I2CWriteCommand),
     DEFINE_COMMAND("READ", I2CReadCommand),
-    DEFINE_COMMAND("ERRO", I2CErrorCommand),
+    DEFINE_COMMAND("ERR", I2CErrorCommand),
     DEFINE_COMMAND("ENAB", I2CEnableCommand),
     DEFINE_COMMAND("BAUD", I2CBaudCommand),
     DEFINE_COMMAND("TIME", I2CTimeoutCommand),

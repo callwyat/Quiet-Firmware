@@ -54,17 +54,6 @@
 #include "settings.h"
 #include "constants.h"
 
-#include "../Commands/digiCommand.h"
-#include "../Commands/digoCommand.h"
-#include "../Commands/anaiCommand.h"
-#include "../Commands/anaoCommand.h"
-#include "../Commands/pwmCommand.h"
-#include "../Commands/servoCommand.h"
-#include "../Commands/uartCommand.h"
-#include "../Commands/spiCommand.h"
-#include "../Commands/i2cCommand.h"
-#include "../Commands/systemCommand.h"
-
 extern CommandDefinition_t PWMCommand;
 extern CommandDefinition_t SERVoCommand;
 extern CommandDefinition_t DIGOCommand;
@@ -78,31 +67,33 @@ extern CommandDefinition_t IICCommand;
 extern CommandDefinition_t DIAGnosticsCommand;
             
 // Put the commands that have the most branches towards the top
-CommandDefinition_t usbCommands[12];
-CommandDefinition_t uartCommands[9];
+CommandDefinition_t usbCommands[16];
+CommandDefinition_t uartCommands[16];
 
 void CliInit(void)
 {
-    usbCommands[0] =  PWMCommand;
-    usbCommands[1] =  SERVoCommand;
-    usbCommands[2] =  DIGOCommand;
-    usbCommands[3] =  ANAOCommand;
-    usbCommands[4] =  ANAICommand;
-    usbCommands[5] =  DIGICommand;
-    usbCommands[6] =  SYSTemCommand;
-    usbCommands[7] =  UARTCommand;
-    usbCommands[8] =  SPICommand;
-    usbCommands[9] =  IICCommand;
-    usbCommands[10] =  DIAGnosticsCommand;
+    CommandDefinition_t* pnt = usbCommands;
+    *pnt++ =  PWMCommand;
+    *pnt++ =  SERVoCommand;
+    *pnt++ =  DIGOCommand;
+    *pnt++ =  ANAOCommand;
+    *pnt++ =  ANAICommand;
+    *pnt++ =  DIGICommand;
+    *pnt++ =  UARTCommand;
+    *pnt++ =  SPICommand;
+    *pnt++ =  IICCommand;
+    *pnt++ =  SYSTemCommand;
+    *pnt++ =  DIAGnosticsCommand;
 
-    uartCommands[0] =  PWMCommand;
-    uartCommands[1] =  SERVoCommand;
-    uartCommands[2] =  DIGOCommand;
-    uartCommands[3] =  ANAOCommand;
-    uartCommands[4] =  ANAICommand;
-    uartCommands[5] =  DIGICommand;
-    uartCommands[6] =  SYSTemCommand;
-    uartCommands[7] =  DIAGnosticsCommand;
+    pnt = uartCommands;
+    *pnt++ =  PWMCommand;
+    *pnt++ =  SERVoCommand;
+    *pnt++ =  DIGOCommand;
+    *pnt++ =  ANAOCommand;
+    *pnt++ =  ANAICommand;
+    *pnt++ =  DIGICommand;
+    *pnt++ =  SYSTemCommand;
+    *pnt++ =  DIAGnosticsCommand;
 }
 
 static CliBuffer_t usbBuffer;
