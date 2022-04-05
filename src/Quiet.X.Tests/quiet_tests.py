@@ -100,7 +100,7 @@ def command_test(tester: QuietTester, number_mode='DECI', all_commands=True):
 
         tester.query_test('SPI:BAUD?', number_pattern_24),
 
-        tester.query_test('IIC:ENABle?', number_pattern_8),
+        tester.query_test('IIC:MODE?', '\\b(OFF|MAST)\\b'),
         tester.query_test('IIC:BAUD?', number_pattern_24),
         tester.query_test('IIC:TIMEout?', number_pattern_16),
         tester.query_test('IIC:ADDRess?', number_pattern_8),

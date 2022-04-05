@@ -30,7 +30,7 @@ class Quiet(QuietComs):
     def set_and_verify(self, command:str, value, tolerance:float=0):
 
         query_str = command.split(':')[-1]
-        full_command = f'{command} {value}:{query_str}?'
+        full_command = f'{command} {value};{query_str}?'
 
         if type(value) == int:
             response = self.query_int(full_command)
@@ -42,7 +42,7 @@ class Quiet(QuietComs):
                 raise QuietSetError(f'{command} failed. Sent {value} Received {response}')
 
         else:
-            response = self.query(full_command)
+            response = self.query(full_command).strip(';')
 
             if response != value:
                 raise QuietSetError(f'{command} failed. Sent {value} Received {response}')

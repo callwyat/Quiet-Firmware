@@ -21,6 +21,8 @@ uint8_t i2cRegisterSize = 1;
 #define I2C_ERROR_INVALID_BAUD 0x01
 #define I2C_ERROR_INVALID_TIMEOUT 0x02
 #define I2C_ERROR_INVALID_SLAVE_ADDRESS 0x03
+#define I2C_ERROR_INVALID_MODE 0x04
+
 
 #define I2C_ERROR_DISABLED_WRITE 0x10
 #define I2C_ERROR_DISABLED_READ 0x11
@@ -37,30 +39,35 @@ uint8_t i2cRegisterSize = 1;
 // The last generated error to occur
 uint8_t i2cErrorCode = I2C_ERROR_NONE;
 
-void I2CEnableCommand(CliBuffer_t *buffer, void* v)
+const char* OFFWord = "OFF";
+const char* MASTerWord = "MAST";
+
+void I2CModeCommand(CliBuffer_t *buffer, void* v)
 {
     if (*buffer->InputPnt == ' ')
     {
         ++buffer->InputPnt;
         
-        char c = *buffer->InputPnt;
-        ++buffer->InputPnt;
-        
-        if (c == '0' || c == 'F')
+        if (SCPICompare(OFFWord, buffer->InputPnt))
         {
             I2C1_SetEnabled(false);
-        }
-        else if (c == '1' || c == 'T')
+        } 
+        else if (SCPICompare(MASTerWord, buffer->InputPnt))
         {
             I2C1_SetEnabled(true);
         }
-
+        else
+        {
+            i2cErrorCode = I2C_ERROR_INVALID_MODE;
+        }
     }
     else if (*buffer->InputPnt == '?')
     {
         ++buffer->InputPnt;
 
-        *buffer->OutputPnt++ = I2C1_GetEnabled() ? '1' : '0'; 
+        const char* word = I2C1_GetEnabled() ? MASTerWord : OFFWord;
+        
+        CopyWordToOutBuffer(buffer, word);
     }
 }
 
@@ -389,7 +396,7 @@ CommandDefinition_t i2cCommands[] = {
     DEFINE_COMMAND("WRIT", I2CWriteCommand),
     DEFINE_COMMAND("READ", I2CReadCommand),
     DEFINE_COMMAND("ERR", I2CErrorCommand),
-    DEFINE_COMMAND("ENAB", I2CEnableCommand),
+    DEFINE_COMMAND("MODE", I2CModeCommand),
     DEFINE_COMMAND("BAUD", I2CBaudCommand),
     DEFINE_COMMAND("TIME", I2CTimeoutCommand),
 };

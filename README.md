@@ -42,7 +42,7 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 │   ├———:CS
 │   └———:BAUD
 ├———:IIC (I2C)
-│   ├———:ENABled
+│   ├———:MODE
 │   ├———:BAUD
 │   ├———:TIMEout
 │   ├———:ADDRess
@@ -271,9 +271,9 @@ Write -> SPI:BAUD?
 Read  -> 250000
 ```
 
-### IIC:ENABled \<value>
+### IIC:MODE (OFF|MASTer)
 #### Description
-Gets or sets the enable bit for the I2C Module.
+Gets or sets active mode for the I2C Module.
 #### Notes
 The I2C modules uses the same pins as digital outputs 5 and 6. As such, these two pins must be cleared of any loads greater then 1mA to work. This includes the status LED for the output, and the Opto-Coupler Input.
 
@@ -285,9 +285,9 @@ To use the I2C port ensure the following items are checked on digital outs 5 and
     - The recommended pull-up size is between 1k and 10k ohms
 #### Example
 ```
-Write -> IIC:ENAB 1
-Write -> IIC:ENAB?
-Read  -> 1
+Write -> IIC:MODE MAST
+Write -> IIC:MODE?
+Read  -> MAST
 ```
 
 ### IIC:BAUD \<value>
@@ -422,6 +422,7 @@ Code    | Meaning                                       |
 0x01    | Attempted to set invalid baud rate            |
 0x02    | Attempted to set invalid timeout              |
 0x03    | Attempted to set invalid slave address        |
+0x04     | Attempted to set invalid operation mode       |
 0x10    | Attempted to write with I2C disabled          |
 0x11    | Attempted to read with I2C disabled           |
 0x12    | No Acknowledgment was received                |
