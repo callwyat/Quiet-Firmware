@@ -119,7 +119,7 @@ class QuietComs():
         ieee_header = f'#{header_size}{data_size}'
 
         # Send header and data
-        self.com.write(f'{command} {ieee_header}'.encode() + bytearray(data))
+        self.com.write(f'{command} {ieee_header}'.encode() + bytearray(data) + '\r\n'.encode())
 
     def queryIEEE(self, command:str) -> bytearray:
         """ Writes the given command to the quiet board and attempts to read the IEEE

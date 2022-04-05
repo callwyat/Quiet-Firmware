@@ -130,6 +130,8 @@ void USB_CDC_Tasks(void)
             USBLED = 0;
             if (usbBuffer.DataHandle)
             {
+                usbBuffer.InputBuffer[usbBuffer.InputLength] = 0x00;
+                
                 usbBuffer.InputPnt = usbBuffer.InputBuffer;
                 usbBuffer.OutputPnt = usbBuffer.OutputBuffer;
                 

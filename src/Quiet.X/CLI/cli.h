@@ -29,7 +29,9 @@ extern "C" {
         uint8_t InputLength;
         void(*DataHandle)(struct CliBuffer *buffer);
         char InputBuffer[CLI_BUFFER_SIZE];
+        unsigned : 8;  // Make sure there is a null after the input buffer       
         char OutputBuffer[CLI_BUFFER_SIZE];
+        unsigned : 8;  // Make sure there is a null after the output buffer
     } CliBuffer_t;
     
     
