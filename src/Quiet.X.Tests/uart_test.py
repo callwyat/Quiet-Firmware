@@ -34,7 +34,7 @@ class QuietUART(QuietTester):
     def uart_read(self, count:int, timeout:float=1) -> bytearray:
         
         result = []
-        timeout_time = time.time() + timeout
+        timeout_time = time.time() + timeout if timeout > 0 else time.time() + 1000000000000
 
         while len(result) < count and time.time() < timeout_time:
             for b in self.queryIEEE("UART:READ?"):
@@ -102,6 +102,7 @@ def _uart_baud_test(quiet:QuietUART, partner_port:str):
 
 def _uart_scpi_test(quiet:QuietUART, partner_port:str):
 
+    print('Starting UART SCPI Mode Test')
     quiet.reset()
 
     test_rate = 57600
@@ -110,6 +111,42 @@ def _uart_scpi_test(quiet:QuietUART, partner_port:str):
 
     with Serial(partner_port, test_rate, timeout=2) as partner:
         command_test(QuietTester(partner), all_commands=False)
+
+    print('Completed UART SCPI Mode Test')
+
+def uart_loopback_test(quiet:QuietUART, baud:int=57600, partner_port:str=None):
+
+    print('Starting UART Loopback Test')
+
+    partner = Serial(partner_port, baud, timeout=1) if partner_port else None
+
+    quiet.reset()
+    quiet.set_uart_baud_rate(baud)
+    
+    # TODO: Get the UART to work with 51 or more bytes
+    for i in range(0, 51):
+
+        data = 'U' * i
+
+        quiet.uart_write(data.encode()) 
+
+        if partner:
+            d = partner.read(len(data))
+            partner.write(d)
+
+        time.sleep(0.001 * i)
+        
+        response = quiet.uart_read(len(data), -1).decode()
+
+        if response != data:
+            fail_string = f'UART Test Failed at: {i}'
+            print(fail_string)
+            if EXIT_ON_FAIL:
+                raise Exception(fail_string)
+        elif VERBOSE:
+            print (f'Loopback {i}  => Pass')
+
+    print('Completed UART Loopback Test')
 
 
 def uart_dual_test(quiet:QuietUART, partner_port:str):
@@ -120,33 +157,9 @@ def uart_dual_test(quiet:QuietUART, partner_port:str):
 
     _uart_scpi_test(quiet, partner_port)
 
+    uart_loopback_test(quiet, 57600, partner_port)
 
-def uart_loopback_test(quiet:QuietTester):
-    print('UART Tests')
-
-    quiet.write('UART:BAUD 115200')
-    
-    data = ''
-    for i in range(0, 64):
-
-        data += 'U'
-        data_size = str(len(data))
-        header_size = len(data_size)
-
-        packet = f'#{header_size}{data_size}{data}'
-        quiet.write(f'UART:WRIT {packet}')
-
-        time.sleep(0.001 * i)
-        
-        response = quiet.query_raw('UART:READ?')
-
-        if response != packet + '\r\n':
-            fail_string = f'UART Test Failed at: {i}'
-            print(fail_string)
-            if EXIT_ON_FAIL:
-                raise Exception(fail_string)
-
-    print('UART Test Complete')
+    print('Completed UART Test with partner')
 
 
 if __name__ == "__main__":

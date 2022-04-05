@@ -331,12 +331,14 @@ void ProcessCLI(CliBuffer_t *buffer, CommandDefinition_t* commands)
 }
 
 uint24_t TheStack[32];
-uint24_t *TheStackPnt = TheStack;
+uint24_t *TheStackPnt;
 
 void SetLargeDataHandle(CliBuffer_t *buffer, void(*handle)(CliBuffer_t *buffer, void *v))
 {    
     buffer->DataHandle = handle;
     
+    TheStackPnt = TheStack;
+            
     uint8_t intConSto = INTCON;     // Disable interrupts
     INTCON = 0x00;
     
@@ -346,6 +348,8 @@ void SetLargeDataHandle(CliBuffer_t *buffer, void(*handle)(CliBuffer_t *buffer, 
         *TheStackPnt++ = TOS;
         __asm("pop");
     }
+    
+    *TheStackPnt++ = TOS;
     
     INTCON |= intConSto;            // Restore Interrupts
 }
@@ -358,12 +362,20 @@ void ClearLargeDataHandle(CliBuffer_t *buffer)
     INTCON = 0x00;
     
     // Pop the stack until we get back to Process CLI
-    while (TheStackPnt != TheStack)
+    while (STKPTR > stackPnt)
     {
-        TOS = *TheStackPnt--;
-        __asm("push");
+        __asm("pop");
     }
     
+    // Restore the stack
+    while (TheStackPnt >= TheStack)
+    {
+        ++STKPTR;
+        TOSU = (uint8_t)(*TheStackPnt >> 16);
+        TOSH = (uint8_t)(*TheStackPnt >> 8);
+        TOSL = (uint8_t)(*TheStackPnt--);
+    }
+
     INTCON |= intConSto;            // Restore Interrupts
 }
 
