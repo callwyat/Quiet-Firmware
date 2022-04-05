@@ -41,25 +41,25 @@ void UARTReadCommand(CliBuffer_t *buffer, void* v)
     }
 }
 
-uint16_t uartReadSize = 0;
+uint16_t uartWriteSize = 0;
 
 void UARTLargeWrite(CliBuffer_t *buffer, void *v)
 {
     uint8_t bufferRemaining = (uint8_t)(&buffer->InputBuffer[buffer->InputLength] - buffer->InputPnt);
 
-    if (uartReadSize <= bufferRemaining)
+    if (uartWriteSize <= bufferRemaining)
     {
         // Read out the data in this buffer
         do
         {
             UART_Write((uint8_t)*buffer->InputPnt++);
-        } while (--uartReadSize > 0);
+        } while (--uartWriteSize > 0);
         
         ClearLargeDataHandle(buffer);
     }
     else
     {
-        uartReadSize -= bufferRemaining;
+        uartWriteSize -= bufferRemaining;
 
         // Read out the data until all the data is read
         do 
@@ -73,7 +73,7 @@ void UARTLargeWrite(CliBuffer_t *buffer, void *v)
         }
         else
         {
-            SetLargeDataHandle(buffer, &UARTLargeWrite);
+            SetLargeDataHandle(buffer, UARTLargeWrite);
         }
     }
 }
@@ -88,12 +88,12 @@ void UARTWriteCommand(CliBuffer_t *buffer, void* v)
         {
             ++buffer->InputPnt;
             
-            uartReadSize = ParseIEEEHeader(buffer);
+            uartWriteSize = ParseIEEEHeader(buffer);
             
             // Check for an invalid number
             if (UART_get_mode() == UMODE_USBUART)
             {
-                if (uartReadSize != 0)
+                if (uartWriteSize != 0)
                 {
                     UARTLargeWrite(buffer, v);
                 }
