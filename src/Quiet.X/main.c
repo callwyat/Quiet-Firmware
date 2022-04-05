@@ -135,7 +135,7 @@ void USB_CDC_Tasks(void)
                 usbBuffer.InputPnt = usbBuffer.InputBuffer;
                 usbBuffer.OutputPnt = usbBuffer.OutputBuffer;
                 
-                usbBuffer.DataHandle(&usbBuffer);
+                usbBuffer.DataHandle(&usbBuffer, 0);
                 putUSBUSART((uint8_t*)usbBuffer.OutputBuffer, 
                 (uint8_t)(usbBuffer.OutputPnt - usbBuffer.OutputBuffer));
             }

@@ -27,7 +27,7 @@ extern "C" {
         char *InputPnt;
         char *OutputPnt;
         uint8_t InputLength;
-        void(*DataHandle)(struct CliBuffer *buffer);
+        void(*DataHandle)(struct CliBuffer *buffer, void *v);
         char InputBuffer[CLI_BUFFER_SIZE];
         unsigned : 8;  // Make sure there is a null after the input buffer       
         char OutputBuffer[CLI_BUFFER_SIZE];
@@ -93,7 +93,7 @@ extern "C" {
     
     void CopyWordToOutBuffer(CliBuffer_t *buffer, const char* word);
     
-    void SetLargeDataHandle(CliBuffer_t *buffer, CommandHandle handle);
+    void SetLargeDataHandle(CliBuffer_t *buffer, void(*handle)(CliBuffer_t *buffer, void *v));
     
     void ClearLargeDataHandle(CliBuffer_t *buffer);
 

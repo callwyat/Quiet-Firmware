@@ -333,7 +333,7 @@ void ProcessCLI(CliBuffer_t *buffer, CommandDefinition_t* commands)
 uint24_t TheStack[32];
 uint24_t *TheStackPnt = TheStack;
 
-void SetLargeDataHandle(CliBuffer_t *buffer, void(*handle)())
+void SetLargeDataHandle(CliBuffer_t *buffer, void(*handle)(CliBuffer_t *buffer, void *v))
 {    
     buffer->DataHandle = handle;
     
