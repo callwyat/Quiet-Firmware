@@ -76,6 +76,7 @@ static CliBuffer_t uartBuffer;
 
 void CliInit(void)
 {
+    // Setup the command groups
     CommandDefinition_t* pnt = allCommands;
     *pnt++ =  PWMCommand;
     *pnt++ =  SERVoCommand;
@@ -100,6 +101,7 @@ void CliInit(void)
     *pnt++ =  SYSTemCommand;
     *pnt++ =  DIAGnosticsCommand;
     
+    // Setup the uartBuffer
     uartBuffer.InputPnt = uartBuffer.InputBuffer;
     uartBuffer.OutputPnt = uartBuffer.OutputBuffer;
 }

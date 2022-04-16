@@ -69,6 +69,8 @@ extern "C" {
             .ChildrenCount =  sizeof(children) / sizeof(children[0]),    \
         }
     
+    uint8_t PopCLIErrorCode(void);
+
     bool SCPICompare(const char *reference, char *input);
     
     void FFTilPunctuation(char **input);

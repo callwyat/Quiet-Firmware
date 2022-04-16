@@ -18,8 +18,8 @@ typedef union {
         unsigned UARTError : 1;
         unsigned SPIError : 1;
         unsigned IICError : 1;
-        unsigned : 3;
-        uint8_t  SYSTError : 4;
+        unsigned : 1;
+        uint8_t  SYSTError : 6;
     };
     
     struct {
@@ -36,6 +36,7 @@ void SYSTErrorCommand(CliBuffer_t *buffer, void* v)
         error_summary_t result = {
           .UARTError = UARTPeakErrorCode() > 0,
           .IICError = I2CPeakErrorCode() > 0,
+          .SYSTError = PopCLIErrorCode(),
         };
         
         NumberToString(buffer, result.All);

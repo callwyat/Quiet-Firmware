@@ -13,6 +13,13 @@
 
 #define IS_NUMBER(c) (c >= '0' && c <= '9')
 
+#define CLI_ERROR_INVALID_COMMAND 0x01
+#define CLI_ERROR_INVALID_BRANCH 0x02
+#define CLI_ERROR_INVALID_NUMBER 0x10
+#define CLI_ERROR_INVALID_IEEE_HEADER 0x11
+
+uint8_t cli_error;
+
 uint16_t lastExecutionTime = 0;
 void DIAGnostics(CliBuffer_t *buffer, void* v)
 {
@@ -26,6 +33,13 @@ void DIAGnostics(CliBuffer_t *buffer, void* v)
 
 CommandDefinition_t DIAGnosticsCommand = DEFINE_COMMAND("DIAG", DIAGnostics);
 extern CommandDefinition_t StarCommand;
+
+uint8_t PopCLIErrorCode(void)
+{
+    uint8_t result = cli_error;
+    cli_error = 0;
+    return result;
+}
 
 bool SCPICompare(const char *reference, char *input)
 {
@@ -57,10 +71,10 @@ void FFTilPunctuation(char **input)
     {
         switch (**input)
         {
-            case ':':
-            case ' ':
-            case '?':
-            case ';':
+            case ':':   // 0x3B
+            case ' ':   // 0x20
+            case '?':   // 0x3F
+            case ';':   // 0x3A
                 return;
         }
 
@@ -74,21 +88,18 @@ void ProcessCommand(CliBuffer_t *buffer, CommandDefinition_t* commands)
     CommandDefinition_t* commandList;
     CommandDefinition_t* command;
 
+    commandList = commands;
+
     if (*buffer->InputPnt == '*')
     {
         ++buffer->InputPnt;
         commandList = StarCommand.Children;
-        command = commandList;
     }
-    else
-    {
-        commandList = commands;
-        command = commandList;
-    }
+    
+    command = commandList;
     
     char *inputEnd = &buffer->InputBuffer[buffer->InputLength];
     
-    bool valid = true;
     bool lockNumber = false;
     uint8_t number;
     
@@ -110,6 +121,7 @@ void ProcessCommand(CliBuffer_t *buffer, CommandDefinition_t* commands)
             while (true)
             {
                 char c = *buffer->InputPnt++;
+                //      0x3A
                 if (c == ':')           // Branch Deeper
                 {
                     if (number > 0)
@@ -121,22 +133,31 @@ void ProcessCommand(CliBuffer_t *buffer, CommandDefinition_t* commands)
                     }
                     else
                     {
-                        valid = false;
+                        cli_error = CLI_ERROR_INVALID_BRANCH;
                     }
                     break;
                 }
+                //           0x3F        0x20        0x3B         0x0D        0x0A
                 else if (c == '?' || c == ' ' || c == ';' || c == '\r' || c == '\n')      // Get a value
                 {
                     --buffer->InputPnt;
                     if (command->Handle)
                     {
+                        char* inputPnt = buffer->InputPnt;
                         command->Handle(buffer, &number);
+
+                        // If the pointer didn't move, the command was no processed
+                        if (inputPnt == buffer->InputPnt)
+                        {
+                            cli_error = CLI_ERROR_INVALID_COMMAND;
+                        }
+
+                        FFTilPunctuation(&buffer->InputPnt);
                         c = *buffer->InputPnt;
                     }
                     else
                     {
-                        // Missing Handle
-                        while (true);
+                        cli_error = CLI_ERROR_INVALID_COMMAND;
                     }
                 }
                 else if (IS_NUMBER(c))      // Parse a number
@@ -147,11 +168,13 @@ void ProcessCommand(CliBuffer_t *buffer, CommandDefinition_t* commands)
                 }
                 
                 // Check for end conditions
+                        // 0x00         0x0D        0x0A
                 if (c == '\x00' || c == '\r' || c == '\n' || buffer->InputPnt >= inputEnd)
                 {
                     return;
                 }
                 
+                        // 0x3B
                 if (c == ';')
                 {
                     *buffer->OutputPnt++ = ';';
@@ -185,15 +208,35 @@ void ProcessCommand(CliBuffer_t *buffer, CommandDefinition_t* commands)
     }
 }
 
+void CheckValidNumberEnd(char c)
+{
+    if (c == ';' || c == '\r' || c == '\n' || c == '\x00')
+    {
+        return;
+    }
+    else
+    {
+        __asm("pop");
+        __asm("pop");
+        cli_error = CLI_ERROR_INVALID_NUMBER;
+        return;
+    }
+}
+
 /**
  * Converts as many chars as possible to numbers
  * @param str
- * @return -1 if no numbers were found;
+ * @return The number found
  */
 int16_t ParseInt(char** str)
 {
     if (!IS_NUMBER(**str))
-        return -1;
+    {
+        cli_error = CLI_ERROR_INVALID_NUMBER;
+        // Pop past the call to this function
+        __asm("pop");
+        return 0;
+    }
     
     uint16_t result = 0;
     
@@ -227,6 +270,7 @@ int16_t ParseInt(char** str)
                     }
                     else
                     {
+                        CheckValidNumberEnd(c);
                         return (int16_t)result;
                     }
                 }
@@ -249,6 +293,7 @@ int16_t ParseInt(char** str)
         ++(*str);
     }
     
+    CheckValidNumberEnd(**str);
     return (int16_t)result;
 }
 
@@ -263,7 +308,8 @@ uint24_t ParseInt24(char** str)
 
         ++(*str);
     }
-    
+
+    CheckValidNumberEnd(**str);
     return result;
 }
 
@@ -285,6 +331,8 @@ uint16_t ParseIEEEHeader(CliBuffer_t *buffer)
             }
             else
             {
+                cli_error = CLI_ERROR_INVALID_IEEE_HEADER;
+                __asm("pop");
                 return 0;
             }
         }
@@ -293,6 +341,8 @@ uint16_t ParseIEEEHeader(CliBuffer_t *buffer)
     }
     else
     {
+        cli_error = CLI_ERROR_INVALID_IEEE_HEADER;
+        __asm("pop");
         return 0;
     }
 }
