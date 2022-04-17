@@ -36,7 +36,8 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 │   ├———:READ
 │   ├———:BAUD
 │   ├———:MODE
-│   └———:ERRo
+│   └———:OVERflow
+│       └———:CLEAr
 ├———:SPI
 │   ├———:EXCHange
 │   ├———:CS
@@ -51,12 +52,12 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 │   │   ├———:RSIZe
 │   │   ├———:WRITe
 │   │   ├———:READ
-│   │   └———:ERRor
+│   │   └———:ACKnolaged
 │   ├———:WRITe
 │   ├———:READ
-│   └———:ERRor
+│   └———:ACKnolaged
 ├———:SYSTem
-│   ├———:ERR
+│   ├———:ERRor
 │   │   └———:NEXT
 │   ├———:SERIalNumber
 │   ├———:SAVEState

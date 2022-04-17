@@ -17,28 +17,6 @@ uint8_t i2cRegisterAddress = 0x0000;
 // The size of the register to work with in the slave device in bytes
 uint8_t i2cRegisterSize = 1;
 
-#define I2C_ERROR_NONE 0x00
-#define I2C_ERROR_INVALID_BAUD 0x01
-#define I2C_ERROR_INVALID_TIMEOUT 0x02
-#define I2C_ERROR_INVALID_SLAVE_ADDRESS 0x03
-#define I2C_ERROR_INVALID_MODE 0x04
-
-
-#define I2C_ERROR_DISABLED_WRITE 0x10
-#define I2C_ERROR_DISABLED_READ 0x11
-#define I2C_ERROR_NO_ACKNOWLEDGE 0x12
-
-#define I2C_ERROR_INVALID_RSIZE 0x20
-#define I2C_ERROR_INVALID_REGISTER_ADDRESS 0x21
-#define I2C_ERROR_INVALID_REGISTER_VALUE 0x22
-
-#define I2C_ERROR_BUFFER_OVERFLOW 0x30
-#define I2C_ERROR_INVALID_WRITE_SIZE 0x31
-#define I2C_ERROR_INVALID_READ_SIZE 0x32
-
-// The last generated error to occur
-uint8_t i2cErrorCode = I2C_ERROR_NONE;
-
 const char* OFFWord = "OFF";
 const char* MASTerWord = "MAST";
 
@@ -58,7 +36,7 @@ void I2CModeCommand(CliBuffer_t *buffer, void* v)
         }
         else
         {
-            i2cErrorCode = I2C_ERROR_INVALID_MODE;
+            QueueErrorCode(I2C_ERROR_INVALID_MODE);
         }
     }
     else if (*buffer->InputPnt == '?')
@@ -93,7 +71,7 @@ void I2CTimeoutCommand(CliBuffer_t *buffer, void* v)
         }
         else
         {
-            i2cErrorCode = I2C_ERROR_INVALID_TIMEOUT;
+            QueueErrorCode(I2C_ERROR_INVALID_TIMEOUT);
         }
     }
 }
@@ -121,7 +99,7 @@ void I2CBaudCommand(CliBuffer_t *buffer, void* v)
         }
         else
         {
-            i2cErrorCode = I2C_ERROR_INVALID_BAUD;
+            QueueErrorCode(I2C_ERROR_INVALID_BAUD);
         }
     }
 }
@@ -146,7 +124,7 @@ void I2CAddressCommand(CliBuffer_t *buffer, void *v)
         }
         else
         {
-            i2cErrorCode = I2C_ERROR_INVALID_SLAVE_ADDRESS;
+            QueueErrorCode(I2C_ERROR_INVALID_SLAVE_ADDRESS);
         }
     }
 }
@@ -167,11 +145,11 @@ void I2CWriteCommand(CliBuffer_t *buffer, void* v)
             // Check for an invalid number
             if (&buffer->InputPnt[writeCount] >= &buffer->InputBuffer[CLI_BUFFER_SIZE])
             {
-                i2cErrorCode = I2C_ERROR_BUFFER_OVERFLOW;
+                QueueErrorCode(I2C_ERROR_BUFFER_OVERFLOW);
             }
             else if (!I2C1_GetEnabled())
             {
-                i2cErrorCode = I2C_ERROR_DISABLED_WRITE;
+                QueueErrorCode(I2C_ERROR_DISABLED_WRITE);
             }
             else if (writeCount != 0)
             {
@@ -179,7 +157,7 @@ void I2CWriteCommand(CliBuffer_t *buffer, void* v)
             }
             else
             {
-                i2cErrorCode = I2C_ERROR_INVALID_WRITE_SIZE;
+                QueueErrorCode(I2C_ERROR_INVALID_WRITE_SIZE);
             }
         }
     }
@@ -200,12 +178,12 @@ void I2CReadCommand(CliBuffer_t *buffer, void* v)
 
             if (&buffer->OutputPnt[readCount] >= &buffer->OutputBuffer[CLI_BUFFER_SIZE])
             {
-                i2cErrorCode = I2C_ERROR_BUFFER_OVERFLOW;
+                QueueErrorCode(I2C_ERROR_BUFFER_OVERFLOW);
                 CopyWordToOutBuffer(buffer, EmptyIEEEHeader);
             }
             else if (!I2C1_GetEnabled())
             {
-                i2cErrorCode = I2C_ERROR_DISABLED_READ;
+                QueueErrorCode(I2C_ERROR_DISABLED_READ);
                 CopyWordToOutBuffer(buffer, EmptyIEEEHeader);
             }
             else if (readCount > 0)
@@ -227,38 +205,20 @@ void I2CReadCommand(CliBuffer_t *buffer, void* v)
             }
             else
             {
-                i2cErrorCode = I2C_ERROR_INVALID_READ_SIZE;                
+                QueueErrorCode(I2C_ERROR_INVALID_READ_SIZE);                
                 CopyWordToOutBuffer(buffer, EmptyIEEEHeader);
             }
         }
     }
 }
 
-uint8_t I2CPeakErrorCode(void)
-{
-    // Check for a NACK
-    if (I2C1_LastOperationNACKed() && i2cErrorCode == 0)
-    {
-        i2cErrorCode = I2C_ERROR_NO_ACKNOWLEDGE;
-    }
-    
-    return i2cErrorCode;
-}
-
-uint8_t I2CPopErrorCode(void)
-{
-    uint8_t result = I2CPeakErrorCode();
-    i2cErrorCode = I2C_ERROR_NONE;
-    return result;
-}
-
-void I2CErrorCommand(CliBuffer_t *buffer, void* v)
+void I2CACKedCommand(CliBuffer_t *buffer, void* v)
 {    
     if (*buffer->InputPnt == '?')
     {
         ++buffer->InputPnt;
         
-        NumberToString(buffer, I2CPopErrorCode());
+        NumberToString(buffer, !I2C1_LastOperationNACKed());
     }
 }
 
@@ -284,17 +244,17 @@ void I2CRegisterWriteCommand(CliBuffer_t *buffer, void* v)
                 }
                 else
                 {
-                    i2cErrorCode = I2C_ERROR_INVALID_REGISTER_VALUE;
+                    QueueErrorCode(I2C_ERROR_INVALID_REGISTER_VALUE);
                 }
             }
             else
             {
-                i2cErrorCode = I2C_ERROR_INVALID_RSIZE;
+                QueueErrorCode(I2C_ERROR_INVALID_RSIZE);
             }
         }
         else
         {
-            i2cErrorCode = I2C_ERROR_DISABLED_WRITE;
+            QueueErrorCode(I2C_ERROR_DISABLED_WRITE);
         }
     }
 }
@@ -319,14 +279,14 @@ void I2CRegisterReadCommand(CliBuffer_t *buffer, void* v)
             }
             else
             {
-                i2cErrorCode = I2C_ERROR_INVALID_RSIZE;
+                QueueErrorCode(I2C_ERROR_INVALID_RSIZE);
             }
 
             NumberToString(buffer, data);
         }
         else
         {
-            i2cErrorCode = I2C_ERROR_DISABLED_READ;
+            QueueErrorCode(I2C_ERROR_DISABLED_READ);
         }
     }
 }
@@ -351,7 +311,7 @@ void I2CRegisterAddressCommand(CliBuffer_t *buffer, void* v)
         }
         else
         {
-            i2cErrorCode = I2C_ERROR_INVALID_REGISTER_ADDRESS;
+            QueueErrorCode(I2C_ERROR_INVALID_REGISTER_ADDRESS);
         }
     }
 }
@@ -376,7 +336,7 @@ void I2CRegisterRegisterSizeCommand(CliBuffer_t *buffer, void* v)
         }
         else
         {
-            i2cErrorCode = I2C_ERROR_INVALID_RSIZE;
+            QueueErrorCode(I2C_ERROR_INVALID_RSIZE);
         }
     }
 }
@@ -387,7 +347,7 @@ CommandDefinition_t i2cRegisterCommands[] = {
     DEFINE_COMMAND("RSIZ", I2CRegisterRegisterSizeCommand),
     DEFINE_COMMAND("WRIT", I2CRegisterWriteCommand),
     DEFINE_COMMAND("READ", I2CRegisterReadCommand),
-    DEFINE_COMMAND("ERR", I2CErrorCommand),
+    DEFINE_COMMAND("ACK", I2CACKedCommand),
 };
 
 CommandDefinition_t i2cCommands[] = {
@@ -395,7 +355,7 @@ CommandDefinition_t i2cCommands[] = {
     DEFINE_COMMAND("ADDR", I2CAddressCommand),
     DEFINE_COMMAND("WRIT", I2CWriteCommand),
     DEFINE_COMMAND("READ", I2CReadCommand),
-    DEFINE_COMMAND("ERR", I2CErrorCommand),
+    DEFINE_COMMAND("ACK", I2CACKedCommand),
     DEFINE_COMMAND("MODE", I2CModeCommand),
     DEFINE_COMMAND("BAUD", I2CBaudCommand),
     DEFINE_COMMAND("TIME", I2CTimeoutCommand),

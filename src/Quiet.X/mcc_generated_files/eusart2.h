@@ -506,6 +506,10 @@ void EUSART2_SetTxInterruptHandler(void (* interruptHandler)(void));
 */
 void EUSART2_SetRxInterruptHandler(void (* interruptHandler)(void));
 
+unsigned EUSART2_RxBufferOverflow(void);
+
+void EUSART2_ClearRxBufferOverflow(void);
+
 #ifdef __cplusplus  // Provide C++ Compatibility
 
     }

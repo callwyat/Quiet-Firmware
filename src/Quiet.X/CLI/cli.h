@@ -67,8 +67,8 @@ extern "C" {
             .Handle = handle,              \
             .Children = &children[0],      \
             .ChildrenCount =  sizeof(children) / sizeof(children[0]),    \
-        }
-    
+        }                                          
+
     uint8_t PopCLIErrorCode(void);
 
     bool SCPICompare(const char *reference, char *input);
@@ -93,6 +93,10 @@ extern "C" {
     
     void GenerateIEEEHeader(CliBuffer_t *buffer, uint16_t dataSize);
     
+    void QueueErrorCode(uint16_t);
+
+    uint16_t DequeueErrorCode(void);
+
     void CopyWordToOutBuffer(CliBuffer_t *buffer, const char* word);
     
     void SetLargeDataHandle(CliBuffer_t *buffer, void(*handle)(CliBuffer_t *buffer, void *v));

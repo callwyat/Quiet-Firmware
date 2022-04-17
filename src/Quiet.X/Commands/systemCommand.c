@@ -5,6 +5,7 @@
 #include "../outputs.h"
 #include "../buildInfo.h"
 
+#include "anaoCommand.h"
 #include "uartCommand.h"
 #include "i2cCommand.h"
 
@@ -29,18 +30,12 @@ typedef union {
 
 void SYSTErrorCommand(CliBuffer_t *buffer, void* v)
 {
-    if (*buffer->InputPnt == '?')
-    {
-        ++buffer->InputPnt;
-        
-        error_summary_t result = {
-          .UARTError = UARTPeakErrorCode() > 0,
-          .IICError = I2CPeakErrorCode() > 0,
-          .SYSTError = PopCLIErrorCode(),
-        };
-        
-        NumberToString(buffer, result.All);
-    }
+    if (*buffer->InputPnt == '?')              
+    {                                          
+        ++buffer->InputPnt;                    
+                                                
+        NumberToString(buffer, DequeueErrorCode());
+    }    
 }
 
 void SYSTSerilalNumber(CliBuffer_t *buffer, void* v)

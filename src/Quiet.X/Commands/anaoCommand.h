@@ -12,8 +12,6 @@
 extern "C" {
 #endif
 
-#include "../CLI/cli.h"
-    
 #ifdef	__cplusplus
 }
 #endif

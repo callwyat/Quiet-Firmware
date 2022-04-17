@@ -103,12 +103,14 @@ void EUSART2_Initialize(void)
     // TX9 8-bit; TX9D 0; SENDB sync_break_complete; TXEN disabled; SYNC asynchronous; BRGH hi_speed; CSRC slave_mode; 
     TXSTA2 = 0x04;
 
-    // 
-    SPBRG2 = 0xE0;
+    if (SPBRG2 == 0x00 && SPBRGH2 == 0x00 )
+    {
+        // 
+        SPBRG2 = 0xE0;
 
-    // 
-    SPBRGH2 = 0x04;
-
+        // 
+        SPBRGH2 = 0x04;
+    }
 
     EUSART2_SetFramingErrorHandler(EUSART2_DefaultFramingErrorHandler);
     EUSART2_SetOverrunErrorHandler(EUSART2_DefaultOverrunErrorHandler);
@@ -242,14 +244,37 @@ void EUSART2_Receive_ISR(void)
     // or set custom function using EUSART2_SetRxInterruptHandler()
 }
 
-void EUSART2_RxDataHandler(void){
-    // use this default receive interrupt handler code
-    eusart2RxBuffer[eusart2RxHead++] = RCREG2;
-    if(sizeof(eusart2RxBuffer) <= eusart2RxHead)
+unsigned EUSART2_RxBufferOverflowFlag = false;
+unsigned EUSART2_RxBufferOverflow(void)
+{
+    return EUSART2_RxBufferOverflowFlag;
+}
+
+void EUSART2_ClearRxBufferOverflow(void)
+{
+    if (EUSART2_RxBufferOverflowFlag)
     {
-        eusart2RxHead = 0;
+        EUSART2_Initialize();
+        EUSART2_RxBufferOverflowFlag = false;
     }
-    eusart2RxCount++;
+}
+
+void EUSART2_RxDataHandler(void){
+
+    if (eusart2RxCount < EUSART2_RX_BUFFER_SIZE)
+    {
+        // use this default receive interrupt handler code
+        eusart2RxBuffer[eusart2RxHead++] = RCREG2;
+        if(sizeof(eusart2RxBuffer) <= eusart2RxHead)
+        {
+            eusart2RxHead = 0;
+        }
+        eusart2RxCount++;
+    }
+    else
+    {
+        EUSART2_RxBufferOverflowFlag = true;
+    }
 }
 
 void EUSART2_DefaultFramingErrorHandler(void){}

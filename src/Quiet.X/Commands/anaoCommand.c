@@ -35,6 +35,10 @@ void ANAOChannelModeCommand(CliBuffer_t *buffer, void *channel)
         {
             SetOutputMode(ANAOUT_CHANNEL, OUT_SERVO);
         }
+        else
+        {
+            QueueErrorCode(INVAILD_OUTPUT_MODE_ERROR);
+        }
         
         FFTilPunctuation(&buffer->InputPnt);
     }
@@ -52,9 +56,13 @@ void ANAOChannelValueCommand(CliBuffer_t *buffer, void *channel)
     {
         ++buffer->InputPnt;
         int16_t value = ParseInt(&buffer->InputPnt);
-        if (value >= 0)
+        if (value >= 0 && value < 1024)
         {
             SetOutputValue(ANAOUT_CHANNEL, (uint16_t)value);
+        }
+        else
+        {
+            QueueErrorCode(INVAILD_OUTPUT_VALUE_ERROR);
         }
     }
 }

@@ -2,20 +2,7 @@
 
 #include "../CLI/cli.h"
 #include "../uart.h"
-
-#define UART_ERROR_NONE 0x00
-
-#define UART_ERROR_INVALID_BAUD 0x10
-#define UART_ERROR_INVALID_MODE 0x11
-#define UART_ERROR_INVALID_WRITE 0x12
-
-#define UART_ERROR_RECEIVE_OVERFLOW 0x20
-
-#define UART_ERROR_WRITE_MODE_ERROR 0x30
-#define UART_ERROR_READ_MODE_ERROR 0x31
-
-uint8_t uartErrorCode = UART_ERROR_NONE;
-
+#include "../constants.h"
 
 void UARTReadCommand(CliBuffer_t *buffer, void* v)
 {
@@ -99,12 +86,12 @@ void UARTWriteCommand(CliBuffer_t *buffer, void* v)
                 }
                 else
                 {
-                    uartErrorCode = UART_ERROR_INVALID_WRITE;
+                    QueueErrorCode(UART_ERROR_INVALID_WRITE);
                 }
             }
             else
             {
-                uartErrorCode = UART_ERROR_WRITE_MODE_ERROR;
+                QueueErrorCode(UART_ERROR_WRITE_MODE_ERROR);
             }
         }
     }
@@ -133,7 +120,7 @@ void UARTBaudCommand(CliBuffer_t *buffer, void* v)
         }
         else
         {
-            uartErrorCode = UART_ERROR_INVALID_BAUD;
+            QueueErrorCode(UART_ERROR_INVALID_BAUD);
         }
     }
 }
@@ -183,39 +170,36 @@ void UARTModeCommand(CliBuffer_t *buffer, void* v)
         }
         else
         {
-            uartErrorCode = UART_ERROR_INVALID_MODE;
+            QueueErrorCode(UART_ERROR_INVALID_MODE);
         }
     }
 }
 
-uint8_t UARTPeakErrorCode(void)
-{
-    return uartErrorCode;
-}
-
-uint8_t UARTPopErrorCode(void)
-{
-    uint8_t result = uartErrorCode;
-    uartErrorCode = UART_ERROR_NONE;
-    return result;
-}
-
-void UARTErrorCommand(CliBuffer_t *buffer, void* v)
+void UARTOverflowCommand(CliBuffer_t *buffer, void* v)
 {
     if (*buffer->InputPnt == '?')
     {
         ++buffer->InputPnt;
         
-        NumberToString(buffer, UARTPopErrorCode());
+        NumberToString(buffer, UART_RxBufferOverflow());
     }
 }
+
+void UARTClearOverflowCommand(CliBuffer_t *buffer, void* v)
+{
+    UART_ClearRxBufferOverflow();
+}
+
+CommandDefinition_t uartClearCommandChildren[] = {
+  DEFINE_COMMAND("CLEA", UARTOverflowCommand),
+};
 
 CommandDefinition_t uartCommandChildren[] = {
   DEFINE_COMMAND("READ", UARTReadCommand),
   DEFINE_COMMAND("WRIT", UARTWriteCommand),
   DEFINE_COMMAND("BAUD", UARTBaudCommand),
   DEFINE_COMMAND("MODE", UARTModeCommand),
-  DEFINE_COMMAND("ERR", UARTErrorCommand),
+  DEFINE_COMMAND_W_BRANCH("OVER", UARTOverflowCommand, uartClearCommandChildren),
 };
  
 CommandDefinition_t UARTCommand = DEFINE_BRANCH("UART", uartCommandChildren);

@@ -46,6 +46,10 @@ uint8_t inline UART_Read(void);
 
 void inline UART_Write(uint8_t txData);
 
+unsigned UART_RxBufferOverflow(void);
+
+void UART_ClearRxBufferOverflow(void);
+
 #ifdef	__cplusplus
 }
 #endif

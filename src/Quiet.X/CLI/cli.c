@@ -1,7 +1,6 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h>
 
 #include <xc.h>
 #include "../mcc_generated_files/tmr1.h"
@@ -12,13 +11,6 @@
 #include "../Commands/standardCommands.h"
 
 #define IS_NUMBER(c) (c >= '0' && c <= '9')
-
-#define CLI_ERROR_INVALID_COMMAND 0x01
-#define CLI_ERROR_INVALID_BRANCH 0x02
-#define CLI_ERROR_INVALID_NUMBER 0x10
-#define CLI_ERROR_INVALID_IEEE_HEADER 0x11
-
-uint8_t cli_error;
 
 uint16_t lastExecutionTime = 0;
 void DIAGnostics(CliBuffer_t *buffer, void* v)
@@ -33,13 +25,6 @@ void DIAGnostics(CliBuffer_t *buffer, void* v)
 
 CommandDefinition_t DIAGnosticsCommand = DEFINE_COMMAND("DIAG", DIAGnostics);
 extern CommandDefinition_t StarCommand;
-
-uint8_t PopCLIErrorCode(void)
-{
-    uint8_t result = cli_error;
-    cli_error = 0;
-    return result;
-}
 
 bool SCPICompare(const char *reference, char *input)
 {
@@ -133,7 +118,7 @@ void ProcessCommand(CliBuffer_t *buffer, CommandDefinition_t* commands)
                     }
                     else
                     {
-                        cli_error = CLI_ERROR_INVALID_BRANCH;
+                        QueueErrorCode(CLI_ERROR_INVALID_BRANCH);
                     }
                     break;
                 }
@@ -149,7 +134,7 @@ void ProcessCommand(CliBuffer_t *buffer, CommandDefinition_t* commands)
                         // If the pointer didn't move, the command was no processed
                         if (inputPnt == buffer->InputPnt)
                         {
-                            cli_error = CLI_ERROR_INVALID_COMMAND;
+                            QueueErrorCode(CLI_ERROR_INVALID_COMMAND);
                         }
 
                         FFTilPunctuation(&buffer->InputPnt);
@@ -157,7 +142,7 @@ void ProcessCommand(CliBuffer_t *buffer, CommandDefinition_t* commands)
                     }
                     else
                     {
-                        cli_error = CLI_ERROR_INVALID_COMMAND;
+                        QueueErrorCode(CLI_ERROR_INVALID_COMMAND);
                     }
                 }
                 else if (IS_NUMBER(c))      // Parse a number
@@ -218,7 +203,7 @@ void CheckValidNumberEnd(char c)
     {
         __asm("pop");
         __asm("pop");
-        cli_error = CLI_ERROR_INVALID_NUMBER;
+        QueueErrorCode(CLI_ERROR_INVALID_NUMBER);
         return;
     }
 }
@@ -232,7 +217,7 @@ int16_t ParseInt(char** str)
 {
     if (!IS_NUMBER(**str))
     {
-        cli_error = CLI_ERROR_INVALID_NUMBER;
+        QueueErrorCode(CLI_ERROR_INVALID_NUMBER);
         // Pop past the call to this function
         __asm("pop");
         return 0;
@@ -331,7 +316,7 @@ uint16_t ParseIEEEHeader(CliBuffer_t *buffer)
             }
             else
             {
-                cli_error = CLI_ERROR_INVALID_IEEE_HEADER;
+                QueueErrorCode(CLI_ERROR_INVALID_IEEE_HEADER);
                 __asm("pop");
                 return 0;
             }
@@ -341,9 +326,61 @@ uint16_t ParseIEEEHeader(CliBuffer_t *buffer)
     }
     else
     {
-        cli_error = CLI_ERROR_INVALID_IEEE_HEADER;
+        QueueErrorCode(CLI_ERROR_INVALID_IEEE_HEADER);
         __asm("pop");
         return 0;
+    }
+}
+
+#define CLI_ERROR_BUFFER_SIZE 16
+uint16_t cliErrorBuffer[CLI_ERROR_BUFFER_SIZE];
+uint16_t *cliErrorInPnt = cliErrorBuffer;
+uint16_t *cliErrorOutPnt = cliErrorBuffer;
+unsigned cliErrorBufferOverflow = false;
+
+void QueueErrorCode(uint16_t error)
+{
+    if (!cliErrorBufferOverflow)
+    {
+        *cliErrorInPnt++ = error;
+
+        // Handle pointer rollover
+        if (cliErrorInPnt >= &cliErrorBuffer[CLI_ERROR_BUFFER_SIZE])
+        {
+            cliErrorInPnt = cliErrorBuffer;
+        }
+
+        if (cliErrorInPnt == cliErrorOutPnt)
+        {
+            cliErrorBufferOverflow = true;
+        }
+    }
+}
+
+uint16_t DequeueErrorCode(void)
+{
+    if (cliErrorOutPnt == cliErrorInPnt)
+    {
+        if (cliErrorBufferOverflow)
+        {
+            cliErrorBufferOverflow = false;
+            return ERROR_CODE_ERROR_BUFFER_OVERFLOW;
+        }
+
+        return ERROR_CODE_NO_ERROR;
+    }
+    else
+    {
+        uint16_t result = *cliErrorOutPnt;
+        *cliErrorOutPnt++ = ERROR_CODE_NO_ERROR;
+
+        // Handle pointer rollover
+        if (cliErrorOutPnt >= &cliErrorOutPnt[CLI_ERROR_BUFFER_SIZE])
+        {
+            cliErrorOutPnt = cliErrorOutPnt;
+        }
+
+        return result;
     }
 }
 

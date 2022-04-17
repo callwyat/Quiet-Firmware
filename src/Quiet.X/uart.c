@@ -71,3 +71,12 @@ void inline UART_Write(uint8_t txData)
     EUSART1_Write(txData);
 }
 
+unsigned UART_RxBufferOverflow(void)
+{
+    return EUSART2_RxBufferOverflow();
+}
+
+void UART_ClearRxBufferOverflow(void)
+{
+    EUSART2_ClearRxBufferOverflow();
+}
