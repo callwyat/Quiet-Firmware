@@ -133,15 +133,15 @@ const char* OutputModeToString(OutputMode_e mode)
     }
 }
 
-void SetOutputMode(uint8_t output, OutputMode_e mode)
+uint8_t SetOutputMode(uint8_t output, OutputMode_e mode)
 {
     if (output >= OutputSetupsCount)
-        return;
+        return OUTPUT_ERROR_INVALID_CHANNEL;
     
     OutputSetup_t *setup = &OutputSetups[output];
     
     if ((setup->AvalibleModes & mode) == 0)
-        return;
+        return OUPTUT_ERROR_INVALID_MODE_SELECTION;
     
     setup->ActiveMode = mode;
     
@@ -180,6 +180,8 @@ void SetOutputMode(uint8_t output, OutputMode_e mode)
             }
         }
     }
+
+    return OUTPUT_ERROR_NO_ERROR;
 }
 
 void SetServoValue(uint8_t output, uint16_t value)

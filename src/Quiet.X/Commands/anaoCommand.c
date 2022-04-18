@@ -1,70 +1,24 @@
 
 #include "../CLI/cli.h"
 #include "../outputs.h"
+#include "../constants.h"
+#include "outputCommand.h"
 
 #include <stdint.h>
 
-#define ANAOUT_OFFSET 7
+#define ANAO_OFFSET 7
+#define ANAO_CHANNELS 2
 
-#define ANAOUT_CHANNEL (uint8_t)(*((uint8_t*)channel) + ANAOUT_OFFSET)
+const OutputCommand_t anaoCommandSettings = DEFINE_OUTPUT_COMMAND_T(ANAO_CHANNELS, ANAO_OFFSET, ANAO_ERROR_GROUP);
 
 void ANAOChannelModeCommand(CliBuffer_t *buffer, void *channel)
 {
-    if (*buffer->InputPnt == '?')
-    {
-        ++buffer->InputPnt;
-        
-        OutputMode_e mode = GetOutputMode(ANAOUT_CHANNEL);
-        
-        const char* word = OutputModeToString(mode);
-        
-        CopyWordToOutBuffer(buffer, word);
-    }
-    else if (*buffer->InputPnt == ' ')
-    {
-        ++buffer->InputPnt;
-        
-        // To Upper
-        *buffer->InputPnt &= 0xDF;
-        
-        if (SCPICompare(PWMWord, buffer->InputPnt))
-        {
-            SetOutputMode(ANAOUT_CHANNEL, OUT_PWM);
-        }
-        else if (SCPICompare(ServoWord, buffer->InputPnt))
-        {
-            SetOutputMode(ANAOUT_CHANNEL, OUT_SERVO);
-        }
-        else
-        {
-            QueueErrorCode(INVAILD_OUTPUT_MODE_ERROR);
-        }
-        
-        FFTilPunctuation(&buffer->InputPnt);
-    }
+    OutputChannelModeCommand(buffer, anaoCommandSettings, channel);
 }
 
 void ANAOChannelValueCommand(CliBuffer_t *buffer, void *channel)
 {
-    if (*buffer->InputPnt == '?')
-    {
-        ++buffer->InputPnt;
-        uint16_t value = GetOutputValue(ANAOUT_CHANNEL);
-        NumberToString(buffer, value);
-    }
-    else if (*buffer->InputPnt == ' ')
-    {
-        ++buffer->InputPnt;
-        int16_t value = ParseInt(&buffer->InputPnt);
-        if (value >= 0 && value < 1024)
-        {
-            SetOutputValue(ANAOUT_CHANNEL, (uint16_t)value);
-        }
-        else
-        {
-            QueueErrorCode(INVAILD_OUTPUT_VALUE_ERROR);
-        }
-    }
+    OutputChannelValueCommand(buffer, anaoCommandSettings, channel);
 }
 
 CommandDefinition_t anaoChanCommands[] = {

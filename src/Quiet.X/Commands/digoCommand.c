@@ -2,64 +2,21 @@
 #include "../CLI/cli.h"
 #include "../constants.h"
 #include "../outputs.h"
+#include "outputCommand.h"
 
-#define DIGOUT_OFFSET -1
+#define DIGO_OFFSET -1
+#define DIGO_CHANNELS 8
 
-#define DIGOUT_CHANNEL (uint8_t)(*((uint8_t*)channel) + DIGOUT_OFFSET)
+const OutputCommand_t digoCommandSettings = DEFINE_OUTPUT_COMMAND_T(DIGO_CHANNELS, DIGO_OFFSET, DIGO_ERROR_GROUP);
 
 void DIGOChannelModeCommand(CliBuffer_t *buffer, void *channel)
 {
-    if (*buffer->InputPnt == '?')
-    {
-        ++buffer->InputPnt;
-        
-        OutputMode_e mode = GetOutputMode(DIGOUT_CHANNEL);
-        
-        const char* word = OutputModeToString(mode);
-        
-        CopyWordToOutBuffer(buffer, word);
-    }
-    else if (*buffer->InputPnt == ' ')
-    {
-        ++buffer->InputPnt;
-        
-        // To Upper
-        *buffer->InputPnt &= 0xDF;
-        
-        if (SCPICompare(PWMWord, buffer->InputPnt))
-        {
-            SetOutputMode(DIGOUT_CHANNEL, OUT_PWM);
-        }
-        else if (SCPICompare(ServoWord, buffer->InputPnt))
-        {
-            SetOutputMode(DIGOUT_CHANNEL, OUT_SERVO);
-        }
-        else if (SCPICompare(DISCREETWord, buffer->InputPnt))
-        {
-            SetOutputMode(DIGOUT_CHANNEL, OUT_DISCREET);
-        }
-        
-        FFTilPunctuation(&buffer->InputPnt);
-    }
+    OutputChannelModeCommand(buffer, digoCommandSettings, channel);
 }
 
 void DIGOChannelValueCommand(CliBuffer_t *buffer, void *channel)
 {
-    if (*buffer->InputPnt == '?')
-    {
-        ++buffer->InputPnt;
-        uint16_t value = GetOutputValue(DIGOUT_CHANNEL);
-        NumberToString(buffer, value);
-    }
-    else if (*buffer->InputPnt == ' ')
-    {
-        ++buffer->InputPnt;
-        int16_t value = ParseInt(&buffer->InputPnt);
-        if (value >= 0)
-        {
-            SetOutputValue(DIGOUT_CHANNEL, (uint16_t)value);
-        }
-    }
+    OutputChannelValueCommand(buffer, digoCommandSettings, channel);
 }
 
 CommandDefinition_t digoChanCommands[] = {
@@ -78,6 +35,18 @@ void DIGODiscreetCommand(CliBuffer_t *buffer, void* v)
         //Progress the pointer past the query
         ++buffer->InputPnt;
         NumberToString(buffer, DOUT);
+    }
+    else if (*buffer->InputPnt == ' ')
+    {
+        int16_t value = ParseInt(&buffer->InputPnt);
+        if (value >= 0 && value < 255)
+        {
+            DOUT = (uint8_t)value;
+        }
+        else
+        {
+            QueueErrorCode(DIGO_ERROR_GROUP << 8 | OUTPUT_ERROR_INVALID_VALUE);
+        }
     }
 }
 

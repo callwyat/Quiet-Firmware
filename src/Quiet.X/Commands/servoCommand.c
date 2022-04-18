@@ -1,59 +1,23 @@
 
 #include "../CLI/cli.h"
+#include "../constants.h"
 #include "../outputs.h"
+#include "outputCommand.h"
 #include <stdint.h>
 
 #define SERVO_OFFSET -1
+#define SERVO_CHANNELS 10
 
-uint8_t servoChannel;
-
-#define SERVO_CHANNEL (uint8_t)(*((uint8_t*)channel) + SERVO_OFFSET)
+const OutputCommand_t servCommandSettings = DEFINE_OUTPUT_COMMAND_T(SERVO_CHANNELS, SERVO_OFFSET, SERV_ERROR_GROUP);
 
 void SERVChannelModeCommand(CliBuffer_t *buffer, void *channel)
 {
-    if (*buffer->InputPnt == '?')
-    {
-        ++buffer->InputPnt;
-        
-        OutputMode_e mode = GetOutputMode(SERVO_CHANNEL);
-        
-        const char* word = OutputModeToString(mode);
-        
-        CopyWordToOutBuffer(buffer, word);
-    }
-    else if (*buffer->InputPnt == ' ')
-    {
-        ++buffer->InputPnt;
-        
-        // To Upper
-        *buffer->InputPnt &= 0xDF;
-        
-        if (SCPICompare(ServoWord, buffer->InputPnt))
-        {
-            SetOutputMode(SERVO_CHANNEL, OUT_SERVO);
-        }
-        
-        FFTilPunctuation(&buffer->InputPnt);
-    }
+    OutputChannelModeCommand(buffer, servCommandSettings, channel);
 }
 
 void SERVChannelValueCommand(CliBuffer_t *buffer, void *channel)
 {
-    if (*buffer->InputPnt == '?')
-    {
-        ++buffer->InputPnt;
-        uint16_t value = GetOutputValue(SERVO_CHANNEL);
-        NumberToString(buffer, value);
-    }
-    else if (*buffer->InputPnt == ' ')
-    {
-        ++buffer->InputPnt;
-        int16_t value = ParseInt(&buffer->InputPnt);
-        if (value >= 0)
-        {
-            SetOutputValue(SERVO_CHANNEL, (uint16_t)value);
-        }
-    }
+    OutputChannelValueCommand(buffer, servCommandSettings, channel);
 }
 
 CommandDefinition_t servChanCommands[] = {

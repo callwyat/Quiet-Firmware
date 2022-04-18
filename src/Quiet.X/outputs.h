@@ -18,9 +18,6 @@ extern "C" {
 #define I2C_DATA_OUTPUT 4
 #define I2C_CLOCK_OUTPUT 5
 
-#define INVAILD_OUTPUT_MODE_ERROR 0x01
-#define INVAILD_OUTPUT_VALUE_ERROR 0x02
-
 extern const char* DISCREETWord;
 extern const char* PWMWord;
 extern const char* ServoWord;
@@ -41,7 +38,7 @@ OutputMode_e GetOutputMode(uint8_t channel);
 
 const char* OutputModeToString(OutputMode_e mode);
 
-void SetOutputMode(uint8_t output, OutputMode_e mode);
+uint8_t SetOutputMode(uint8_t output, OutputMode_e mode);
 
 void SetDiscreetOutput(uint8_t output, bool value);
 

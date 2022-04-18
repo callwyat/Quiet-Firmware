@@ -12,6 +12,7 @@
         <itemPath>Commands/pwmCommand.h</itemPath>
         <itemPath>Commands/servoCommand.h</itemPath>
         <itemPath>Commands/digoCommand.h</itemPath>
+        <itemPath>Commands/outputCommand.h</itemPath>
         <itemPath>Commands/systemCommand.h</itemPath>
         <itemPath>Commands/uartCommand.h</itemPath>
         <itemPath>Commands/spiCommand.h</itemPath>
@@ -73,6 +74,7 @@
         <itemPath>Commands/pwmCommand.c</itemPath>
         <itemPath>Commands/servoCommand.c</itemPath>
         <itemPath>Commands/digoCommand.c</itemPath>
+        <itemPath>Commands/outputCommand.c</itemPath>
         <itemPath>Commands/systemCommand.c</itemPath>
         <itemPath>Commands/uartCommand.c</itemPath>
         <itemPath>Commands/spiCommand.c</itemPath>
@@ -327,6 +329,8 @@
         <property key="memories.programmemory" value="true"/>
         <property key="memories.programmemory.ranges" value="0-fff7"/>
         <property key="poweroptions.powerenable" value="false"/>
+        <property key="programmerToGoFilePath"
+                  value="/Users/callwyat/Development/Quiet/src/Quiet.X/debug/default/Quiet_ptg"/>
         <property key="programmerToGoImageName" value="Quiet_ptg"/>
         <property key="programoptions.donoteraseauxmem" value="false"/>
         <property key="programoptions.eraseb4program" value="true"/>

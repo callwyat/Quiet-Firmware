@@ -30,6 +30,8 @@ extern const char* EmptyIEEEHeader;
 #define SDDetect PORTEbits.RE2
 #define SDDetectEnable TRISEbits.TRISE2
 
+#define OUTPUT_COUNT 10
+
 // System Errors
 #define ERROR_CODE_NO_ERROR                 0x0000
 #define ERROR_CODE_ERROR_BUFFER_OVERFLOW    0x0001
@@ -41,16 +43,28 @@ extern const char* EmptyIEEEHeader;
 #define CLI_ERROR_INVALID_IEEE_HEADER       0x0111
 
 // DIGI Errors
+#define DIGI_ERROR_INVALID_CHANNEL          0x0201
 
 // ANAI Errors
+#define ANAI_ERROR_INVALID_CHANNEL          0x0301
+
+// OUTPUT Errors
+#define OUTPUT_ERROR_NO_ERROR               0x00
+#define OUTPUT_ERROR_INVALID_CHANNEL        0x01
+#define OUPTUT_ERROR_INVALID_MODE_SELECTION 0x02
+#define OUTPUT_ERROR_INVALID_VALUE          0x03
 
 // DIGO Errors
+#define DIGO_ERROR_GROUP                    0x04
 
 // ANAO Errors
+#define ANAO_ERROR_GROUP                    0x05
 
 // PWM Errors
+#define PWM_ERROR_GROUP                     0x06
 
 // SERV Errors
+#define SERV_ERROR_GROUP                    0x07
 
 // UART Errors
 #define UART_ERROR_INVALID_BAUD             0x0910
@@ -82,8 +96,6 @@ extern const char* EmptyIEEEHeader;
 #define I2C_ERROR_BUFFER_OVERFLOW           0x0B30
 #define I2C_ERROR_INVALID_WRITE_SIZE        0x0B31
 #define I2C_ERROR_INVALID_READ_SIZE         0x0B32
-
-#define OUTPUT_COUNT 10
 
 #ifdef	__cplusplus
 }
