@@ -29,21 +29,21 @@
 
             "windows" :{
                 "options": {
-                    "cwd": "C:\\Program Files (x86)\\Microchip\\MPLABX\\v5.50\\mplab_ipe"
+                    "cwd": "C:\\Program Files (x86)\\Microchip\\MPLABX\\v6.00\\mplab_ipe"
                 },
                 "command": "ipecmd.exe"
             },
 
             "osx" : {
                 "options": {
-                    "cwd": "/Applications/microchip/mplabx/v5.50/mplab_platform/mplab_ipe/bin"
+                    "cwd": "/Applications/microchip/mplabx/v6.00/mplab_platform/mplab_ipe/bin"
                 },
                 "command": "./ipecmd.sh",
             },
 
             "args": [
                 "-P18F46J53",
-                "-F${workspaceFolder}/src/Quiet.X/dist/default/production/Quiet.X.production.hex",
+                "-F ${workspaceFolder}/src/Quiet.X/dist/default/production/Quiet.X.production.hex",
                 "-TPPK4",
                 "-M",
                 "-I",
