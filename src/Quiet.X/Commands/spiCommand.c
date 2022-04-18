@@ -73,27 +73,33 @@ void SPIChipSelectCommand(CliBuffer_t *buffer, void* v)
         ++buffer->InputPnt;
         SDDetectEnable = false;
         
-        if (*buffer->InputPnt == '0')
+        char c = *buffer->InputPnt;
+
+        if (c == '0')
         {
             ++buffer->InputPnt;
             SPICS = 0;
         }
-        else if (*buffer->InputPnt == '1')
+        else if (c == '1')
         {
             ++buffer->InputPnt;
             SPICS = 1;
         }
-        else if (*buffer->InputPnt == 'F')
+        else if (c == 'F')
         {
             FFTilPunctuation(&buffer->InputPnt);
             --buffer->InputPnt;
             SPICS = 0;
         }
-        else if (*buffer->InputPnt == 'T')
+        else if (c == 'T')
         {
             FFTilPunctuation(&buffer->InputPnt);
             --buffer->InputPnt;
             SPICS = 1;
+        }
+        else
+        {
+            QueueErrorCode(SPI_ERROR_INVALID_CS_VALUE);
         }
     }
         else if (*buffer->InputPnt == '?')
@@ -133,23 +139,27 @@ void SPIBaudCommand(CliBuffer_t *buffer, void* v)
     {
         ++buffer->InputPnt;
 
-        uint24_t buadRate = ParseInt24(&buffer->InputPnt);
+        uint24_t baudRate = ParseInt24(&buffer->InputPnt);
         
-        if (buadRate >= 4000000)
-    {
+        if (baudRate >= 4000000)
+        {
             SSP2CON1bits.SSPM = 0x00;
         } 
-        else if (buadRate >= 2000000)
-    {
+        else if (baudRate >= 2000000)
+        {
             SSP2CON1bits.SSPM = 0x0A;
         } 
-        else if (buadRate >= 1000000)
+        else if (baudRate >= 1000000)
         {
             SSP2CON1bits.SSPM = 0x01;
         }
-        else
+        else if (baudRate >= 250000)
         {
             SSP2CON1bits.SSPM = 0x02;
+        }
+        else
+        {
+            QueueErrorCode(SPI_ERROR_INVALID_BAUD);
         }
     }
 }

@@ -77,9 +77,11 @@ extern const char* EmptyIEEEHeader;
 #define UART_ERROR_READ_MODE_ERROR          0x0931
 
 // SPI Errors
+#define SPI_ERROR_INVALID_BAUD              0x0A01
+#define SPI_ERROR_INVALID_CS_VALUE          0x0A02
 
 // IIC Errors
-#define I2C_ERROR_NONE                      0x0B00
+#define I2C_ERROR_NONE                      0x0000
 #define I2C_ERROR_INVALID_BAUD              0x0B01
 #define I2C_ERROR_INVALID_TIMEOUT           0x0B02
 #define I2C_ERROR_INVALID_SLAVE_ADDRESS     0x0B03
