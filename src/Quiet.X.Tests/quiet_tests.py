@@ -96,7 +96,7 @@ def command_test(tester: QuietTester, number_mode='DECI', all_commands=True):
     if all_commands:
         tester.query_test('UART:BAUD?', number_pattern_24),
         tester.query_test('UART:MODE?', '\\b(USBU|SCPI)\\b'),
-        tester.query_test('UART:ERR?', number_pattern_8),
+        tester.query_test('UART:OVER?', number_pattern_8),
 
         tester.query_test('SPI:BAUD?', number_pattern_24),
 
@@ -104,11 +104,11 @@ def command_test(tester: QuietTester, number_mode='DECI', all_commands=True):
         tester.query_test('IIC:BAUD?', number_pattern_24),
         tester.query_test('IIC:TIMEout?', number_pattern_16),
         tester.query_test('IIC:ADDRess?', number_pattern_8),
-        tester.query_test('IIC:ERR?', number_pattern_8),
+        tester.query_test('IIC:ACK?', number_pattern_8),
 
         tester.query_test('IIC:REGIster:ADDRess?', number_pattern_8),
         tester.query_test('IIC:REGIster:RSIZe?', number_pattern_8),
-        tester.query_test('IIC:REGIster:ERRor?', number_pattern_8),
+        tester.query_test('IIC:REGIster:ACK?', number_pattern_8),
 
     tester.query_test('SYST:ERR?', number_pattern_8),
 

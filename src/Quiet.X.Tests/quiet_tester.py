@@ -1,5 +1,6 @@
 
 import re
+import time
 from quiet import Quiet
 
 
@@ -52,5 +53,54 @@ class QuietTester(Quiet):
         for i in range(start, stop + 1):
             self.query_test(command.replace('#', str(i)), expectation)
 
+
+
+    def check_error(self, error_name: str, expectation: int):
+
+        error = self.query_int("SYST:ERR?")
+
+        if error != expectation:
+            message = f'Failure {error_name}. Expected {hex(expectation)} received {hex(error)}'
+            if EXIT_ON_FAIL:
+                raise Exception(message)
+            else:
+                print(message)
+        elif VERBOSE:
+            print(f'{error_name.ljust(32)} Pass')
+
+
+    def check_lower_limit(self, command:str, low:int, error_name:str, error_code, delay:int=0):
+        
+        self.write(f'{command} {low - 1}')
+        if delay > 0:
+            time.sleep(delay)
+
+        self.check_error(f'UNDER {error_name}', error_code)
+
+        self.write(f'{command} {low}')
+        if delay > 0:
+            time.sleep(delay)
+
+        self.check_error(f'LOWER {error_name}', 0x00)
+
+    def check_upper_limit(self, command:str, high:int, error_name:str, error_code, delay:int=0):
+
+        self.write(f'{command} {high}')
+        if delay > 0:
+            time.sleep(delay)
+
+        self.check_error(f'UPPER {error_name}', 0x00)
+
+        self.write(f'{command} {high + 1}')
+        if delay > 0:
+            time.sleep(delay)
+
+        self.check_error(f'OVER  {error_name}', error_code)
+
+    def check_limit(self, command:str, low:int, high:int, error_name:str, error_code):
+
+        self.check_lower_limit(command, low, error_name, error_code)
+
+        self.check_upper_limit(command, high, error_name, error_code)
 
         
