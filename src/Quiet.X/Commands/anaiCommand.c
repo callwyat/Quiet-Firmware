@@ -2,6 +2,7 @@
 #include "../analogInputs.h"
 
 #include "../CLI/cli.h"
+#include "../constants.h"
 #include <stdint.h>
 
 void QueryANAI(CliBuffer_t *buffer, void *v)
@@ -16,6 +17,10 @@ void QueryANAI(CliBuffer_t *buffer, void *v)
         // Get the value from the analog buffer
         uint16_t value = GetADCValue(channel - 1);
         NumberToString(buffer, value);
+    }
+    else
+    {
+        QueueErrorCode(ANAI_ERROR_INVALID_CHANNEL);
     }
 }
 
