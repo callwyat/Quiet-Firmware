@@ -375,9 +375,9 @@ uint16_t DequeueErrorCode(void)
         *cliErrorOutPnt++ = ERROR_CODE_NO_ERROR;
 
         // Handle pointer rollover
-        if (cliErrorOutPnt >= &cliErrorOutPnt[CLI_ERROR_BUFFER_SIZE])
+        if (cliErrorOutPnt >= &cliErrorBuffer[CLI_ERROR_BUFFER_SIZE])
         {
-            cliErrorOutPnt = cliErrorOutPnt;
+            cliErrorOutPnt = cliErrorBuffer;
         }
 
         return result;
