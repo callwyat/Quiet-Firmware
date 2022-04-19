@@ -14,7 +14,7 @@ void QueueOutputErrorCode(uint16_t group, uint16_t code)
 uint8_t ValidateChannel(const OutputCommand_t settings, void *v)
 {
     uint8_t channel = (uint8_t)(*((uint8_t*)v));
-    if (channel > settings.MaxChannels)
+    if (channel < 1 || channel > settings.MaxChannels)
     {
         QueueOutputErrorCode(settings.ErrorGroup, OUTPUT_ERROR_INVALID_CHANNEL);
         __asm("pop");
