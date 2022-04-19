@@ -30,7 +30,9 @@ void IDNCommand(CliBuffer_t *buffer, void* v)
 
 void RSTCommand(CliBuffer_t *buffer, void* v)
 {
-    RestoreSettings(false); 
+    ClearAllErrors();
+    RestoreSettings(false);
+    FFTilPunctuation(&buffer->InputPnt);
 }
 
 CommandDefinition_t starCommands[] = {

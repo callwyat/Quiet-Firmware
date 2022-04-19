@@ -384,6 +384,13 @@ uint16_t DequeueErrorCode(void)
     }
 }
 
+void ClearAllErrors(void)
+{
+    cliErrorOutPnt = cliErrorInPnt = cliErrorBuffer;
+    cliErrorBufferOverflow = false;
+    *cliErrorInPnt = ERROR_CODE_NO_ERROR;
+}
+
 void CopyWordToOutBuffer(CliBuffer_t *buffer, const char* word)
 {
     while (*word)

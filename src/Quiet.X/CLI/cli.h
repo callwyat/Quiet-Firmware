@@ -97,6 +97,8 @@ extern "C" {
 
     uint16_t DequeueErrorCode(void);
 
+    void ClearAllErrors(void);
+
     void CopyWordToOutBuffer(CliBuffer_t *buffer, const char* word);
     
     void SetLargeDataHandle(CliBuffer_t *buffer, void(*handle)(CliBuffer_t *buffer, void *v));

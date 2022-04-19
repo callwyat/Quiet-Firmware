@@ -58,7 +58,8 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 │   └———:ACKnolaged
 ├———:SYSTem
 │   ├———:ERRor
-│   │   └———:NEXT
+│   │   ├———:NEXT
+│   │   └———:CLEAr
 │   ├———:SERIalNumber
 │   ├———:SAVEState
 │   ├———:RESToreState
@@ -87,7 +88,7 @@ Read  -> Y@ Technologies,Qy@ Board,{Serial Number},2.2
 
 ### *RST (Write Only)
 #### Description
-A required SCPI command. Preforms the same operation as `SYSTem:RESTorestate`
+A required SCPI command. Preforms the `SYSTem:RESTorestate` action followed by the `SYSTem:ERRor:CLEAr` action
 #### Example
 ```
 Write -> *RST
@@ -472,6 +473,15 @@ Write -> SYST:ERR?
 Read  -> 0
 Write -> SYST:ERR:NEXT?
 Read  -> 0
+```
+
+### SYSTem:ERRor:CLEAr
+#### Description
+Clears the error buffer of all errors
+
+#### Example
+```
+Write -> SYST:ERR:CLEA
 ```
 
 ### SYSTem:SERIalnumber "\<value>"

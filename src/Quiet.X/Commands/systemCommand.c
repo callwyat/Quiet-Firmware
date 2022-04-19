@@ -38,6 +38,12 @@ void SYSTErrorCommand(CliBuffer_t *buffer, void* v)
     }    
 }
 
+void SYSTErrorClearCommand(CliBuffer_t *buffer, void* v)
+{
+    FFTilPunctuation(&buffer->InputPnt);
+    ClearAllErrors();
+}
+
 void SYSTSerilalNumber(CliBuffer_t *buffer, void* v)
 {
     QuietSettings_t settings = GetSettings();
@@ -212,6 +218,7 @@ CommandDefinition_t InfoChildrenCommands[] = {
 
 CommandDefinition_t SYSTErrorChildren[] = {
     DEFINE_COMMAND("NEXT", SYSTErrorCommand),
+    DEFINE_COMMAND("CLEA", SYSTErrorClearCommand),
 };
 
 CommandDefinition_t SYSTemChildrenCommands[] = {
