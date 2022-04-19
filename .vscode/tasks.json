@@ -43,7 +43,7 @@
 
             "args": [
                 "-P18F46J53",
-                "-F ${workspaceFolder}/src/Quiet.X/dist/default/production/Quiet.X.production.hex",
+                "-F${workspaceFolder}/src/Quiet.X/dist/default/production/Quiet.X.production.hex",
                 "-TPPK4",
                 "-M",
                 "-I",
