@@ -20,6 +20,8 @@ INT16_PATTERN = '\\b[\\d]{1,5}\\b'
 INT24_PATTERN = '\\b[\\d]{1,8}\\b'
 OUTPUT_MODE_PATTERN = '\\b(DISC|PWM|SERV)\\b'
 
+NO_ERROR_CODE = 0x0000
+
 def generate_fail_message(command, expected, response):
     return (f"Test Failed\nSent:     {repr(command)}\n" +
           f"Expected: {repr(expected)}\n" +
@@ -48,14 +50,19 @@ class QuietTester(Quiet):
 
             print(f"{command.ljust(24)} {execution_time} =>   {response.strip()}")
             
-    def channel_query_test(self, command:str, start:int, stop:int, expectation:str):
+    def channel_query_test(self, command:str, start:int, stop:int, expectation:str, channel_error_name:str, channel_error_code:str):
+
+        self.write(command.replace('#', str(start - 1)))
+        self.check_error(channel_error_name, channel_error_code)
 
         for i in range(start, stop + 1):
             self.query_test(command.replace('#', str(i)), expectation)
+            self.check_error(channel_error_name, NO_ERROR_CODE, False)
 
+        self.write(command.replace('#', str(stop + 1)))
+        self.check_error(channel_error_name, channel_error_code)
 
-
-    def check_error(self, error_name: str, expectation: int):
+    def check_error(self, error_name: str, expectation: int, verbose:bool=True):
 
         error = self.query_int("SYST:ERR?")
 
@@ -65,7 +72,7 @@ class QuietTester(Quiet):
                 raise Exception(message)
             else:
                 print(message)
-        elif VERBOSE:
+        elif VERBOSE and verbose:
             print(f'{error_name.ljust(32)} Pass')
 
 
@@ -81,7 +88,7 @@ class QuietTester(Quiet):
         if delay > 0:
             time.sleep(delay)
 
-        self.check_error(f'LOWER {error_name}', 0x00)
+        self.check_error(f'LOWER {error_name}', NO_ERROR_CODE)
 
     def check_upper_limit(self, command:str, high:int, error_name:str, error_code, delay:int=0):
 
@@ -89,14 +96,14 @@ class QuietTester(Quiet):
         if delay > 0:
             time.sleep(delay)
 
-        self.check_error(f'UPPER {error_name}', 0x00)
+        self.check_error(f'UPPER {error_name}', NO_ERROR_CODE)
 
         self.write(f'{command} {high + 1}')
         if delay > 0:
             time.sleep(delay)
 
         self.check_error(f'OVER  {error_name}', error_code)
-
+    
     def check_limit(self, command:str, low:int, high:int, error_name:str, error_code):
 
         self.check_lower_limit(command, low, error_name, error_code)

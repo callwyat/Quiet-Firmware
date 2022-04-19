@@ -67,58 +67,61 @@ def command_test(tester: QuietTester, number_mode='DECI', all_commands=True):
     number_pattern_16 = HEX16_PATTERN if number_mode == 'HEX' else INT16_PATTERN
     number_pattern_8 = HEX8_PATTERN if number_mode == 'HEX' else INT16_PATTERN
 
-    tester.query_test('*IDN?', 'Y@ Technologies,Qy@ Board,.*?,[2-9]\\.[0-9]'),
+    tester.reset()
+    tester.set_number_mode(number_mode)
 
-    tester.query_test('DIGI?', number_pattern_8),
-    tester.query_test('DIGInputs?', number_pattern_8),
-    tester.channel_query_test('DIGI:CH#?', 1, 8, number_pattern_8),
-    tester.channel_query_test('DIGI:CH#:VALU?', 1, 8, number_pattern_8),
+    tester.query_test('*IDN?', 'Y@ Technologies,Qy@ Board,.*?,[2-9]\\.[0-9]')
 
-    tester.channel_query_test('ANAI:CH#?', 1, 4, number_pattern_16),
+    tester.query_test('DIGI?', number_pattern_8)
+    tester.query_test('DIGInputs?', number_pattern_8)
+    tester.channel_query_test('DIGI:CH#?', 1, 8, number_pattern_8, 'INVALID DIGI CHANNEL', 0x0201)
+    tester.channel_query_test('DIGI:CH#:VALU?', 1, 8, number_pattern_8, 'INVALID DIGI CHANNEL', 0x0201)
 
-    tester.query_test('DIGOutputs?', number_pattern_8),
-    tester.channel_query_test('DIGO:CH#?', 1, 8, number_pattern_16),
-    tester.channel_query_test('DIGO:CH#:VALU?', 1, 8, number_pattern_16),
-    tester.channel_query_test('DIGO:CH#:MODE?', 1, 8, '\\bDISC\\b'),
+    tester.channel_query_test('ANAI:CH#?', 1, 4, number_pattern_16, 'INVALID ANAI CHANNEL', 0x0301)
 
-    tester.channel_query_test('ANAO:CH#?', 1, 2, number_pattern_16),
-    tester.channel_query_test('ANAO:CH#:VALU?', 1, 2, number_pattern_16),
-    tester.channel_query_test('ANAO:CH#:MODE?', 1, 2, '\\bPWM\\b'),
+    tester.query_test('DIGOutputs?', number_pattern_8)
+    tester.channel_query_test('DIGO:CH#?', 1, 8, number_pattern_16, 'INVALID DIGO CHANNEL', 0x0401)
+    tester.channel_query_test('DIGO:CH#:VALU?', 1, 8, number_pattern_16, 'INVALID DIGO CHANNEL', 0x0401)
+    tester.channel_query_test('DIGO:CH#:MODE?', 1, 8, '\\bDISC\\b', 'INVALID DIGO CHANNEL', 0x0401)
 
-    tester.channel_query_test('PWM:CH#?', 1, 6, number_pattern_16),
-    tester.channel_query_test('PWM:CH#:VALU?', 1, 6, number_pattern_16),
-    tester.channel_query_test('PWM:CH#:MODE?', 1, 6, OUTPUT_MODE_PATTERN), 
+    tester.channel_query_test('ANAO:CH#?', 1, 2, number_pattern_16, 'INVALID ANAO CHANNEL', 0x0501)
+    tester.channel_query_test('ANAO:CH#:VALU?', 1, 2, number_pattern_16, 'INVALID ANAO CHANNEL', 0x0501)
+    tester.channel_query_test('ANAO:CH#:MODE?', 1, 2, '\\bPWM\\b', 'INVALID ANAO CHANNEL', 0x0501)
 
-    tester.channel_query_test('SERV:CH#?', 1, 10, number_pattern_16),
-    tester.channel_query_test('SERV:CH#:VALU?', 1, 10, number_pattern_16),
-    tester.channel_query_test('SERVo:CH#:MODE?', 1, 10, OUTPUT_MODE_PATTERN), 
+    tester.channel_query_test('PWM:CH#?', 1, 6, number_pattern_16, 'INVALID PWM CHANNEL', 0x0601)
+    tester.channel_query_test('PWM:CH#:VALU?', 1, 6, number_pattern_16, 'INVALID PWM CHANNEL', 0x0601)
+    tester.channel_query_test('PWM:CH#:MODE?', 1, 6, OUTPUT_MODE_PATTERN, 'INVALID PWM CHANNEL', 0x0601) 
+
+    tester.channel_query_test('SERV:CH#?', 1, 10, number_pattern_16, 'INVALID SEVO CHANNEL', 0x0701)
+    tester.channel_query_test('SERV:CH#:VALU?', 1, 10, number_pattern_16, 'INVALID SEVO CHANNEL', 0x0701)
+    tester.channel_query_test('SERVo:CH#:MODE?', 1, 10, OUTPUT_MODE_PATTERN, 'INVALID SEVO CHANNEL', 0x0701) 
 
     if all_commands:
-        tester.query_test('UART:BAUD?', number_pattern_24),
-        tester.query_test('UART:MODE?', '\\b(USBU|SCPI)\\b'),
-        tester.query_test('UART:OVER?', number_pattern_8),
+        tester.query_test('UART:BAUD?', number_pattern_24)
+        tester.query_test('UART:MODE?', '\\b(USBU|SCPI)\\b')
+        tester.query_test('UART:OVER?', number_pattern_8)
 
-        tester.query_test('SPI:BAUD?', number_pattern_24),
+        tester.query_test('SPI:BAUD?', number_pattern_24)
 
-        tester.query_test('IIC:MODE?', '\\b(OFF|MAST)\\b'),
-        tester.query_test('IIC:BAUD?', number_pattern_24),
-        tester.query_test('IIC:TIMEout?', number_pattern_16),
-        tester.query_test('IIC:ADDRess?', number_pattern_8),
-        tester.query_test('IIC:ACK?', number_pattern_8),
+        tester.query_test('IIC:MODE?', '\\b(OFF|MAST)\\b')
+        tester.query_test('IIC:BAUD?', number_pattern_24)
+        tester.query_test('IIC:TIMEout?', number_pattern_16)
+        tester.query_test('IIC:ADDRess?', number_pattern_8)
+        tester.query_test('IIC:ACK?', number_pattern_8)
 
-        tester.query_test('IIC:REGIster:ADDRess?', number_pattern_8),
-        tester.query_test('IIC:REGIster:RSIZe?', number_pattern_8),
-        tester.query_test('IIC:REGIster:ACK?', number_pattern_8),
+        tester.query_test('IIC:REGIster:ADDRess?', number_pattern_8)
+        tester.query_test('IIC:REGIster:RSIZe?', number_pattern_8)
+        tester.query_test('IIC:REGIster:ACK?', number_pattern_8)
 
-    tester.query_test('SYST:ERR?', number_pattern_8),
+    tester.query_test('SYST:ERR?', number_pattern_8)
 
-    tester.query_test('SYST:INFO:COMM:HASH?', '"(~?[0-9a-fA-F]{40}~?)"'),
-    tester.query_test('SYST:INFO:COMM:AUTH?', '"((\w*) *)*"'),
-    tester.query_test('SYST:INFO:COMM:DATE?', '"(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})"'),
+    tester.query_test('SYST:INFO:COMM:HASH?', '"(~?[0-9a-fA-F]{40}~?)"')
+    tester.query_test('SYST:INFO:COMM:AUTH?', '"((\w*) *)*"')
+    tester.query_test('SYST:INFO:COMM:DATE?', '"(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})"')
 
-    tester.query_test('SYST:INFO:BUIL:VERS?', '"(\\d{4})"'),
-    tester.query_test('SYST:INFO:BUIL:USER?', '"((\w*) *)*"'),
-    tester.query_test('SYST:INFO:BUIL:DATE?', '"(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})"'),
+    tester.query_test('SYST:INFO:BUIL:VERS?', '"(\\d{4})"')
+    tester.query_test('SYST:INFO:BUIL:USER?', '"((\w*) *)*"')
+    tester.query_test('SYST:INFO:BUIL:DATE?', '"(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})"')
 
     print('Command Tests Passed')
 
