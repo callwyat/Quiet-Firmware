@@ -8,7 +8,7 @@
 
 void QueueOutputErrorCode(uint16_t group, uint16_t code)
 {
-    QueueErrorCode((group << 8) | OUTPUT_ERROR_INVALID_CHANNEL);
+    QueueErrorCode((group << 8) | code);
 }
 
 uint8_t ValidateChannel(const OutputCommand_t settings, void *v)
