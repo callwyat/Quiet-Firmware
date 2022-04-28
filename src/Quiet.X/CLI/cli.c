@@ -60,6 +60,8 @@ void FFTilPunctuation(char **input)
             case ' ':   // 0x20
             case '?':   // 0x3F
             case ';':   // 0x3A
+            case '\r':  // 0x0D
+            case '\n':  // 0x0A
                 return;
         }
 
