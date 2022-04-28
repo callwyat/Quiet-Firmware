@@ -58,6 +58,17 @@ def defaults_test(quiet:QuietComs):
         i += 1
 
     
+def _output_command_test(tester: QuietTester, output_name:str, count:int, error_base:int, number_pattern:str):
+
+    error_base = error_base << 8
+
+    tester.channel_query_test(f'{output_name}:CH#?', 1, count, number_pattern, 'INVALID {output_name} CHANNEL', error_base + 0x01)
+    tester.check_channel_limit(f'{output_name}:CH#', 1, count, 0, 1023, 'INVALID {output_name} VALUE', error_base + 0x03)
+
+    tester.channel_query_test(f'{output_name}:CH#:VALU?', 1, count, number_pattern, 'INVALID {output_name} CHANNEL', error_base + 0x01)
+    tester.check_channel_limit(f'{output_name}:CH#:VALU', 1, count, 0, 1023, 'INVALID {output_name} VALUE', error_base + 0x03)
+    
+    tester.channel_query_test(f'{output_name}:CH#:MODE?', 1, count, OUTPUT_MODE_PATTERN, 'INVALID {output_name} CHANNEL', error_base + 0x01)
 
 def command_test(tester: QuietTester, number_mode='DECI', all_commands=True):
 
@@ -80,21 +91,13 @@ def command_test(tester: QuietTester, number_mode='DECI', all_commands=True):
     tester.channel_query_test('ANAI:CH#?', 1, 4, number_pattern_16, 'INVALID ANAI CHANNEL', 0x0301)
 
     tester.query_test('DIGOutputs?', number_pattern_8)
-    tester.channel_query_test('DIGO:CH#?', 1, 8, number_pattern_16, 'INVALID DIGO CHANNEL', 0x0401)
-    tester.channel_query_test('DIGO:CH#:VALU?', 1, 8, number_pattern_16, 'INVALID DIGO CHANNEL', 0x0401)
-    tester.channel_query_test('DIGO:CH#:MODE?', 1, 8, '\\bDISC\\b', 'INVALID DIGO CHANNEL', 0x0401)
+    _output_command_test(tester, 'DIGO', 8, 0x04, number_pattern_16)
 
-    tester.channel_query_test('ANAO:CH#?', 1, 2, number_pattern_16, 'INVALID ANAO CHANNEL', 0x0501)
-    tester.channel_query_test('ANAO:CH#:VALU?', 1, 2, number_pattern_16, 'INVALID ANAO CHANNEL', 0x0501)
-    tester.channel_query_test('ANAO:CH#:MODE?', 1, 2, '\\bPWM\\b', 'INVALID ANAO CHANNEL', 0x0501)
+    _output_command_test(tester, 'ANAO', 2, 0x05, number_pattern_16)
 
-    tester.channel_query_test('PWM:CH#?', 1, 6, number_pattern_16, 'INVALID PWM CHANNEL', 0x0601)
-    tester.channel_query_test('PWM:CH#:VALU?', 1, 6, number_pattern_16, 'INVALID PWM CHANNEL', 0x0601)
-    tester.channel_query_test('PWM:CH#:MODE?', 1, 6, OUTPUT_MODE_PATTERN, 'INVALID PWM CHANNEL', 0x0601) 
+    _output_command_test(tester, 'PWM', 6, 0x06, number_pattern_16)
 
-    tester.channel_query_test('SERV:CH#?', 1, 10, number_pattern_16, 'INVALID SEVO CHANNEL', 0x0701)
-    tester.channel_query_test('SERV:CH#:VALU?', 1, 10, number_pattern_16, 'INVALID SEVO CHANNEL', 0x0701)
-    tester.channel_query_test('SERVo:CH#:MODE?', 1, 10, OUTPUT_MODE_PATTERN, 'INVALID SEVO CHANNEL', 0x0701) 
+    _output_command_test(tester, 'SERV', 10, 0x07, number_pattern_16)
 
     if all_commands:
         tester.query_test('UART:BAUD?', number_pattern_24)
