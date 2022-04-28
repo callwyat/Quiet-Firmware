@@ -127,19 +127,32 @@ def command_test(tester: QuietTester, number_mode='DECI', all_commands=True):
 
     if all_commands:
         tester.query_test('UART:BAUD?', number_pattern_24)
+        tester.check_limit('UART:BAUD', 61, 1000000, 'INVALID UART BAUD', 0x0910)
         tester.query_test('UART:MODE?', '\\b(USBU|SCPI)\\b')
+        tester.check_modes('UART:MODE', ['USBU', 'SCPI'], [], 'INVALID UART MODE', 0x0911)
         tester.query_test('UART:OVER?', number_pattern_8)
 
         tester.query_test('SPI:BAUD?', number_pattern_24)
+        tester.check_lower_limit('SPI:BAUD', 250000, 'INVALID SPI BAUD', 0x0A01)
+        tester.query_test('SPI:CS?', BOOL_PATTERN)
+        #TODO: Test error code 0x0A02
 
         tester.query_test('IIC:MODE?', '\\b(OFF|MAST)\\b')
+        tester.check_modes('IIC:MODE', ['OFF', 'MAST'], [], 'INVALID IIC MODE', 0x0B04)
         tester.query_test('IIC:BAUD?', number_pattern_24)
+        tester.check_limit('IIC:BAUD', 16000, 1000000, 'INVALID IIC BAUD', 0x0B01)
         tester.query_test('IIC:TIMEout?', number_pattern_16)
+        tester.check_limit('IIC:TIME', 1, 255, 'INVALID IIC TIMEOUT', 0x0B02)
         tester.query_test('IIC:ADDRess?', number_pattern_8)
+        tester.check_limit('IIC:ADDR', 0, 127, 'INVALID IIC ADDRESS', 0x0B03)
+
         tester.query_test('IIC:ACK?', number_pattern_8)
 
         tester.query_test('IIC:REGIster:ADDRess?', number_pattern_8)
+        tester.check_limit('IIC:REGI:ADDR', 0, 255, 'INVALID IIC REGISTER ADDRESS', 0x0B21)
         tester.query_test('IIC:REGIster:RSIZe?', number_pattern_8)
+        tester.check_limit('IIC:REGI:RSIZ', 1, 2, 'INVALID IIC RSIZE', 0x0B20)
+
         tester.query_test('IIC:REGIster:ACK?', number_pattern_8)
 
     tester.query_test('SYST:ERR?', number_pattern_8)

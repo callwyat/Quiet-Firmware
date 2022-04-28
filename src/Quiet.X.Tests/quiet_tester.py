@@ -88,7 +88,7 @@ class QuietTester(Quiet):
         if delay > 0:
             time.sleep(delay)
 
-        self.check_error(f'UNDER {error_name}', error_code if under >- 0 else INVALID_NUMBER_CODE)
+        self.check_error(f'UNDER {error_name}', error_code if under >= 0 else INVALID_NUMBER_CODE)
 
         self.write(f'{command} {low}')
         if delay > 0:
