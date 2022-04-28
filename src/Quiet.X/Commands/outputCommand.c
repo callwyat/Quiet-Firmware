@@ -72,27 +72,36 @@ void OutputChannelModeCommand(CliBuffer_t *buffer, const OutputCommand_t setting
 
 void OutputChannelValueCommand(CliBuffer_t *buffer, const OutputCommand_t settings, void *v)
 {
-    if (*buffer->InputPnt == '?')
+    if (*buffer->InputPnt == ' ')
+    {
+        ++buffer->InputPnt;
+        uint8_t channel = ValidateChannel(settings, v);
+
+        OutputMode_e mode = GetOutputMode(channel);
+        if (mode == OUT_DISCREET)
+        {
+            bool value = ParseBool(&buffer->InputPnt);
+            SetOutputValue(channel, (uint16_t)value);
+        }
+        else
+        {
+            int16_t value = ParseInt(&buffer->InputPnt);
+            if (value >= 0 && value < 1024)
+            {
+                SetOutputValue(channel, (uint16_t)value);
+            }
+            else
+            {
+                QueueOutputErrorCode(settings.ErrorGroup, OUTPUT_ERROR_INVALID_VALUE);
+            }
+        }
+    }
+    else if (*buffer->InputPnt == '?')
     {
         ++buffer->InputPnt;
         uint8_t channel = ValidateChannel(settings, v);
         uint16_t value = GetOutputValue(channel);
         NumberToString(buffer, value);
-    }
-    else if (*buffer->InputPnt == ' ')
-    {
-        ++buffer->InputPnt;
-        uint8_t channel = ValidateChannel(settings, v);
-
-        int16_t value = ParseInt(&buffer->InputPnt);
-        if (value >= 0 && value < 1024)
-        {
-            SetOutputValue(channel, (uint16_t)value);
-        }
-        else
-        {
-            QueueOutputErrorCode(settings.ErrorGroup, OUTPUT_ERROR_INVALID_VALUE);
-        }
     }
 }
 
