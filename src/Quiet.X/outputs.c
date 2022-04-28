@@ -141,7 +141,7 @@ uint8_t SetOutputMode(uint8_t output, OutputMode_e mode)
     OutputSetup_t *setup = &OutputSetups[output];
     
     if ((setup->AvalibleModes & mode) == 0)
-        return OUPTUT_ERROR_INVALID_MODE_SELECTION;
+        return OUTPUT_ERROR_INVALID_MODE_SELECTION;
     
     setup->ActiveMode = mode;
     

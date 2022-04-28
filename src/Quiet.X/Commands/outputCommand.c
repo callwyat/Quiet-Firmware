@@ -58,7 +58,7 @@ void OutputChannelModeCommand(CliBuffer_t *buffer, const OutputCommand_t setting
         }
         else
         {
-            error = OUPTUT_ERROR_INVALID_MODE_SELECTION;
+            error = OUTPUT_ERROR_INVALID_MODE_SELECTION;
         }
         
         FFTilPunctuation(&buffer->InputPnt);

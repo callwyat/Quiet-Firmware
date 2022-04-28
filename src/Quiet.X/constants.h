@@ -51,7 +51,7 @@ extern const char* EmptyIEEEHeader;
 // OUTPUT Errors
 #define OUTPUT_ERROR_NO_ERROR               0x00
 #define OUTPUT_ERROR_INVALID_CHANNEL        0x01
-#define OUPTUT_ERROR_INVALID_MODE_SELECTION 0x02
+#define OUTPUT_ERROR_INVALID_MODE_SELECTION 0x02
 #define OUTPUT_ERROR_INVALID_VALUE          0x03
 
 // DIGO Errors
