@@ -73,36 +73,9 @@ void SPIChipSelectCommand(CliBuffer_t *buffer, void* v)
         ++buffer->InputPnt;
         SDDetectEnable = false;
         
-        char c = *buffer->InputPnt;
-
-        if (c == '0')
-        {
-            ++buffer->InputPnt;
-            SPICS = 0;
-        }
-        else if (c == '1')
-        {
-            ++buffer->InputPnt;
-            SPICS = 1;
-        }
-        else if (c == 'F')
-        {
-            FFTilPunctuation(&buffer->InputPnt);
-            --buffer->InputPnt;
-            SPICS = 0;
-        }
-        else if (c == 'T')
-        {
-            FFTilPunctuation(&buffer->InputPnt);
-            --buffer->InputPnt;
-            SPICS = 1;
-        }
-        else
-        {
-            QueueErrorCode(SPI_ERROR_INVALID_CS_VALUE);
-        }
+        SPICS = ParseBool(&buffer->InputPnt);
     }
-        else if (*buffer->InputPnt == '?')
+    else if (*buffer->InputPnt == '?')
     {
         ++buffer->InputPnt;
 

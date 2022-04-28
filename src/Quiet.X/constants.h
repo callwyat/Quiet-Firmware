@@ -41,6 +41,7 @@ extern const char* EmptyIEEEHeader;
 #define CLI_ERROR_INVALID_BRANCH            0x0102
 #define CLI_ERROR_INVALID_NUMBER            0x0110
 #define CLI_ERROR_INVALID_IEEE_HEADER       0x0111
+#define CLI_ERROR_INVALID_BOOLEAN           0x0120
 
 // DIGI Errors
 #define DIGI_ERROR_INVALID_CHANNEL          0x0201
@@ -78,7 +79,6 @@ extern const char* EmptyIEEEHeader;
 
 // SPI Errors
 #define SPI_ERROR_INVALID_BAUD              0x0A01
-#define SPI_ERROR_INVALID_CS_VALUE          0x0A02
 
 // IIC Errors
 #define I2C_ERROR_NONE                      0x0000

@@ -85,6 +85,8 @@ extern "C" {
     
     void NumberToString(CliBuffer_t *buffer, uint24_t input);
     
+    bool ParseBool(char** str);
+
     int16_t ParseInt(char** str);
     
     uint24_t ParseInt24(char** str);

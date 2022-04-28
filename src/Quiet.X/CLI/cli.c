@@ -210,6 +210,40 @@ void CheckValidNumberEnd(char c)
     }
 }
 
+bool ParseBool(char** str)
+{
+    char c = **str;
+    bool result;
+
+    if (c == '0')
+    {
+        ++str;
+        result = false;
+    }
+    else if (c == '1')
+    {
+        ++str;
+        result = true;
+    }
+    else if (c == 'F')
+    {
+        FFTilPunctuation(str);
+        result = false;
+    }
+    else if (c == 'T')
+    {
+        FFTilPunctuation(str);
+        result = true;
+    }
+    else
+    {
+        QueueErrorCode(CLI_ERROR_INVALID_BOOLEAN);
+        __asm("pop");
+    }
+
+    return result;
+}
+
 /**
  * Converts as many chars as possible to numbers
  * @param str
