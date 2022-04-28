@@ -92,12 +92,38 @@ def command_test(tester: QuietTester, number_mode='DECI', all_commands=True):
 
     tester.query_test('DIGOutputs?', number_pattern_8)
     _output_command_test(tester, 'DIGO', 8, 0x04, number_pattern_16)
+    tester.check_modes('DIGO:CH1:MODE', ['DISC', 'SERV'], ['PWM'], 'INVALID OUTPUT MODE', 0x0402)
+    tester.check_modes('DIGO:CH2:MODE', ['DISC', 'SERV'], ['PWM'], 'INVALID OUTPUT MODE', 0x0402)
+    tester.check_modes('DIGO:CH3:MODE', ['DISC', 'SERV'], ['PWM'], 'INVALID OUTPUT MODE', 0x0402)
+    tester.check_modes('DIGO:CH4:MODE', ['DISC', 'SERV'], ['PWM'], 'INVALID OUTPUT MODE', 0x0402)
+    tester.check_modes('DIGO:CH5:MODE', ['DISC', 'SERV', 'PWM'], [], 'INVALID OUTPUT MODE', 0x0402)
+    tester.check_modes('DIGO:CH6:MODE', ['DISC', 'SERV', 'PWM'], [], 'INVALID OUTPUT MODE', 0x0402)
+    tester.check_modes('DIGO:CH7:MODE', ['DISC', 'SERV', 'PWM'], [], 'INVALID OUTPUT MODE', 0x0402)
+    tester.check_modes('DIGO:CH8:MODE', ['DISC', 'SERV', 'PWM'], [], 'INVALID OUTPUT MODE', 0x0402)
 
     _output_command_test(tester, 'ANAO', 2, 0x05, number_pattern_16)
-
+    tester.check_modes('ANAO:CH1:MODE', ['SERV', 'PWM'], ['DISC'], 'INVALID OUTPUT MODE', 0x0502)
+    tester.check_modes('ANAO:CH2:MODE', ['SERV', 'PWM'], ['DISC'], 'INVALID OUTPUT MODE', 0x0502)
+  
     _output_command_test(tester, 'PWM', 6, 0x06, number_pattern_16)
+    tester.check_modes('PWM:CH1:MODE', ['DISC', 'SERV', 'PWM'], [], 'INVALID OUTPUT MODE', 0x0602)
+    tester.check_modes('PWM:CH2:MODE', ['DISC', 'SERV', 'PWM'], [], 'INVALID OUTPUT MODE', 0x0602)
+    tester.check_modes('PWM:CH3:MODE', ['DISC', 'SERV', 'PWM'], [], 'INVALID OUTPUT MODE', 0x0602)
+    tester.check_modes('PWM:CH4:MODE', ['DISC', 'SERV', 'PWM'], [], 'INVALID OUTPUT MODE', 0x0602)
+    tester.check_modes('PWM:CH5:MODE', ['SERV', 'PWM'], ['DISC'], 'INVALID OUTPUT MODE', 0x0602)
+    tester.check_modes('PWM:CH6:MODE', ['SERV', 'PWM'], ['DISC'], 'INVALID OUTPUT MODE', 0x0602)
 
     _output_command_test(tester, 'SERV', 10, 0x07, number_pattern_16)
+    tester.check_modes('SERV:CH1:MODE', ['DISC', 'SERV'], ['PWM'], 'INVALID OUTPUT MODE', 0x0702)
+    tester.check_modes('SERV:CH2:MODE', ['DISC', 'SERV'], ['PWM'], 'INVALID OUTPUT MODE', 0x0702)
+    tester.check_modes('SERV:CH3:MODE', ['DISC', 'SERV'], ['PWM'], 'INVALID OUTPUT MODE', 0x0702)
+    tester.check_modes('SERV:CH4:MODE', ['DISC', 'SERV'], ['PWM'], 'INVALID OUTPUT MODE', 0x0702)
+    tester.check_modes('SERV:CH5:MODE', ['DISC', 'SERV', 'PWM'], [], 'INVALID OUTPUT MODE', 0x0702)
+    tester.check_modes('SERV:CH6:MODE', ['DISC', 'SERV', 'PWM'], [], 'INVALID OUTPUT MODE', 0x0702)
+    tester.check_modes('SERV:CH7:MODE', ['DISC', 'SERV', 'PWM'], [], 'INVALID OUTPUT MODE', 0x0702)
+    tester.check_modes('SERV:CH8:MODE', ['DISC', 'SERV', 'PWM'], [], 'INVALID OUTPUT MODE', 0x0702)
+    tester.check_modes('SERV:CH9:MODE', ['SERV', 'PWM'], ['DISC'], 'INVALID OUTPUT MODE', 0x0702)
+    tester.check_modes('SERV:CH10:MODE', ['SERV', 'PWM'], ['DISC'], 'INVALID OUTPUT MODE', 0x0702)
 
     if all_commands:
         tester.query_test('UART:BAUD?', number_pattern_24)
