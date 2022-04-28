@@ -33,6 +33,9 @@ void RSTCommand(CliBuffer_t *buffer, void* v)
     ClearAllErrors();
     RestoreSettings(false);
     FFTilPunctuation(&buffer->InputPnt);
+    
+    // Convince the parser this there is no command error.
+    --buffer->InputPnt;
 }
 
 CommandDefinition_t starCommands[] = {

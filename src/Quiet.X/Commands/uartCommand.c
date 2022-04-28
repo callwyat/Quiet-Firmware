@@ -188,6 +188,9 @@ void UARTOverflowCommand(CliBuffer_t *buffer, void* v)
 void UARTClearOverflowCommand(CliBuffer_t *buffer, void* v)
 {
     UART_ClearRxBufferOverflow();
+    
+    // Convince the parser this there is no command error.
+    --buffer->InputPnt;
 }
 
 CommandDefinition_t uartClearCommandChildren[] = {

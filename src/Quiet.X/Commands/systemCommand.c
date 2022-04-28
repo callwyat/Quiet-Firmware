@@ -42,6 +42,9 @@ void SYSTErrorClearCommand(CliBuffer_t *buffer, void* v)
 {
     FFTilPunctuation(&buffer->InputPnt);
     ClearAllErrors();
+    
+    // Convince the parser this there is no command error.
+    --buffer->InputPnt;
 }
 
 void SYSTSerilalNumber(CliBuffer_t *buffer, void* v)
@@ -113,12 +116,18 @@ void SYSTRestore(CliBuffer_t *buffer, void* v)
     else
     {
         RestoreSettings(false);
+            
+        // Convince the parser this there is no command error.
+        --buffer->InputPnt;
     }
 }
 
 void SYSTSave(CliBuffer_t *buffer, void* v)
 {
     SaveSettings();
+    
+    // Convince the parser this there is no command error.
+    --buffer->InputPnt;
 }
 
 const char* HEXString = "HEX";
