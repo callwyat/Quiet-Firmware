@@ -1,7 +1,7 @@
 import time
 import serial
 import serial.tools.list_ports
-
+from logger import LogWrapper
 class QuietComs():
 
     def __init__(self, port=None):
@@ -19,6 +19,9 @@ class QuietComs():
             self.com = serial.Serial(port=qPort, timeout=1)
         else:
             raise Exception('Unable to determine what to do with \'port\'')
+
+        f = open('com_log.txt', 'w')
+        self.com = LogWrapper(self.com, f)
 
     def write_raw(self, input:str):
         """ Writes the given input with no modification
