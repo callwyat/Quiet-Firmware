@@ -136,6 +136,7 @@ void ProcessCommand(CliBuffer_t *buffer, CommandDefinition_t* commands)
                         // If the pointer didn't move, the command was no processed
                         if (inputPnt == buffer->InputPnt)
                         {
+                            ++buffer->InputPnt;
                             QueueErrorCode(CLI_ERROR_INVALID_COMMAND);
                         }
 
