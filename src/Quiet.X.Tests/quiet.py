@@ -3,8 +3,8 @@ from quiet_coms import QuietComs
 
 class Quiet(QuietComs):
     
-    def __init__(self, coms) -> None:
-        QuietComs.__init__(self, coms)
+    def __init__(self, coms, **kargs) -> None:
+        QuietComs.__init__(self, coms, **kargs)
 
     def reset(self):
         """Resets quiet board

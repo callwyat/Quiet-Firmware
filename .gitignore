@@ -8,4 +8,5 @@ __pycache__
 # MacOS specific files
 .DS_Store
 
-com_log.txt
+usb_log.txt
+uart_log.txt

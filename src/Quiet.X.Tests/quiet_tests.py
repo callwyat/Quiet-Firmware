@@ -266,7 +266,7 @@ if __name__ == "__main__":
 
     qPort = find_quiet_ports()[0]
 
-    run_quiet_test(QuietTester(qPort))
+    run_quiet_test(QuietTester(qPort, log_path='usb_log.txt'))
     
     print("All Tests Passed")
 

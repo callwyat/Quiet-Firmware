@@ -30,9 +30,9 @@ def generate_fail_message(command, expected, response):
 
 class QuietTester(Quiet):
 
-    def __init__(self, coms) -> None:
+    def __init__(self, coms, **kargs) -> None:
 
-        Quiet.__init__(self, coms)
+        Quiet.__init__(self, coms, **kargs)
 
     def query_test(self, command:str, expectation:str):
 

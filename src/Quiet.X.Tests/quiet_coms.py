@@ -4,7 +4,7 @@ import serial.tools.list_ports
 from logger import LogWrapper
 class QuietComs():
 
-    def __init__(self, port=None):
+    def __init__(self, port=None, **kargs):
         if type(port) == serial.Serial:
             self.com = port
         elif type(port) == str:
@@ -20,8 +20,9 @@ class QuietComs():
         else:
             raise Exception('Unable to determine what to do with \'port\'')
 
-        f = open('com_log.txt', 'w')
-        self.com = LogWrapper(self.com, f)
+        if 'log_path' in kargs:
+            f = open(kargs['log_path'], 'w')
+            self.com = LogWrapper(self.com, f)
 
     def write_raw(self, input:str):
         """ Writes the given input with no modification
