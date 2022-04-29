@@ -74,14 +74,14 @@ def command_test(tester: QuietTester, number_mode='DECI', all_commands=True):
 
     print('Starting Command Tests')
 
+    tester.query_test('*IDN?', 'Y@ Technologies,Qy@ Board,.*?,[2-9]\\.[0-9]')
+
     number_pattern_24 = HEX24_PATTERN if number_mode == 'HEX' else INT24_PATTERN
     number_pattern_16 = HEX16_PATTERN if number_mode == 'HEX' else INT16_PATTERN
     number_pattern_8 = HEX8_PATTERN if number_mode == 'HEX' else INT16_PATTERN
-
-    tester.reset()
+    
+    tester.check_modes('SYST:NUMB', ['HEX', 'DECI'], [], 'INVALID NUMBER MODE', 0x0010)
     tester.set_number_mode(number_mode)
-
-    tester.query_test('*IDN?', 'Y@ Technologies,Qy@ Board,.*?,[2-9]\\.[0-9]')
 
     tester.query_test('DIGI?', number_pattern_8)
     tester.query_test('DIGInputs?', number_pattern_8)
@@ -251,6 +251,7 @@ def run_quiet_test(tester: QuietTester):
 
     defaults_test(tester)
 
+    tester.reset()
     command_test(tester)
 
     parse_test(tester, 'DECI')
