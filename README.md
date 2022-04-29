@@ -52,10 +52,10 @@ Commands are formatted using the SCPI (Standard Communication for Programable In
 │   │   ├———:RSIZe
 │   │   ├———:WRITe
 │   │   ├———:READ
-│   │   └———:ACKnolaged
+│   │   └———:ACKnowledged
 │   ├———:WRITe
 │   ├———:READ
-│   └———:ACKnolaged
+│   └———:ACKnowledged
 ├———:SYSTem
 │   ├———:ERRor
 │   │   ├———:NEXT
@@ -228,19 +228,6 @@ Write -> UART:MODE?
 Read  -> SCPI
 ```
 
-### UART:ERRor
-#### Description
-Gets the last reported error by the UART system. The error code is cleared when read.
-#### Codes
-Code    | Meaning                                       |
---------|-----------------------------------------------|
-0x00    | No Error                                      |
-0x10    | Invalid Baud Rate                             |
-#### Example
-```
-Write -> UART:ERR?
-Read  -> 0x00
-```
 ### SPI:EXCHange (Combination IEEE Write and Read)
 #### Description
 Writes the number of bytes specified by the IEEE header to the Serial Peripheral Interface (SPI). SPIs uses a synchronized shift register to clock bits in and out simultaneously. As such, every byte written to the SPI will return one byte.
@@ -311,6 +298,15 @@ Write -> IIC:TIME 100
 Write -> IIC:TIME?
 Read  -> 100
 ```
+### IIC:ACKnowledged? (Query Only)
+#### Description
+Returns `1` if the last IIC operation was properly acknowledged by an attached device, or `0` if not.
+#### Example
+```
+Write -> IIC:REGI:WRIT 0x1001;ACK?
+Read  -> ;1
+```
+
 ### IIC:REGIster:ADDRess \<value>
 #### Description
 Gets or sets the register address for a IIC:REGI:WRITe or IIC:REGI:READ? command.
@@ -348,11 +344,11 @@ Write -> IIC:ADDR 0x50
 Write -> IIC:REGI:ADDR 0x01
 Write -> IIC:REGI:RSIZ 2
 Write -> IIC:REGI:WRIT 0x1001
-Write -> IIC:ERR?
-Read  -> 0
+Write -> IIC:ACK?
+Read  -> 1
 
-Write -> IIC:ADDR 0x50;REGI:ADDR 0x01;RSIZ 2;WRIT 0x1001;ERR?
-Read  -> ;;;;0
+Write -> IIC:ADDR 0x50;REGI:ADDR 0x01;RSIZ 2;WRIT 0x1001;ACK?
+Read  -> ;;;;1
 ```
 
 ### IIC:REGIster:READ?
@@ -376,16 +372,12 @@ Write -> IIC:REGI:ADDR 0xFF
 Write -> IIC:REGI:RSIZ 2
 Write -> IIC:REGI:READ?
 Read  -> 0x1004
-Write -> IIC:ERRO?
-Read  -> 0x00
+Write -> IIC:ACK?
+Read  -> 0x01
 
-Write -> IIC:ADDR 0x50;REGI:ADDR 0x01;RSIZ 2;READ?;ERR?
-Read  -> ;;;0x1004;0x00
+Write -> IIC:ADDR 0x50;REGI:ADDR 0x01;RSIZ 2;READ?;ACK?
+Read  -> ;;;0x1004;0x01
 ```
-
-### IIC:REGIster:ERRor?
-#### Description
-The same as `IIC:ERRor`.
 
 ### IIC:WRITe (IEEE Write Only)
 #### Description
@@ -414,58 +406,67 @@ Write -> IIC:ADDR 0x0C;WRIT #11A;READ? 2
 Read  -> ;;#2BC
 ```
 
-### IIC:ERRor?
-#### Description
-Gets the last reported error by the I2C system. The error code is cleared when read.
-#### Codes
-Code    | Meaning                                       |
---------|-----------------------------------------------|
-0x00    | No Error                                      |
-0x01    | Attempted to set invalid baud rate            |
-0x02    | Attempted to set invalid timeout              |
-0x03    | Attempted to set invalid slave address        |
-0x04     | Attempted to set invalid operation mode       |
-0x10    | Attempted to write with I2C disabled          |
-0x11    | Attempted to read with I2C disabled           |
-0x12    | No Acknowledgment was received                |
-0x20    | Invalid register size                         |
-0x21    | Invalid register address                      |
-0x22    | Invalid register value                        |
-0x30    | Buffer overflow would occur                   |
-0x31    | Invalid number of bytes to write specified    |
-0x32    | Invalid number of bytes to read specified     |
-#### Example
-```
-Write -> SYST:NUMB HEX
-Write -> IIC:ERR?
-Read  -> 0x01
-Write -> IIC:ERR?
-Read  -> 0x00
-```
-
 ### SYSTem:ERRor\[:NEXT\]?
 #### Description
 Queries all the the error systems and returns a summary of all the errors plus amy system specific errors. The system specific errors are cleared after the message is read. The summary bits are cleared by reading the corresponding systems error code e.g. `IIC:ERR?`
 
-#### Bitmap
-Bit     | Meaning                                       |
---------|-----------------------------------------------|
-1       | Digital Input System                          |
-2       | Analog Input System                           |
-3       | Digital Output System                         |
-4       | Analog Output System                          |
-5       | PWM Output System                             |
-6       | Servo Output System                           |
-7       | UART System                                   |
-8       | SPI System                                    |
-9       | IIC System                                    |
-10 - 12 | Reserved for future use                       |
-13 - 16 | Systems Error Codes                           |
-
 #### System Error Codes
-Code    | Meaning                                       |
---------|-----------------------------------------------|
-0x00    | No System Errors                              |
+Code      | Meaning                                           |
+----------|-----------------------------------------------    |
+0x0000    | No Errors                                         |
+0x0001    | Error Buffer Overflow                             |
+0x0010    | Attempted to set invalid number mode              |
+0x0011    | Invalid SYST:REST parameter                       |
+0x0020    | Invalid Serial Number type (quotes are needed)    |
+0x0021    | Provided Serial Number was too long               |
+-----     |                                                   |
+0x0101    | Invalid Command                                   |
+0x0102    | Invalid Command Branch (may be query only)        |
+0x0110    | Failed to parse value as a number (uints only)    |
+0x0111    | Invalid IEEE Header                               |
+0x0120    | Failed to parse the given value as a boolean      |
+-----     |                                                   |
+0x0201    | DIGI: Invalid channel (Valid range is 1-8)        |
+-----     |                                                   |
+0x0301    | ANAI: Invalid channel (Valid range is 1-4)        |
+-----     |                                                   |
+0x0401    | DIGO: Invalid Channel (Valid range is 1-8)        |
+0x0402    | DIGO: Invalid mode for the given Channel          |
+0x0403    | DIGO: Invalid value for the given Channel         |
+-----     |                                                   |
+0x0501    | ANAO: Invalid Channel (Valid range is 1-2)        |
+0x0502    | ANAO: Invalid mode for the given Channel          |
+0x0603    | ANAO: Invalid value for the given Channel         |
+-----     |                                                   |
+0x0601    | PWM: Invalid Channel (Valid range is 1-6)         |
+0x0602    | PWM: Invalid mode for the given Channel           |
+0x0603    | PWM: Invalid value for the given Channel          |
+-----     |                                                   |
+0x0701    | SERVo: Invalid Channel (Valid range is 1-10)      |
+0x0702    | SERVo: Invalid mode for the given Channel         |
+0x0703    | SERVo: Invalid value for the given Channel        |
+-----     |                                                   |
+0x0910    | UART: Invalid baud rate (Valid range 60 - 1M)     |
+0x0911    | UART: Invalid mode given                          |
+0x0912    | UART: Attempted less then 1 byte                  |
+0x0920    | UART: Receive buffer overflow                     |
+0x0930    | UART: Attempted write while not in USBUart mode   |
+0x0931    | UART: Attempted read while not in USBUart mode    |
+-----     |                                                   |
+0x0A01    | SPI: Invalid baud rate (Valid range 250k - 4M)    |
+-----     |                                                   |
+0x0B01    | IIC: Invalid baud rate (Valid range 16k - 1M)     |
+0x0B02    | IIC: Invalid timeout                              |
+0x0B03    | IIC: Invalid slave address                        |
+0x0B04    | IIC: Invalid operation mode                       |
+0x0B10    | IIC: Attempted to write with I2C disabled         |
+0x0B11    | IIC: Attempted to read with I2C disabled          |
+0x0B20    | IIC: Invalid register size                        |
+0x0B21    | IIC: Invalid register address                     |
+0x0B22    | IIC: Invalid register value                       |
+0x0B30    | IIC: Buffer overflow would occur                  |
+0x0B31    | IIC: Invalid number of bytes to write specified   |
+0x0B32    | IIC: Invalid number of bytes to read specified    |
 
 #### Example
 ```
