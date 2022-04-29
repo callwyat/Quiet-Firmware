@@ -33,10 +33,9 @@ class QuietI2C(Quiet):
     def disable(self) -> None:
         self.set_and_verify('IIC:MODE', 'OFF')
 
-    def error(self) -> int:
-        error_int = self.query_int('IIC:ERRO?')
-
-        return error_int
+    def acknowledged(self) -> bool:
+        ack = self.query('IIC:ACK?')
+        return '1' in ack
 
 def _i2c_register_read_test(i: QuietI2C, address:int, register:int, expectation:int):
     value = i.register_read(address, register, 2)
@@ -93,11 +92,13 @@ def _i2c_check_error(i: QuietI2C, error_name: str, expectation: int):
 
 def _i2c_check_lower_limit(i: QuietI2C, command:str, low:int, error_name:str, error_code, delay:int=0):
     
-    i.write(f'{command} {low - 1}')
+    under = low - 1
+    i.write(f'{command} {under}')
+
     if delay > 0:
         time.sleep(delay)
 
-    _i2c_check_error(i, f'UNDER {error_name}', error_code)
+    _i2c_check_error(i, f'UNDER {error_name}', error_code if under >= 0 else 0x0110)
 
     i.write(f'{command} {low}')
     if delay > 0:
@@ -125,14 +126,30 @@ def _i2c_check_limit(i: QuietI2C, command:str, low:int, high:int, error_name:str
 
     _i2c_check_upper_limit(i, command, high, error_name, error_code)
 
+def _i2c_check_acknowledge(i, expectation:bool):
+
+        ack = i.acknowledged()
+        if ack != expectation:
+            if ack:
+                message = f'Failure ACKNOWLEDGED. Expected NO_ACKNOWLEDGED received ACKNOWLEDGED'
+            else:
+                message = f'Failure ACKNOWLEDGED. Expected ACKNOWLEDGED received NO_ACKNOWLEDGED'
+
+            if EXIT_ON_FAIL:
+                raise Exception(message)
+            else:
+                print(message)
+        elif VERBOSE:
+            print(f'{("" if ack else "NO_")}ACKNOWLEDGED'.ljust(32) + ' Pass')
+
 def i2c_test_errors(i: QuietI2C) -> bool:
 
     # Clear Errors
     i.error()
 
     # Verify the second hook works
-    if i.query_int('IIC:REGI:ERRO?') != 0:
-        messsage = 'Failure "IIC:REGI:ERRO?" Command'
+    if i.query_int('SYST:ERR?') != 0:
+        messsage = 'Failure "SYS:ERR?" Command'
         if EXIT_ON_FAIL:
             raise Exception(messsage)
         else:
@@ -143,31 +160,31 @@ def i2c_test_errors(i: QuietI2C) -> bool:
     i.disable()
     _i2c_check_error(i, 'ERROR_NONE', 0x00)
 
-    _i2c_check_limit(i, 'IIC:BAUD', 16000, 1000000, 'INVALID_BAUD', 0x01)
+    _i2c_check_limit(i, 'IIC:BAUD', 16000, 1000000, 'INVALID_BAUD', 0x0B01)
 
-    _i2c_check_limit(i, 'IIC:TIME', 1, 255, 'INVALID_TIMEOUT', 0x02)
+    _i2c_check_limit(i, 'IIC:TIME', 1, 255, 'INVALID_TIMEOUT', 0x0B02)
 
-    _i2c_check_limit(i, 'IIC:ADDR', 0, 127, 'INVALID_ADDRESS', 0x03)
+    _i2c_check_limit(i, 'IIC:ADDR', 0, 127, 'INVALID_ADDRESS', 0x0B03)
  
     i.write('IIC:MODE MAS')
-    _i2c_check_error(i, 'ERROR_INVALID_MODE', 0x04)
+    _i2c_check_error(i, 'ERROR_INVALID_MODE', 0x0B04)
     
-    _i2c_check_limit(i, 'IIC:REGI:RSIZ', 1, 2, 'INVALID_RSIZE', 0x20)
+    _i2c_check_limit(i, 'IIC:REGI:RSIZ', 1, 2, 'INVALID_RSIZE', 0x0B20)
 
-    _i2c_check_limit(i, 'IIC:REGI:ADDR', 0, 255, 'INVALID_REGISTER_ADDRESS', 0x21)
+    _i2c_check_limit(i, 'IIC:REGI:ADDR', 0, 255, 'INVALID_REGISTER_ADDRESS', 0x0B21)
 
     i.write('IIC:REGI:WRIT 1')
-    _i2c_check_error(i, 'ERROR_DISABLED_WRITE', 0x10)
+    _i2c_check_error(i, 'ERROR_DISABLED_WRITE', 0x0B10)
 
     i.query('IIC:REGI:READ?')
     i.com.flushInput()
-    _i2c_check_error(i, 'ERROR_DISABLED_READ', 0x11)
+    _i2c_check_error(i, 'ERROR_DISABLED_READ', 0x0B11)
     
     i.write('IIC:WRIT #11A')
-    _i2c_check_error(i, 'ERROR_DISABLED_WRITE', 0x10)
+    _i2c_check_error(i, 'ERROR_DISABLED_WRITE', 0x0B10)
 
     i.query('IIC:READ? 2')
-    _i2c_check_error(i, 'ERROR_DISABLED_READ', 0x11)
+    _i2c_check_error(i, 'ERROR_DISABLED_READ', 0x0B11)
 
     i.reset()
     i.enable_master_mode()
@@ -175,31 +192,32 @@ def i2c_test_errors(i: QuietI2C) -> bool:
     try:
         i.write('IIC:ADDR 0x50;REGI:ADDR 0xFF;RSIZ 1')
         i.com.flushInput()
-        _i2c_check_upper_limit(i, 'IIC:REGI:WRIT', 255, 'INVALID_REGISTER_VALUE', 0x22, 0.1)
+        _i2c_check_upper_limit(i, 'IIC:REGI:WRIT', 255, 'INVALID_REGISTER_VALUE', 0x0B22, 0.1)
 
         i.write('IIC:WRIT #10')
         i.com.flushInput()
         time.sleep(0.1)
-        _i2c_check_error(i, 'I2C_ERROR_INVALID_WRITE_SIZE', 0x31)
+        _i2c_check_error(i, 'I2C_ERROR_INVALID_WRITE_SIZE', 0x0B31)
 
         i.write('IIC:READ? 0')
         i.com.flushInput()
         time.sleep(0.1)
-        _i2c_check_error(i, 'I2C_ERROR_INVALID_READ_SIZE', 0x32)
+        _i2c_check_error(i, 'I2C_ERROR_INVALID_READ_SIZE', 0x0B32)
 
         i.write('IIC:WRIT #2520AAAAAAAAA1BBBBBBBBB2CCCCCCCCC3DDDDDDDDD4EEEEEEEEE5F')
         i.com.flushInput()
         time.sleep(0.1)
-        _i2c_check_error(i, 'I2C_ERROR_BUFFER_OVERFLOW', 0x30)
+        _i2c_check_error(i, 'I2C_ERROR_BUFFER_OVERFLOW', 0x0B30)
 
         i.query('IIC:READ? 64')
         i.com.flushInput()
         time.sleep(0.1)
-        _i2c_check_error(i, 'I2C_ERROR_BUFFER_OVERFLOW', 0x30)
+        _i2c_check_error(i, 'I2C_ERROR_BUFFER_OVERFLOW', 0x0B30)
 
         i.write('IIC:ADDR 0x10;WRIT #13ABC')
         time.sleep(0.1)
-        _i2c_check_error(i, 'I2C_ERROR_NO_ACKNOWLEDGE', 0x12)
+        _i2c_check_acknowledge(i, False)
+
 
     finally:
         i.disable()
