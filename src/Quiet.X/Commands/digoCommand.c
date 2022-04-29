@@ -38,8 +38,9 @@ void DIGODiscreetCommand(CliBuffer_t *buffer, void* v)
     }
     else if (*buffer->InputPnt == ' ')
     {
+        ++buffer->InputPnt;
         int16_t value = ParseInt(&buffer->InputPnt);
-        if (value >= 0 && value < 255)
+        if (value >= 0 && value < 256)
         {
             DOUT = (uint8_t)value;
         }
