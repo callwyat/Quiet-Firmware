@@ -133,4 +133,6 @@ class QuietTester(Quiet):
         self.write(f'{command} XYZ')
         self.check_error(error_name, error_code)
 
+    def check_boolean_value(self, command:str):
+        self.check_modes(command, [ '0', '1', 'F', 'T', 'False', 'TRUE'], [ '-1' , '2' ], 'INVALID BOOLEAN VALUE', 0x0120)
         

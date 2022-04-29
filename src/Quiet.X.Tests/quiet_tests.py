@@ -62,13 +62,13 @@ def _output_command_test(tester: QuietTester, output_name:str, count:int, error_
 
     error_base = error_base << 8
 
-    tester.channel_query_test(f'{output_name}:CH#?', 1, count, number_pattern, 'INVALID {output_name} CHANNEL', error_base + 0x01)
-    tester.check_channel_limit(f'{output_name}:CH#', 1, count, 0, 1023, 'INVALID {output_name} VALUE', error_base + 0x03)
+    tester.channel_query_test(f'{output_name}:CH#?', 1, count, number_pattern, f'INVALID {output_name} CHANNEL', error_base + 0x01)
+    tester.check_channel_limit(f'{output_name}:CH#', 1, count, 0, 1023, f'INVALID {output_name} VALUE', error_base + 0x03)
 
-    tester.channel_query_test(f'{output_name}:CH#:VALU?', 1, count, number_pattern, 'INVALID {output_name} CHANNEL', error_base + 0x01)
-    tester.check_channel_limit(f'{output_name}:CH#:VALU', 1, count, 0, 1023, 'INVALID {output_name} VALUE', error_base + 0x03)
+    tester.channel_query_test(f'{output_name}:CH#:VALU?', 1, count, number_pattern, f'INVALID {output_name} CHANNEL', error_base + 0x01)
+    tester.check_channel_limit(f'{output_name}:CH#:VALU', 1, count, 0, 1023, f'INVALID {output_name} VALUE', error_base + 0x03)
     
-    tester.channel_query_test(f'{output_name}:CH#:MODE?', 1, count, OUTPUT_MODE_PATTERN, 'INVALID {output_name} CHANNEL', error_base + 0x01)
+    tester.channel_query_test(f'{output_name}:CH#:MODE?', 1, count, OUTPUT_MODE_PATTERN, f'INVALID {output_name} CHANNEL', error_base + 0x01)
 
 def command_test(tester: QuietTester, number_mode='DECI', all_commands=True):
 
@@ -91,6 +91,13 @@ def command_test(tester: QuietTester, number_mode='DECI', all_commands=True):
     tester.channel_query_test('ANAI:CH#?', 1, 4, number_pattern_16, 'INVALID ANAI CHANNEL', 0x0301)
 
     tester.query_test('DIGOutputs?', number_pattern_8)
+    tester.check_limit('DIGO', 0, 255, 'DIGO VALUE ERROR', 0x0403)
+    for i in range(1, 9):
+        tester.set_and_verify(f'DIGO:CH{i}:MODE', 'DISC')
+        tester.check_boolean_value(f'DIGO:CH{i}')
+        tester.check_boolean_value(f'DIGO:CH{i}:VALU')
+        tester.set_and_verify(f'DIGO:CH{i}:MODE', 'SERV')
+
     _output_command_test(tester, 'DIGO', 8, 0x04, number_pattern_16)
     tester.check_modes('DIGO:CH1:MODE', ['DISC', 'SERV'], ['PWM'], 'INVALID OUTPUT MODE', 0x0402)
     tester.check_modes('DIGO:CH2:MODE', ['DISC', 'SERV'], ['PWM'], 'INVALID OUTPUT MODE', 0x0402)
@@ -135,7 +142,7 @@ def command_test(tester: QuietTester, number_mode='DECI', all_commands=True):
         tester.query_test('SPI:BAUD?', number_pattern_24)
         tester.check_lower_limit('SPI:BAUD', 250000, 'INVALID SPI BAUD', 0x0A01)
         tester.query_test('SPI:CS?', BOOL_PATTERN)
-        #TODO: Test error code 0x0A02
+        tester.check_boolean_value('SPI:CS')
 
         tester.query_test('IIC:MODE?', '\\b(OFF|MAST)\\b')
         tester.check_modes('IIC:MODE', ['OFF', 'MAST'], [], 'INVALID IIC MODE', 0x0B04)
