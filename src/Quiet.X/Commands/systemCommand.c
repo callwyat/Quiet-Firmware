@@ -9,25 +9,6 @@
 #include "uartCommand.h"
 #include "i2cCommand.h"
 
-typedef union {
-    struct {
-        unsigned DIGIError : 1;
-        unsigned ANAIError : 1;
-        unsigned DIGOError : 1;
-        unsigned ANAOError : 1;
-        unsigned SERVError : 1;
-        unsigned UARTError : 1;
-        unsigned SPIError : 1;
-        unsigned IICError : 1;
-        unsigned : 1;
-        uint8_t  SYSTError : 6;
-    };
-    
-    struct {
-        uint16_t All;
-    };
-} error_summary_t;
-
 void SYSTErrorCommand(CliBuffer_t *buffer, void* v)
 {
     if (*buffer->InputPnt == '?')              
@@ -59,31 +40,26 @@ void SYSTSerilalNumber(CliBuffer_t *buffer, void* v)
         {
             ++buffer->InputPnt;
             
-            bool foundEnd = false;
-            
             char *c = settings.SerialNumber;
             
-            for (uint8_t i = 0; i < (sizeof(settings.SerialNumber) - 1) && !foundEnd; ++i)
+            uint8_t i = 0;
+            while (true)
             {
-                switch (*buffer->InputPnt)
-                {
-                    case '"':
-                        foundEnd = true;
-                        break;
-                    
-                    default:
-                        *c++ = *buffer->InputPnt;
-                        break;
+                char ch = *buffer->InputPnt++;
+                if (ch == '"') {
+                    SetSettings(settings);
+                    break;
+                } else if (i++ >= sizeof(settings.SerialNumber)) {
+                    QueueErrorCode(ERROR_CODE_SERIAL_NUMBER_TO_LONG);
+                    break;
+                } else {
+                    *c++ = ch;
                 }
-                
-                ++buffer->InputPnt;
             }
-            
-            if (foundEnd)
-            {
-                *c++ = '\x00';
-                SetSettings(settings);
-            }
+        }
+        else
+        {
+            QueueErrorCode(ERROR_CODE_INVALID_SERIAL_NUMBER_TYPE);
         }
     }
     else if (*buffer->InputPnt == '?')
@@ -111,6 +87,10 @@ void SYSTRestore(CliBuffer_t *buffer, void* v)
         if (SCPICompare("FACT", buffer->InputPnt))
         {
             RestoreSettings(true);
+        }
+        else
+        {
+            QueueErrorCode(ERROR_CODE_INVALID_RESTORE_ARG);
         }
     }
     else
@@ -146,6 +126,10 @@ void SYSTNumberCommand(CliBuffer_t *buffer, void* v)
         else if (SCPICompare(HEXString, buffer->InputPnt))
         {
             SetNumberFormat(HexFormat);
+        }
+        else
+        {
+            QueueErrorCode(ERROR_CODE_INVALID_NUMBER_MODE);
         }
         
         FFTilPunctuation(&buffer->InputPnt);
