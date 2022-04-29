@@ -5,10 +5,13 @@ from logger import LogWrapper
 class QuietComs():
 
     def __init__(self, port=None, **kargs):
+
+        timeout = kargs['timeout'] if 'timeout' in kargs else 1
+
         if type(port) == serial.Serial:
             self.com = port
         elif type(port) == str:
-            self.com = serial.Serial(port=port, timeout=1)
+            self.com = serial.Serial(port=port, timeout=timeout)
         elif port == None:
             ports = list(serial.tools.list_ports.comports())
             for p in ports:        
@@ -16,7 +19,7 @@ class QuietComs():
                     qPort = p.device
                     break
         
-            self.com = serial.Serial(port=qPort, timeout=1)
+            self.com = serial.Serial(port=qPort, timeout=timeout)
         else:
             raise Exception('Unable to determine what to do with \'port\'')
 
