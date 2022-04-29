@@ -13,7 +13,7 @@ class LogWrapper:
 
     def read_until(self):
         result = self.child.read_until()
-        self.logger.write(f'READ  -> {result.decode()}\r\n')
+        self.logger.write(f'READ  -> {result}\r\n')
 
         return result
 
