@@ -228,6 +228,29 @@ Write -> UART:MODE?
 Read  -> SCPI
 ```
 
+### UART:OVERflow? (Query Only)
+#### Description
+Returns a `1` if the receive buffer has overflowed. Otherwise a `0` is returned.
+#### Example
+```
+Write -> UART:OVER?
+Read  -> 0
+```
+
+### UART:OVERflow:CLEAr
+#### Description
+After an overflow has occurred, this command should be called to reset the receive buffer. Failure to do so will leave scrambled data in the receive buffer.
+#### Example
+```
+Write -> UART:READ?
+Read  -> #2640000000011111111222222223333333344444444555555556666666677777777
+Write -> UART:OVER?
+Read  -> 1
+Write -> UART:OVER:CLEAr
+Write -> UART:READ?
+Read  -> #10
+```
+
 ### SPI:EXCHange (Combination IEEE Write and Read)
 #### Description
 Writes the number of bytes specified by the IEEE header to the Serial Peripheral Interface (SPI). SPIs uses a synchronized shift register to clock bits in and out simultaneously. As such, every byte written to the SPI will return one byte.
@@ -297,14 +320,6 @@ Gets or sets the max amount of time, in milliseconds, that a transfer can take. 
 Write -> IIC:TIME 100
 Write -> IIC:TIME?
 Read  -> 100
-```
-### IIC:ACKnowledged? (Query Only)
-#### Description
-Returns `1` if the last IIC operation was properly acknowledged by an attached device, or `0` if not.
-#### Example
-```
-Write -> IIC:REGI:WRIT 0x1001;ACK?
-Read  -> ;1
 ```
 
 ### IIC:REGIster:ADDRess \<value>
@@ -406,6 +421,15 @@ Write -> IIC:ADDR 0x0C;WRIT #11A;READ? 2
 Read  -> ;;#2BC
 ```
 
+### IIC:ACKnowledged? (Query Only)
+#### Description
+Returns `1` if the last IIC operation was properly acknowledged by an attached device, or `0` if not.
+#### Example
+```
+Write -> IIC:REGI:WRIT 0x1001;ACK?
+Read  -> ;1
+```
+
 ### SYSTem:ERRor\[:NEXT\]?
 #### Description
 Queries all the the error systems and returns a summary of all the errors plus amy system specific errors. The system specific errors are cleared after the message is read. The summary bits are cleared by reading the corresponding systems error code e.g. `IIC:ERR?`
@@ -449,7 +473,6 @@ Code      | Meaning                                           |
 0x0910    | UART: Invalid baud rate (Valid range 60 - 1M)     |
 0x0911    | UART: Invalid mode given                          |
 0x0912    | UART: Attempted less then 1 byte                  |
-0x0920    | UART: Receive buffer overflow                     |
 0x0930    | UART: Attempted write while not in USBUart mode   |
 0x0931    | UART: Attempted read while not in USBUart mode    |
 -----     |                                                   |
