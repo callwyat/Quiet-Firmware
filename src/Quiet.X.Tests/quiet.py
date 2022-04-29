@@ -11,6 +11,11 @@ class Quiet(QuietComs):
         """
         self.write('*RST')
 
+    def error(self) -> int:
+        """Returns an error code"""
+        error_int = self.query_int('SYST:ERR?')
+        return error_int
+
     def set_number_mode(self, mode:str):
         """Sets the number mode used by
 
