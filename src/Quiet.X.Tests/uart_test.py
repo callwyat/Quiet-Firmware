@@ -110,7 +110,7 @@ def _uart_scpi_test(quiet:QuietUART, partner_port:str):
     quiet.set_uart_mode('SCPI')
 
     with Serial(partner_port, test_rate, timeout=2) as partner:
-        command_test(QuietTester(partner), all_commands=False)
+        command_test(QuietTester(partner, log_path='uart_log.txt'), all_commands=False)
 
     print('Completed UART SCPI Mode Test')
 
@@ -174,6 +174,6 @@ if __name__ == "__main__":
     if partner_port:
         uart_dual_test(QuietUART(port), partner_port)
     else:
-        uart_loopback_test(port)
+        uart_loopback_test(QuietUART(port))
 
     print('All Test Complete')
