@@ -21,6 +21,10 @@ class LogWrapper:
         self.child.flushInput()
         self.logger.write(f'FLUSH -> Input\r\n')
 
+    def flushOutput(self):
+        self.child.flushOutput()
+        self.logger.write(f'FLUSH -> Output\r\n')
+
     def read(self, size):
         result = self.child.read(size)
         self.logger.write(f'READ  -> {result}\r\n')
