@@ -34,6 +34,7 @@ class QuietComs():
             input (str): The text to write to the quiet board
         """
         self.com.write(input.encode())
+        time.sleep(0.005)
 
     def write(self, input:str):
         """ Writes the given input adding termination
