@@ -161,7 +161,7 @@ void UART_SCPI_Task()
     {
         char c = UART_Read();
         
-        if (uartBuffer.InputPnt < &uartBuffer.OutputBuffer[CLI_BUFFER_SIZE - 1])
+        if (uartBuffer.InputPnt < &uartBuffer.InputBuffer[CLI_BUFFER_SIZE - 1])
         {
             *uartBuffer.InputPnt++ = c;
         }
@@ -170,7 +170,7 @@ void UART_SCPI_Task()
         // commands are not in it's tree
         if (c == '\n' || c == '\r')
         {
-            if (uartBuffer.InputPnt > &uartBuffer.InputBuffer[2])
+            if (uartBuffer.InputPnt > &uartBuffer.InputBuffer[1])
             {
                 uartBuffer.InputLength = (uint8_t)(uartBuffer.InputBuffer - uartBuffer.InputPnt);
                 uartBuffer.InputPnt = uartBuffer.InputBuffer;
@@ -179,8 +179,6 @@ void UART_SCPI_Task()
                 ProcessCLI(&uartBuffer, limitedCommands);
        
                 uint8_t outCount = (uint8_t)(uartBuffer.OutputPnt - uartBuffer.OutputBuffer);
-
-
                 uartBuffer.OutputPnt = uartBuffer.OutputBuffer;
 
                 while (outCount > 0)
