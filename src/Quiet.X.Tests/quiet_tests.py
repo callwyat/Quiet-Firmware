@@ -74,7 +74,7 @@ def command_test(tester: QuietTester, number_mode='DECI', all_commands=True):
 
     print('Starting Command Tests')
 
-    tester.query_test('*IDN?', 'Y@ Technologies,Qy@ Board,.*?,[2-9]\\.[0-9]')
+    tester.query_test('*IDN?', 'Y@ Technologies,Qy@ Board,.*?,[2-9]\\.[0-9]\\.[0-9]')
 
     number_pattern_24 = HEX24_PATTERN if number_mode == 'HEX' else INT24_PATTERN
     number_pattern_16 = HEX16_PATTERN if number_mode == 'HEX' else INT16_PATTERN
