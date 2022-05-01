@@ -11,19 +11,19 @@
 
 const OutputCommand_t anaoCommandSettings = DEFINE_OUTPUT_COMMAND_T(ANAO_CHANNELS, ANAO_OFFSET, ANAO_ERROR_GROUP);
 
-void ANAOChannelModeCommand(CliBuffer_t *buffer, void *channel)
+void ANAOChannelModeCommand(CliHandle_t *handle, void *channel)
 {
-    OutputChannelModeCommand(buffer, anaoCommandSettings, channel);
+    OutputChannelModeCommand(handle, anaoCommandSettings, channel);
 }
 
-void ANAOChannelValueCommand(CliBuffer_t *buffer, void *channel)
+void ANAOChannelValueCommand(CliHandle_t *handle, void *channel)
 {
-    OutputChannelValueCommand(buffer, anaoCommandSettings, channel);
+    OutputChannelValueCommand(handle, anaoCommandSettings, channel);
 }
 
 CommandDefinition_t anaoChanCommands[] = {
-  DEFINE_COMMAND("VALU", ANAOChannelValueCommand),
-  DEFINE_COMMAND("MODE", ANAOChannelModeCommand),  
+    DEFINE_COMMAND("VALU", ANAOChannelValueCommand),
+    DEFINE_COMMAND("MODE", ANAOChannelModeCommand),
 };
 
 CommandDefinition_t anaoCommands[] = {
@@ -31,4 +31,3 @@ CommandDefinition_t anaoCommands[] = {
 };
 
 CommandDefinition_t ANAOCommand = DEFINE_BRANCH("ANAO", anaoCommands);
-

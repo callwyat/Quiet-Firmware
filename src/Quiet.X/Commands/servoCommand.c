@@ -10,14 +10,14 @@
 
 const OutputCommand_t servCommandSettings = DEFINE_OUTPUT_COMMAND_T(SERVO_CHANNELS, SERVO_OFFSET, SERV_ERROR_GROUP);
 
-void SERVChannelModeCommand(CliBuffer_t *buffer, void *channel)
+void SERVChannelModeCommand(CliHandle_t *handle, void *channel)
 {
-    OutputChannelModeCommand(buffer, servCommandSettings, channel);
+    OutputChannelModeCommand(handle, servCommandSettings, channel);
 }
 
-void SERVChannelValueCommand(CliBuffer_t *buffer, void *channel)
+void SERVChannelValueCommand(CliHandle_t *handle, void *channel)
 {
-    OutputChannelValueCommand(buffer, servCommandSettings, channel);
+    OutputChannelValueCommand(handle, servCommandSettings, channel);
 }
 
 CommandDefinition_t servChanCommands[] = {
@@ -30,4 +30,3 @@ CommandDefinition_t servoCommands[] = {
 };
 
 CommandDefinition_t SERVoCommand = DEFINE_BRANCH("SERV", servoCommands);
-

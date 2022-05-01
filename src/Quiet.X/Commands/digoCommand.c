@@ -9,38 +9,35 @@
 
 const OutputCommand_t digoCommandSettings = DEFINE_OUTPUT_COMMAND_T(DIGO_CHANNELS, DIGO_OFFSET, DIGO_ERROR_GROUP);
 
-void DIGOChannelModeCommand(CliBuffer_t *buffer, void *channel)
+void DIGOChannelModeCommand(CliHandle_t *handle, void *channel)
 {
-    OutputChannelModeCommand(buffer, digoCommandSettings, channel);
+    OutputChannelModeCommand(handle, digoCommandSettings, channel);
 }
 
-void DIGOChannelValueCommand(CliBuffer_t *buffer, void *channel)
+void DIGOChannelValueCommand(CliHandle_t *handle, void *channel)
 {
-    OutputChannelValueCommand(buffer, digoCommandSettings, channel);
+    OutputChannelValueCommand(handle, digoCommandSettings, channel);
 }
 
 CommandDefinition_t digoChanCommands[] = {
-    DEFINE_COMMAND("VALU", DIGOChannelValueCommand),  
-    DEFINE_COMMAND("MODE", DIGOChannelModeCommand),  
+    DEFINE_COMMAND("VALU", DIGOChannelValueCommand),
+    DEFINE_COMMAND("MODE", DIGOChannelModeCommand),
 };
 
 CommandDefinition_t digoCommands[] = {
     DEFINE_COMMAND_W_BRANCH("CH", DIGOChannelValueCommand, digoChanCommands),
 };
 
-void DIGODiscreetCommand(CliBuffer_t *buffer, void* v)
+void DIGODiscreetCommand(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == '?')
+    if (handle->LastRead == '?')
     {
-        //Progress the pointer past the query
-        ++buffer->InputPnt;
-        NumberToString(buffer, DOUT);
+        PrintNumber(handle, DOUT);
     }
-    else if (*buffer->InputPnt == ' ')
+    else if (handle->LastRead == ' ')
     {
-        ++buffer->InputPnt;
-        int16_t value = ParseInt(&buffer->InputPnt);
-        if (value >= 0 && value < 256)
+        uint16_t value = ReadInt(handle);
+        if (value < 256)
         {
             DOUT = (uint8_t)value;
         }

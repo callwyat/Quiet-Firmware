@@ -17,20 +17,21 @@ uint8_t i2cRegisterAddress = 0x0000;
 // The size of the register to work with in the slave device in bytes
 uint8_t i2cRegisterSize = 1;
 
-const char* OFFWord = "OFF";
-const char* MASTerWord = "MAST";
+const char *OFFWord = "OFF";
+const char *MASTerWord = "MAST";
 
-void I2CModeCommand(CliBuffer_t *buffer, void* v)
+#define I2C_N_BUFFER_SIZE 24
+uint8_t nBuffer[I2C_N_BUFFER_SIZE];
+
+void I2CModeCommand(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == ' ')
+    if (handle->LastRead == ' ')
     {
-        ++buffer->InputPnt;
-        
-        if (SCPICompare(OFFWord, buffer->InputPnt))
+        if (SCPICompare(OFFWord, handle->LastWord))
         {
             I2C1_SetEnabled(false);
-        } 
-        else if (SCPICompare(MASTerWord, buffer->InputPnt))
+        }
+        else if (SCPICompare(MASTerWord, handle->LastWord))
         {
             I2C1_SetEnabled(true);
         }
@@ -39,32 +40,26 @@ void I2CModeCommand(CliBuffer_t *buffer, void* v)
             QueueErrorCode(I2C_ERROR_INVALID_MODE);
         }
     }
-    else if (*buffer->InputPnt == '?')
+    else if (handle->LastRead == '?')
     {
-        ++buffer->InputPnt;
+        const char *word = I2C1_GetEnabled() ? MASTerWord : OFFWord;
 
-        const char* word = I2C1_GetEnabled() ? MASTerWord : OFFWord;
-        
-        CopyWordToOutBuffer(buffer, word);
+        WriteString(handle, word);
     }
 }
 
-void I2CTimeoutCommand(CliBuffer_t *buffer, void* v)
+void I2CTimeoutCommand(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == '?')
+    if (handle->LastRead == '?')
     {
-        ++buffer->InputPnt;
-        
         uint24_t timeout = I2C1_GetTimeout();
-        
-        NumberToString(buffer, timeout);
+
+        PrintNumber(handle, timeout);
     }
-    else if (*buffer->InputPnt == ' ')
+    else if (handle->LastRead == ' ')
     {
-        ++buffer->InputPnt;
-        
-        int16_t timeout = ParseInt(&buffer->InputPnt);
-        
+        uint16_t timeout = ReadInt(handle);
+
         if (timeout > 0 && timeout < 256)
         {
             I2C1_SetTimeout((uint8_t)timeout);
@@ -76,22 +71,18 @@ void I2CTimeoutCommand(CliBuffer_t *buffer, void* v)
     }
 }
 
-void I2CBaudCommand(CliBuffer_t *buffer, void* v)
+void I2CBaudCommand(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == '?')
+    if (handle->LastRead == '?')
     {
-        ++buffer->InputPnt;
-        
         uint24_t baudRate = I2C1GetBaudRate();
-        
-        NumberToString(buffer, baudRate);
+
+        PrintNumber(handle, baudRate);
     }
-    else if (*buffer->InputPnt == ' ')
+    else if (handle->LastRead == ' ')
     {
-        ++buffer->InputPnt;
-        
-        uint24_t baudRate = ParseInt24(&buffer->InputPnt);
-        
+        uint24_t baudRate = ReadInt24(handle);
+
         // BaudRates below 16k cannot be generated with this the system clock
         if (baudRate >= 16000 && baudRate <= 1000000)
         {
@@ -104,21 +95,17 @@ void I2CBaudCommand(CliBuffer_t *buffer, void* v)
     }
 }
 
-void I2CAddressCommand(CliBuffer_t *buffer, void *v)
+void I2CAddressCommand(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == '?')
+    if (handle->LastRead == '?')
     {
-        ++buffer->InputPnt;
-        
-        NumberToString(buffer, i2cTargetAddress);
+        PrintNumber(handle, i2cTargetAddress);
     }
-    else if (*buffer->InputPnt == ' ')
-    { 
-        ++buffer->InputPnt;
-        
-        int16_t addr = ParseInt(&buffer->InputPnt);
+    else if (handle->LastRead == ' ')
+    {
+        uint16_t addr = ReadInt(handle);
 
-        if (addr >= 0 && addr < 128)
+        if (addr < 128)
         {
             i2cTargetAddress = (uint8_t)addr;
         }
@@ -129,31 +116,30 @@ void I2CAddressCommand(CliBuffer_t *buffer, void *v)
     }
 }
 
-void I2CWriteCommand(CliBuffer_t *buffer, void* v)
+void I2CWriteCommand(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == ' ')
+    if (handle->LastRead == ' ')
     {
-        ++buffer->InputPnt;
-
-        if (*buffer->InputPnt == '#')
+        if (handle->LastRead == '#')
         {
-            ++buffer->InputPnt;
-
             // Parse the number of bytes to write
-            uint16_t writeCount = ParseIEEEHeader(buffer);
+            uint16_t writeCount = ParseIEEEHeader(handle);
 
             // Check for an invalid number
-            if (&buffer->InputPnt[writeCount] >= &buffer->InputBuffer[CLI_BUFFER_SIZE])
-            {
-                QueueErrorCode(I2C_ERROR_BUFFER_OVERFLOW);
-            }
-            else if (!I2C1_GetEnabled())
+            if (!I2C1_GetEnabled())
             {
                 QueueErrorCode(I2C_ERROR_DISABLED_WRITE);
             }
-            else if (writeCount != 0)
+            else if (writeCount > 0 && writeCount <= I2C_N_BUFFER_SIZE)
             {
-                I2C1_WriteNBytes(i2cTargetAddress, (uint8_t*)buffer->InputPnt, writeCount);
+                uint8_t *nPnt = nBuffer;
+                uint8_t i = (uint8_t)writeCount;
+                while (i > 0)
+                {
+                    *nPnt++ = handle->Read();
+                }
+
+                I2C1_WriteNBytes(i2cTargetAddress, nBuffer, writeCount);
             }
             else
             {
@@ -163,72 +149,66 @@ void I2CWriteCommand(CliBuffer_t *buffer, void* v)
     }
 }
 
-void I2CReadCommand(CliBuffer_t *buffer, void* v)
+void I2CReadCommand(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == '?')
+    if (handle->LastRead == '?')
     {
-        ++buffer->InputPnt;
+        ReadChar(handle);
 
-        if (*buffer->InputPnt == ' ')
+        if (handle->LastRead == ' ')
         {
-            ++buffer->InputPnt;
-
             // Get the number of bytes to read
-            int8_t readCount = (int8_t)ParseInt(&buffer->InputPnt);
+            int8_t readCount = (int8_t)ReadInt(handle);
 
-            if (&buffer->OutputPnt[readCount] >= &buffer->OutputBuffer[CLI_BUFFER_SIZE])
-            {
-                QueueErrorCode(I2C_ERROR_BUFFER_OVERFLOW);
-                CopyWordToOutBuffer(buffer, EmptyIEEEHeader);
-            }
-            else if (!I2C1_GetEnabled())
+            if (!I2C1_GetEnabled())
             {
                 QueueErrorCode(I2C_ERROR_DISABLED_READ);
-                CopyWordToOutBuffer(buffer, EmptyIEEEHeader);
+                WriteString(handle, EmptyIEEEHeader);
             }
             else if (readCount > 0)
             {
-                GenerateIEEEHeader(buffer, (uint16_t)readCount);
+                GenerateIEEEHeader(handle, (uint16_t)readCount);
 
-                // Whip out any latent data in the output buffer
-                int8_t clearCount = readCount;
-                char *pnt = buffer->OutputPnt;
+                // Whip out any left over data in the buffer
+                uint8_t clearCount = (uint8_t)readCount;
+                uint8_t *nPnt = nBuffer;
                 while (clearCount > 0)
                 {
-                    *pnt++ = 0x00;
+                    *nPnt++ = 0x00;
                     --clearCount;
                 }
 
-                I2C1_ReadNBytes(i2cTargetAddress, (uint8_t*)buffer->OutputPnt, (size_t)readCount);
-                
-                buffer->OutputPnt += readCount;
+                I2C1_ReadNBytes(i2cTargetAddress, nBuffer, (size_t)readCount);
+
+                nPnt = nBuffer;
+                while (readCount > 0)
+                {
+                    handle->Write(*nPnt++);
+                    --readCount;
+                }
             }
             else
             {
-                QueueErrorCode(I2C_ERROR_INVALID_READ_SIZE);                
-                CopyWordToOutBuffer(buffer, EmptyIEEEHeader);
+                QueueErrorCode(I2C_ERROR_INVALID_READ_SIZE);
+                WriteString(handle, EmptyIEEEHeader);
             }
         }
     }
 }
 
-void I2CACKedCommand(CliBuffer_t *buffer, void* v)
-{    
-    if (*buffer->InputPnt == '?')
+void I2CACKedCommand(CliHandle_t *handle, void *v)
+{
+    if (handle->LastRead == '?')
     {
-        ++buffer->InputPnt;
-        
-        NumberToString(buffer, !I2C1_LastOperationNACKed());
+        PrintNumber(handle, !I2C1_LastOperationNACKed());
     }
 }
 
-void I2CRegisterWriteCommand(CliBuffer_t *buffer, void* v)
+void I2CRegisterWriteCommand(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == ' ')
-    { 
-        ++buffer->InputPnt;
-        
-        uint16_t data = (uint16_t)ParseInt(&buffer->InputPnt);
+    if (handle->LastRead == ' ')
+    {
+        uint16_t data = (uint16_t)ReadInt(handle);
 
         if (I2C1_GetEnabled())
         {
@@ -259,12 +239,10 @@ void I2CRegisterWriteCommand(CliBuffer_t *buffer, void* v)
     }
 }
 
-void I2CRegisterReadCommand(CliBuffer_t *buffer, void* v)
+void I2CRegisterReadCommand(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == '?')
-    { 
-        ++buffer->InputPnt;
-        
+    if (handle->LastRead == '?')
+    {
         if (I2C1_GetEnabled())
         {
             uint16_t data;
@@ -282,7 +260,7 @@ void I2CRegisterReadCommand(CliBuffer_t *buffer, void* v)
                 QueueErrorCode(I2C_ERROR_INVALID_RSIZE);
             }
 
-            NumberToString(buffer, data);
+            PrintNumber(handle, data);
         }
         else
         {
@@ -291,21 +269,17 @@ void I2CRegisterReadCommand(CliBuffer_t *buffer, void* v)
     }
 }
 
-void I2CRegisterAddressCommand(CliBuffer_t *buffer, void* v)
+void I2CRegisterAddressCommand(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == '?')
+    if (handle->LastRead == '?')
     {
-        ++buffer->InputPnt;
-        
-        NumberToString(buffer, i2cRegisterAddress);
+        PrintNumber(handle, i2cRegisterAddress);
     }
-    else if (*buffer->InputPnt == ' ')
-    { 
-        ++buffer->InputPnt;
-        
-        int16_t address = ParseInt(&buffer->InputPnt);
+    else if (handle->LastRead == ' ')
+    {
+        uint16_t address = ReadInt(handle);
 
-        if (address >= 0 && address < 256)
+        if (address < 256)
         {
             i2cRegisterAddress = (uint8_t)address;
         }
@@ -316,19 +290,15 @@ void I2CRegisterAddressCommand(CliBuffer_t *buffer, void* v)
     }
 }
 
-void I2CRegisterRegisterSizeCommand(CliBuffer_t *buffer, void* v)
+void I2CRegisterRegisterSizeCommand(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == '?')
+    if (handle->LastRead == '?')
     {
-        ++buffer->InputPnt;
-        
-        NumberToString(buffer, i2cRegisterSize);
+        PrintNumber(handle, i2cRegisterSize);
     }
-    else if (*buffer->InputPnt == ' ')
-    { 
-        ++buffer->InputPnt;
-        
-        int16_t size = ParseInt(&buffer->InputPnt);
+    else if (handle->LastRead == ' ')
+    {
+        uint16_t size = ReadInt(handle);
 
         if (size >= 1 && size <= 2)
         {
@@ -340,7 +310,6 @@ void I2CRegisterRegisterSizeCommand(CliBuffer_t *buffer, void* v)
         }
     }
 }
-
 
 CommandDefinition_t i2cRegisterCommands[] = {
     DEFINE_COMMAND("ADDR", I2CRegisterAddressCommand),
@@ -364,5 +333,3 @@ CommandDefinition_t i2cCommands[] = {
 CommandDefinition_t IICCommand = DEFINE_BRANCH("IIC", i2cCommands);
 CommandDefinition_t I2CCommand = DEFINE_BRANCH("I2C", i2cCommands);
 CommandDefinition_t I22CCommand = DEFINE_BRANCH("I²C", i2cCommands);
-
-

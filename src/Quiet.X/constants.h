@@ -46,6 +46,7 @@ extern const char* EmptyIEEEHeader;
 // CLI Errors
 #define CLI_ERROR_INVALID_COMMAND           0x0101
 #define CLI_ERROR_INVALID_BRANCH            0x0102
+#define CLI_INVALID_WORD                    0x0103
 #define CLI_ERROR_INVALID_NUMBER            0x0110
 #define CLI_ERROR_INVALID_IEEE_HEADER       0x0111
 #define CLI_ERROR_INVALID_BOOLEAN           0x0120

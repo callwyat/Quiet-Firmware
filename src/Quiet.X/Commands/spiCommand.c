@@ -7,91 +7,48 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-uint16_t spiExchangeSize = 0;
-
-void SPILargeExchange(CliBuffer_t *buffer, void *v)
+void SPIExchangeCommand(CliHandle_t *handle, void *v)
 {
-    uint8_t bufferRemaining = (uint8_t)(&buffer->InputBuffer[buffer->InputLength] - buffer->InputPnt);
-
-    if (spiExchangeSize <= bufferRemaining)
+    if (handle->LastRead == ' ')
     {
-        // Read out the data in this buffer
-        SPI2_ExchangeBlock((uint8_t*)buffer->InputPnt, (uint8_t*)buffer->OutputPnt,
-                spiExchangeSize);    
-        buffer->InputPnt += spiExchangeSize;
-        buffer->OutputPnt += spiExchangeSize;
-        
-        ClearLargeDataHandle(buffer);
-    }
-    else
-    {
-        spiExchangeSize -= bufferRemaining;
+        ReadChar(handle);
+        if (handle->LastRead == '#')
+        {
+            // Parse the number of bytes to write
+            uint16_t spiExchangeSize = ParseIEEEHeader(handle);
 
-        // Read out the data until all the data is read
-        SPI2_ExchangeBlock((uint8_t*)buffer->InputPnt, (uint8_t*)buffer->OutputPnt, 
-                bufferRemaining);
-        buffer->InputPnt += bufferRemaining;
-        buffer->OutputPnt += bufferRemaining;
-        
-        if (buffer->DataHandle)
-        {
-            return;
-        }
-        else
-        {
-            SetLargeDataHandle(buffer, SPILargeExchange);
+            // Echo back how many bytes we are going to read
+            GenerateIEEEHeader(handle, spiExchangeSize);
+
+            while (spiExchangeSize > 0)
+            {
+                handle->Write(SPI2_ExchangeByte(handle->Read()));
+                --spiExchangeSize;
+            }
         }
     }
 }
 
-void SPIExchangeCommand(CliBuffer_t *buffer, void* v)
-{    
-    ++buffer->InputPnt;
-
-    if (*buffer->InputPnt == '#')
-    {
-        ++buffer->InputPnt;
-
-        // Parse the number of bytes to write
-        spiExchangeSize = ParseIEEEHeader(buffer);
-
-        // Echo back how many bytes we are going to read
-        GenerateIEEEHeader(buffer, spiExchangeSize);
-
-        // Check for an invalid number
-        if (spiExchangeSize != 0)
-        {
-            SPILargeExchange(buffer, v);
-        }
-    }
-}
-
-void SPIChipSelectCommand(CliBuffer_t *buffer, void* v)
+void SPIChipSelectCommand(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == ' ')
+    if (handle->LastRead == ' ')
     {
-        ++buffer->InputPnt;
         SDDetectEnable = false;
-        
-        SPICS = ParseBool(&buffer->InputPnt);
+        SPICS = ReadBool(handle);
     }
-    else if (*buffer->InputPnt == '?')
+    else if (handle->LastRead == '?')
     {
-        ++buffer->InputPnt;
-
-        *buffer->OutputPnt++ = SDDetect ? '1' : '0'; 
+        WriteChar(handle, (SDDetect ? '1' : '0'));
     }
 }
 
-void SPIBaudCommand(CliBuffer_t *buffer, void* v)
+void SPIBaudCommand(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == '?')
+    if (handle->LastRead == '?')
     {
-    ++buffer->InputPnt;
-
-    uint24_t baudRate;
-    switch (SSP2CON1bits.SSPM)
-    {
+        uint24_t baudRate;
+        switch (SSP2CON1bits.SSPM)
+        {
         case 0x00:
             baudRate = 4000000;
             break;
@@ -104,24 +61,22 @@ void SPIBaudCommand(CliBuffer_t *buffer, void* v)
         default:
             baudRate = 250000;
             break;
+        }
+
+        PrintNumber(handle, baudRate);
     }
-
-    NumberToString(buffer, baudRate);
-}
-    else if (*buffer->InputPnt == ' ')
+    else if (handle->LastRead == ' ')
     {
-        ++buffer->InputPnt;
+        uint24_t baudRate = ReadInt24(handle);
 
-        uint24_t baudRate = ParseInt24(&buffer->InputPnt);
-        
         if (baudRate >= 4000000)
         {
             SSP2CON1bits.SSPM = 0x00;
-        } 
+        }
         else if (baudRate >= 2000000)
         {
             SSP2CON1bits.SSPM = 0x0A;
-        } 
+        }
         else if (baudRate >= 1000000)
         {
             SSP2CON1bits.SSPM = 0x01;
@@ -144,4 +99,3 @@ CommandDefinition_t spiCommands[] = {
 };
 
 CommandDefinition_t SPICommand = DEFINE_BRANCH("SPI", spiCommands);
-

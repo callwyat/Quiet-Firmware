@@ -13,30 +13,55 @@
 #define IS_NUMBER(c) (c >= '0' && c <= '9')
 
 uint16_t lastExecutionTime = 0;
-void DIAGnostics(CliBuffer_t *buffer, void* v)
+bool wrote;
+void DIAGnostics(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == '?')
+    if (handle->LastRead == '?')
     {
-        ++buffer->InputPnt;
-
-        NumberToString(buffer, lastExecutionTime);
+        PrintNumber(handle, lastExecutionTime);
     }
 }
 
 CommandDefinition_t DIAGnosticsCommand = DEFINE_COMMAND("DIAG", DIAGnostics);
 extern CommandDefinition_t StarCommand;
 
+bool IsSCPIPunctuation(char c)
+{
+    if (c <= ' ')
+    {
+        if (c <= '\n')
+        {
+            return c == '\n' || c == '\x00';
+        }
+        else
+        {
+            return c == ' ' || c == '\r';
+        }
+    }
+    else
+    {
+        if (c <= '?')
+        {
+            return c == '?' || c == '#';
+        }
+        else
+        {
+            return c == ':' || c == ';';
+        }
+    }
+}
+
 bool SCPICompare(const char *reference, char *input)
 {
     // Match upto the first 4 chars, or until reference is null
     for (int i = 0; i < 4; ++i)
-    {        
+    {
         // To Upper
         if (*input >= 'a' && *input <= 'z')
         {
             *input -= 0x20;
         }
-        
+
         if (*reference++ != *input++)
         {
             return false;
@@ -46,77 +71,46 @@ bool SCPICompare(const char *reference, char *input)
             break;
         }
     }
-    
+
     return true;
 }
 
-void FFTilPunctuation(char **input)
+void ProcessCommand(CliHandle_t *handle, CommandDefinition_t *rootCommand)
 {
-    while (**input) // Handles "\x00"
-    {
-        switch (**input)
-        {
-            case ':':   // 0x3B
-            case ' ':   // 0x20
-            case '?':   // 0x3F
-            case ';':   // 0x3A
-            case '\r':  // 0x0D
-            case '\n':  // 0x0A
-                return;
-        }
+    CommandDefinition_t *forkCommand, *command;
 
-        ++(*input);
-    }
-}
+    command = forkCommand = rootCommand;
 
+    bool indexLock = false;
+    uint8_t commandIndex;
 
-void ProcessCommand(CliBuffer_t *buffer, CommandDefinition_t* commands)
-{
-    CommandDefinition_t* commandList;
-    CommandDefinition_t* command;
-
-    commandList = commands;
-
-    if (*buffer->InputPnt == '*')
-    {
-        ++buffer->InputPnt;
-        commandList = StarCommand.Children;
-    }
-    
-    command = commandList;
-    
-    char *inputEnd = &buffer->InputBuffer[buffer->InputLength];
-    
-    bool lockNumber = false;
-    uint8_t number;
-    
     while (true)
     {
-        if (!lockNumber)
+        if (handle->LastWord[0] == '*')
         {
-            // Only parse the number once per command string.
-            number = 0;
+            forkCommand = StarCommand.Children;
         }
-        
-        const char* commandName = command->Command;
-        
-        if (SCPICompare(commandName, buffer->InputPnt))
+
+        if (!indexLock)
         {
-            // FF to the end of the command
-            while (*commandName++) ++buffer->InputPnt;
-            
+            // Only parse the commandIndex once per command string.
+            commandIndex = 0;
+        }
+
+        if (SCPICompare(command->Command, handle->LastWord))
+        {
             while (true)
             {
-                char c = *buffer->InputPnt++;
+                char c = handle->LastRead;
                 //      0x3A
-                if (c == ':')           // Branch Deeper
+                if (c == ':') // Branch Deeper
                 {
-                    if (number > 0)
-                        lockNumber = true;
-                    
+                    if (commandIndex > 0)
+                        indexLock = true;
+
                     if (command->Children)
                     {
-                        command = commandList = command->Children;
+                        command = forkCommand = command->Children;
                     }
                     else
                     {
@@ -124,64 +118,49 @@ void ProcessCommand(CliBuffer_t *buffer, CommandDefinition_t* commands)
                     }
                     break;
                 }
-                //           0x3F        0x20        0x3B         0x0D        0x0A
-                else if (c == '?' || c == ' ' || c == ';' || c == '\r' || c == '\n')      // Get a value
+                else if (IsSCPIPunctuation(c)) // Get a value
                 {
-                    --buffer->InputPnt;
                     if (command->Handle)
                     {
-                        char* inputPnt = buffer->InputPnt;
-                        command->Handle(buffer, &number);
+                        command->Handle(handle, &commandIndex);
 
-                        // If the pointer didn't move, the command was no processed
-                        if (inputPnt == buffer->InputPnt)
+                        // Check for end conditions
+                        // 0x00         0x0D        0x0A
+                        if (c == '\x00' || c == '\r' || c == '\n')
                         {
-                            ++buffer->InputPnt;
-                            QueueErrorCode(CLI_ERROR_INVALID_COMMAND);
+                            return;
                         }
 
-                        FFTilPunctuation(&buffer->InputPnt);
-                        c = *buffer->InputPnt;
+                        ReadWord(handle);
+
+                        if (handle->LastWord[0] == ';')
+                        {
+                            WriteChar(handle, ';');
+
+                            ReadWord(handle);
+                            if (handle->LastWord[0] == ':')
+                            {
+                                ReadWord(handle);
+                                command = forkCommand = rootCommand;
+                                indexLock = false;
+                            }
+                            else
+                            {
+                                command = forkCommand;
+                            }
+
+                            break;
+                        }
                     }
                     else
                     {
                         QueueErrorCode(CLI_ERROR_INVALID_COMMAND);
                     }
                 }
-                else if (IS_NUMBER(c))      // Parse a number
+                else if (IS_NUMBER(c)) // Parse a number
                 {
-                    number *= 10;
-                    number += c - '0';
-                    continue;
-                }
-                
-                // Check for end conditions
-                        // 0x00         0x0D        0x0A
-                if (c == '\x00' || c == '\r' || c == '\n' || buffer->InputPnt >= inputEnd)
-                {
-                    return;
-                }
-                
-                        // 0x3B
-                if (c == ';')
-                {
-                    *buffer->OutputPnt++ = ';';
-                    ++buffer->InputPnt;
-                    
-                    if (*buffer->InputPnt == ':')
-                    {
-                        ++buffer->InputPnt;
-                        command = commands;
-                        commandList = commands;
-                        
-                        lockNumber = false;
-                    }
-                    else
-                    {
-                        command = commandList;
-                    }
-                    
-                    break;
+                    commandIndex *= 10;
+                    commandIndex += c - '0';
                 }
             }
         }
@@ -211,29 +190,72 @@ void CheckValidNumberEnd(char c)
     }
 }
 
-bool ParseBool(char** str)
+void WriteString(CliHandle_t *handle, const char *word)
 {
-    char c = **str;
+    while (*word)
+    {
+        handle->Write(*word++);
+    }
+
+    wrote = true;
+}
+
+void WriteChar(CliHandle_t *handle, char c)
+{
+    handle->Write(c);
+    wrote = true;
+}
+
+char inline ReadChar(CliHandle_t *handle)
+{
+    return handle->LastRead = handle->Read();
+}
+
+char *ReadWord(CliHandle_t *handle)
+{
+    char *c = handle->LastWord;
+    uint8_t i;
+    for (i = 0; i < CLI_WORD_SIZE; ++i)
+    {
+        *c++ = handle->Read();
+
+        if (IsSCPIPunctuation(*c))
+        {
+            break;
+        }
+    }
+
+    if (i >= CLI_WORD_SIZE)
+    {
+        QueueErrorCode(CLI_INVALID_WORD);
+        __asm("pop");
+    }
+
+    *c-- = '\x00';
+    handle->LastRead = *c;
+
+    return handle->LastWord;
+}
+
+bool ReadBool(CliHandle_t *handle)
+{
+    char *c = ReadWord(handle);
     bool result;
 
-    if (c == '0')
+    if (*c == '0')
     {
-        ++str;
         result = false;
     }
-    else if (c == '1')
+    else if (*c == '1')
     {
-        ++str;
         result = true;
     }
-    else if (c == 'F')
+    else if (*c == 'F')
     {
-        FFTilPunctuation(str);
         result = false;
     }
-    else if (c == 'T')
+    else if (*c == 'T')
     {
-        FFTilPunctuation(str);
         result = true;
     }
     else
@@ -250,32 +272,34 @@ bool ParseBool(char** str)
  * @param str
  * @return The number found
  */
-int16_t ParseInt(char** str)
+uint16_t ReadInt(CliHandle_t *handle)
 {
-    if (!IS_NUMBER(**str))
+    char *str = ReadWord(handle);
+
+    if (!IS_NUMBER(*str))
     {
         QueueErrorCode(CLI_ERROR_INVALID_NUMBER);
         // Pop past the call to this function
         __asm("pop");
         return 0;
     }
-    
+
     uint16_t result = 0;
-    
+
     // Check if hex or int
-    if (**str == '0')
+    if (*str == '0')
     {
-        ++(*str);
-        
-        if (**str == 'X' || **str == 'x')
+        ++str;
+
+        if (*str == 'X' || *str == 'x')
         {
-            ++(*str);
+            ++str;
             // Parse as HEX
-            
+
             while (true)
             {
-                char c = **str;
-                
+                char c = *str;
+
                 if (IS_NUMBER(c))
                 {
                     result = (result << 4) | (c - '0');
@@ -286,70 +310,74 @@ int16_t ParseInt(char** str)
                     {
                         result = (result << 4) | (c - '7');
                     }
-                    else if (c >= 'a' && c <= 'z'){
+                    else if (c >= 'a' && c <= 'z')
+                    {
                         c -= 0x20;
                         result = (result << 4) | (c - '7');
                     }
                     else
                     {
                         CheckValidNumberEnd(c);
-                        return (int16_t)result;
+                        return result;
                     }
                 }
-                
-                ++(*str);
-            }            
+
+                ++str;
+            }
         }
         else
         {
-            --(*str);
+            --str;
         }
     }
-    
-    
-    while (IS_NUMBER(**str))
+
+    while (IS_NUMBER(*str))
     {
         result *= 10;
-        result += **str - '0';
+        result += *str - '0';
 
-        ++(*str);
-    }
-    
-    CheckValidNumberEnd(**str);
-    return (int16_t)result;
-}
-
-uint24_t ParseInt24(char** str)
-{
-    uint24_t result = 0;
-    
-    while (IS_NUMBER(**str))
-    {
-        result *= 10;
-        result += **str - '0';
-
-        ++(*str);
+        ++str;
     }
 
-    CheckValidNumberEnd(**str);
+    CheckValidNumberEnd(*str);
     return result;
 }
 
-uint16_t ParseIEEEHeader(CliBuffer_t *buffer)
+uint24_t ReadInt24(CliHandle_t *handle)
 {
-    if (IS_NUMBER(*buffer->InputPnt))
+    uint24_t result = 0;
+    char *str = ReadWord(handle);
+
+    while (IS_NUMBER(*str))
     {
-        uint8_t headerSize = *buffer->InputPnt - '0';
-        
-        ++buffer->InputPnt;
-        
+        result *= 10;
+        result += *str - '0';
+
+        ++str;
+    }
+
+    CheckValidNumberEnd(*str);
+    return result;
+}
+
+uint16_t ParseIEEEHeader(CliHandle_t *handle)
+{
+    char c = handle->Read();
+
+    if (IS_NUMBER(c))
+    {
+        uint8_t headerSize = c - '0';
+
+        c = handle->Read();
+
         uint16_t result = 0;
         for (uint8_t i = 0; i < headerSize; ++i)
         {
-            if (IS_NUMBER(*buffer->InputPnt))
+            if (IS_NUMBER(c))
             {
                 result *= 10;
-                result += *buffer->InputPnt++ - '0';
+                result += c - '0';
+                c = handle->Read();
             }
             else
             {
@@ -358,8 +386,8 @@ uint16_t ParseIEEEHeader(CliBuffer_t *buffer)
                 return 0;
             }
         }
-        
-        return result; 
+
+        return result;
     }
     else
     {
@@ -428,86 +456,36 @@ void ClearAllErrors(void)
     *cliErrorInPnt = ERROR_CODE_NO_ERROR;
 }
 
-void CopyWordToOutBuffer(CliBuffer_t *buffer, const char* word)
-{
-    while (*word)
-    {
-        *buffer->OutputPnt++ = *word++;
-    }
-}
-
 volatile uint8_t stackPnt;
-void ProcessCLI(CliBuffer_t *buffer, CommandDefinition_t* commands)
-{    
-    TMR1_WriteTimer(0x0000);
-    TMR1_StartTimer();
-    stackPnt = STKPTR;
-    buffer->InputPnt = buffer->InputBuffer;
-    buffer->OutputPnt = buffer->OutputBuffer;
-    
-    *buffer->OutputPnt = 0x00;
-    
-    ProcessCommand(buffer, commands);
-    
-    // If something was placed in the output buffer, make sure it is terminated
-    if (buffer->OutputBuffer[0] != 0x00)
-    {
-        *buffer->OutputPnt++ = '\r';
-        *buffer->OutputPnt++ = '\n';
-        *buffer->OutputPnt = '\x00';
-    }
-
-    TMR1_StopTimer();
-    lastExecutionTime = TMR1_ReadTimer();
-}
-
-uint24_t TheStack[32];
-uint24_t *TheStackPnt;
-
-void SetLargeDataHandle(CliBuffer_t *buffer, void(*handle)(CliBuffer_t *buffer, void *v))
-{    
-    buffer->DataHandle = handle;
-    
-    TheStackPnt = TheStack;
-            
-    uint8_t intConSto = INTCON;     // Disable interrupts
-    INTCON = 0x00;
-    
-    // Pop the stack until we get back to Process CLI
-    while (STKPTR > stackPnt)
-    {
-        *TheStackPnt++ = TOS;
-        __asm("pop");
-    }
-    
-    *TheStackPnt++ = TOS;
-    
-    INTCON |= intConSto;            // Restore Interrupts
-}
-
-void ClearLargeDataHandle(CliBuffer_t *buffer)
+void ProcessCLI(CliHandle_t *handle, CommandDefinition_t *commands)
 {
-    buffer->DataHandle = 0x0000;
-    
-    uint8_t intConSto = INTCON;     // Disable interrupts
-    INTCON = 0x00;
-    
-    // Pop the stack until we get back to Process CLI
-    while (STKPTR > stackPnt)
+    while (handle->GetReceivedCount() > 0)
     {
-        __asm("pop");
-    }
-    
-    // Restore the stack
-    while (TheStackPnt >= TheStack)
-    {
-        ++STKPTR;
-        TOSU = (uint8_t)(*TheStackPnt >> 16);
-        TOSH = (uint8_t)(*TheStackPnt >> 8);
-        TOSL = (uint8_t)(*TheStackPnt--);
-    }
+        char c = *handle->ReceivePnt++ = handle->Read();
 
-    INTCON |= intConSto;            // Restore Interrupts
+        if (IsSCPIPunctuation(c))
+        {
+            handle->LastRead = c;
+            handle->ReceivePnt = handle->LastWord;
+            wrote = false;
+
+            TMR1_WriteTimer(0x0000);
+            TMR1_StartTimer();
+
+            ProcessCommand(handle, commands);
+
+            TMR1_StopTimer();
+
+            // If something was written, make sure it is terminated
+            if (wrote)
+            {
+                handle->Write('\r');
+                handle->Write('\n');
+            }
+
+            lastExecutionTime = TMR1_ReadTimer();
+        }
+    }
 }
 
 volatile NumberFormat_e NumberFormat;
@@ -520,59 +498,61 @@ NumberFormat_e GetNumberFormat(void)
 {
     return NumberFormat;
 }
-    
-void Int24ToHexString(CliBuffer_t *buffer, uint24_t input)
+
+void PrintHex24(CliHandle_t *handle, uint24_t input)
 {
-    *buffer->OutputPnt++ = '0';
-    *buffer->OutputPnt++ = 'x';
+    wrote = true;
+
+    handle->Write('0');
+    handle->Write('x');
 
     uint8_t b = (uint8_t)(input >> 16);
     uint8_t nibble = 0x00;
-    
+
     if (b > 0)
     {
         nibble = (b >> 4);
-        *buffer->OutputPnt++ = nibble + (nibble > 0x09 ? '7' : '0');
+        handle->Write(nibble + (nibble > 0x09 ? '7' : '0'));
 
         nibble = (b & 0x0F);
-        *buffer->OutputPnt++ = nibble + (nibble > 0x09 ? '7' : '0'); 
-        
+        handle->Write(nibble + (nibble > 0x09 ? '7' : '0'));
+
         nibble = b;
     }
-    
+
     b = (uint8_t)(input >> 8);
-    
+
     if (b > 0 || nibble > 0)
     {
         nibble = (b >> 4);
-        *buffer->OutputPnt++ = nibble + (nibble > 0x09 ? '7' : '0');
+        handle->Write(nibble + (nibble > 0x09 ? '7' : '0'));
 
         nibble = (b & 0x0F);
-        *buffer->OutputPnt++ = nibble + (nibble > 0x09 ? '7' : '0'); 
+        handle->Write(nibble + (nibble > 0x09 ? '7' : '0'));
     }
-    
+
     b = (uint8_t)(input);
-    
+
     nibble = (b >> 4);
-    *buffer->OutputPnt++ = nibble + (nibble > 0x09 ? '7' : '0');
+    handle->Write(nibble + (nibble > 0x09 ? '7' : '0'));
 
     nibble = (b & 0x0F);
-    *buffer->OutputPnt++ = nibble + (nibble > 0x09 ? '7' : '0');
+    handle->Write(nibble + (nibble > 0x09 ? '7' : '0'));
 }
 
-const uint16_t decades14[] = { 1000, 100, 10, 1 };
+const uint16_t decades14[] = {1000, 100, 10, 1};
 #define DECADES14_LENGTH sizeof(decades14) / sizeof(decades14[0])
 
-void Int14ToString(CliBuffer_t *buffer, uint16_t input)
-{   
+void PrintInt14(CliHandle_t *handle, uint16_t input)
+{
+    wrote = true;
     if (input == 0)
     {
-        *buffer->OutputPnt++ = '0';
-        return;
+        handle->Write('0');
     }
     else
     {
-        const uint16_t* d = decades14;
+        const uint16_t *d = decades14;
         // Figure out when to start
         while (*d > input)
         {
@@ -590,23 +570,25 @@ void Int14ToString(CliBuffer_t *buffer, uint16_t input)
             }
 
             ++d;
-            *buffer->OutputPnt++ = c;
+            handle->Write(c);
         }
+
+        wrote = true;
     }
 }
 
-const uint24_t decades24[] = { 10000000, 1000000, 100000, 10000, 1000, 100, 10, 1 };
+const uint24_t decades24[] = {10000000, 1000000, 100000, 10000, 1000, 100, 10, 1};
 #define DECADES24_LENGTH sizeof(decades24) / sizeof(decades24[0])
-void Int24ToString(CliBuffer_t *buffer, uint24_t input)
-{    
+void PrintInt24(CliHandle_t *handle, uint24_t input)
+{
+    wrote = true;
     if (input == 0)
     {
-        *buffer->OutputPnt++ = '0';
-        return;
+        handle->Write('0');
     }
     else
     {
-        const uint24_t* d = decades24;
+        const uint24_t *d = decades24;
         // Figure out when to start
         while (*d > input)
         {
@@ -624,39 +606,46 @@ void Int24ToString(CliBuffer_t *buffer, uint24_t input)
             }
 
             ++d;
-            *buffer->OutputPnt++ = c;
+            handle->Write(c);
         }
     }
 }
 
-void NumberToString(CliBuffer_t *buffer, uint24_t input)
+void PrintNumber(CliHandle_t *handle, uint24_t input)
 {
     switch (NumberFormat)
     {
-        case HexFormat:
-            Int24ToHexString(buffer, input);
-            break;
-        case DecimalFormat:
-            
-            if (input < 10000)
-                Int14ToString(buffer, (uint16_t)input);
-            else
-                Int24ToString(buffer, input);
-            
-            break;
-        default:
-            while (true);
+    case HexFormat:
+        PrintHex24(handle, input);
+        break;
+    case DecimalFormat:
+
+        if (input < 10000)
+            PrintInt14(handle, (uint16_t)input);
+        else
+            PrintInt24(handle, input);
+
+        break;
+    default:
+        while (true)
+            ;
     }
 }
 
-void GenerateIEEEHeader(CliBuffer_t *buffer, uint16_t dataSize)
+void GenerateIEEEHeader(CliHandle_t *handle, uint16_t dataSize)
 {
-    *buffer->OutputPnt++ = '#';
-    
-    char *c = buffer->OutputPnt++;
-    Int14ToString(buffer, dataSize);
-    
-    uint8_t dataHeaderSize = (uint8_t)(buffer->OutputPnt - c) - 1;
-    
-    *c = dataHeaderSize + '0';
+    wrote = true;
+    handle->Write('#');
+
+    char headerSize = 4;
+    const uint16_t *decadePnt = decades14;
+
+    while (dataSize < *decadePnt++)
+    {
+        --headerSize;
+    }
+
+    handle->Write(headerSize + '0');
+
+    PrintInt14(handle, dataSize);
 }

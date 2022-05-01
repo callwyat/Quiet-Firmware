@@ -9,50 +9,47 @@
 #include "uartCommand.h"
 #include "i2cCommand.h"
 
-void SYSTErrorCommand(CliBuffer_t *buffer, void* v)
+void SYSTErrorCommand(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == '?')              
-    {                                          
-        ++buffer->InputPnt;                    
-                                                
-        NumberToString(buffer, DequeueErrorCode());
-    }    
+    if (handle->LastRead == '?')
+    {
+        PrintNumber(handle, DequeueErrorCode());
+    }
 }
 
-void SYSTErrorClearCommand(CliBuffer_t *buffer, void* v)
+void SYSTErrorClearCommand(CliHandle_t *handle, void *v)
 {
-    FFTilPunctuation(&buffer->InputPnt);
     ClearAllErrors();
-    
-    // Convince the parser this there is no command error.
-    --buffer->InputPnt;
 }
 
-void SYSTSerilalNumber(CliBuffer_t *buffer, void* v)
+void SYSTSerilalNumber(CliHandle_t *handle, void *v)
 {
     QuietSettings_t settings = GetSettings();
-    
-    if (*buffer->InputPnt == ' ')
+
+    if (handle->LastRead == ' ')
     {
-        ++buffer->InputPnt;
-        
-        if (*buffer->InputPnt == '"')
+        ReadChar(handle);
+
+        if (handle->LastRead == '"')
         {
-            ++buffer->InputPnt;
-            
             char *c = settings.SerialNumber;
-            
+
             uint8_t i = 0;
             while (true)
             {
-                char ch = *buffer->InputPnt++;
-                if (ch == '"') {
+                char ch = ReadChar(handle);
+                if (ch == '"')
+                {
                     SetSettings(settings);
                     break;
-                } else if (i++ >= sizeof(settings.SerialNumber)) {
+                }
+                else if (i++ >= sizeof(settings.SerialNumber))
+                {
                     QueueErrorCode(ERROR_CODE_SERIAL_NUMBER_TO_LONG);
                     break;
-                } else {
+                }
+                else
+                {
                     *c++ = ch;
                 }
             }
@@ -62,29 +59,24 @@ void SYSTSerilalNumber(CliBuffer_t *buffer, void* v)
             QueueErrorCode(ERROR_CODE_INVALID_SERIAL_NUMBER_TYPE);
         }
     }
-    else if (*buffer->InputPnt == '?')
+    else if (handle->LastRead == '?')
     {
-        ++buffer->InputPnt;
-        
-        *buffer->OutputPnt++ = '"';
+        WriteChar(handle, '"');
         char *c = settings.SerialNumber;
-        
+
         while (*c)
         {
-            *buffer->OutputPnt++ = *c++;
+            WriteChar(handle, *c++);
         }
-        
-        *buffer->OutputPnt++ = '"';
+        WriteChar(handle, '"');
     }
 }
 
-void SYSTRestore(CliBuffer_t *buffer, void* v)
+void SYSTRestore(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == ' ')
+    if (handle->LastRead == ' ')
     {
-        ++buffer->InputPnt;
-        
-        if (SCPICompare("FACT", buffer->InputPnt))
+        if (SCPICompare("FACT", handle->LastWord))
         {
             RestoreSettings(true);
         }
@@ -96,34 +88,26 @@ void SYSTRestore(CliBuffer_t *buffer, void* v)
     else
     {
         RestoreSettings(false);
-            
-        // Convince the parser this there is no command error.
-        --buffer->InputPnt;
     }
 }
 
-void SYSTSave(CliBuffer_t *buffer, void* v)
+void SYSTSave(CliHandle_t *handle, void *v)
 {
     SaveSettings();
-    
-    // Convince the parser this there is no command error.
-    --buffer->InputPnt;
 }
 
-const char* HEXString = "HEX";
-const char* DECIString = "DECI";
+const char *HEXString = "HEX";
+const char *DECIString = "DECI";
 
-void SYSTNumberCommand(CliBuffer_t *buffer, void* v)
+void SYSTNumberCommand(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == ' ')
+    if (handle->LastRead == ' ')
     {
-        ++buffer->InputPnt;
-        
-        if (SCPICompare(DECIString, buffer->InputPnt))
+        if (SCPICompare(DECIString, handle->LastWord))
         {
             SetNumberFormat(DecimalFormat);
         }
-        else if (SCPICompare(HEXString, buffer->InputPnt))
+        else if (SCPICompare(HEXString, handle->LastWord))
         {
             SetNumberFormat(HexFormat);
         }
@@ -131,47 +115,41 @@ void SYSTNumberCommand(CliBuffer_t *buffer, void* v)
         {
             QueueErrorCode(ERROR_CODE_INVALID_NUMBER_MODE);
         }
-        
-        FFTilPunctuation(&buffer->InputPnt);
     }
-    else if (*buffer->InputPnt == '?')
+    else if (handle->LastRead == '?')
     {
-        ++buffer->InputPnt;
-        
-        const char* word = "";
-        
+        const char *word = "";
+
         switch (GetNumberFormat())
         {
-            case DecimalFormat:
-                word = DECIString;
-                break;
-            case HexFormat:
-                word = HEXString;
-                break;
+        case DecimalFormat:
+            word = DECIString;
+            break;
+        case HexFormat:
+            word = HEXString;
+            break;
         }
-        
-        CopyWordToOutBuffer(buffer, word);
+
+        WriteString(handle, word);
     }
 }
 
-#define INFO_STRING_METHOD(name, input)         \
-void name(CliBuffer_t *buffer, void* v)         \
-{                                               \
-    if (*buffer->InputPnt == '?')               \
-    {                                           \
-        ++buffer->InputPnt;                     \
-                                                \
-        *buffer->OutputPnt++ = '"';             \
-        const char *c = input;                  \
-                                                \
-        while (*c)                              \
-        {                                       \
-            *buffer->OutputPnt++ = *c++;        \
-        }                                       \
-                                                \
-        *buffer->OutputPnt++ = '"';             \
-    }                                           \
-}                           
+#define INFO_STRING_METHOD(name, input)     \
+    void name(CliHandle_t *handle, void *v) \
+    {                                       \
+        if (handle->LastRead == '?')        \
+        {                                   \
+            WriteChar(handle, '"');         \
+            const char *c = input;          \
+                                            \
+            while (*c)                      \
+            {                               \
+                WriteChar(handle, *c++);    \
+            }                               \
+                                            \
+            WriteChar(handle, '"');         \
+        }                                   \
+    }
 
 INFO_STRING_METHOD(COMMitHash, COMMIT_HASH)
 INFO_STRING_METHOD(COMMitAuthor, COMMIT_AUTHOR)
@@ -186,27 +164,25 @@ CommandDefinition_t COMMitInfoChildrenCommands[] = {
 INFO_STRING_METHOD(BUILdDate, BUILD_DATE)
 INFO_STRING_METHOD(BUILdUser, BUILD_USER)
 
-void BUILdVersion(CliBuffer_t *buffer, void* v) 
-{                                               
-    if (*buffer->InputPnt == '?')               
-    {                                           
-        ++buffer->InputPnt;                     
-                                                
-        *buffer->OutputPnt++ = '"';             
-        NumberToString(buffer, __XC8_VERSION);
-        *buffer->OutputPnt++ = '"';             
-    }                                           
-} 
+void BUILdVersion(CliHandle_t *handle, void *v)
+{
+    if (handle->LastRead == '?')
+    {
+        WriteChar(handle, '"');
+        PrintNumber(handle, __XC8_VERSION);
+        WriteChar(handle, '"');
+    }
+}
 
 CommandDefinition_t BUILdInfoChildrenCommands[] = {
-    DEFINE_COMMAND("USER", BUILdUser),   
+    DEFINE_COMMAND("USER", BUILdUser),
     DEFINE_COMMAND("DATE", BUILdDate),
     DEFINE_COMMAND("VERS", BUILdVersion),
 };
 
 CommandDefinition_t InfoChildrenCommands[] = {
-    DEFINE_BRANCH("COMM", COMMitInfoChildrenCommands), 
-    DEFINE_BRANCH("BUIL", BUILdInfoChildrenCommands),  
+    DEFINE_BRANCH("COMM", COMMitInfoChildrenCommands),
+    DEFINE_BRANCH("BUIL", BUILdInfoChildrenCommands),
 };
 
 CommandDefinition_t SYSTErrorChildren[] = {

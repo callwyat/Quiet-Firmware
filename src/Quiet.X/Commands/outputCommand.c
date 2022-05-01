@@ -13,7 +13,7 @@ void QueueOutputErrorCode(uint16_t group, uint16_t code)
 
 uint8_t ValidateChannel(const OutputCommand_t settings, void *v)
 {
-    uint8_t channel = (uint8_t)(*((uint8_t*)v));
+    uint8_t channel = (uint8_t)(*((uint8_t *)v));
     if (channel < 1 || channel > settings.MaxChannels)
     {
         QueueOutputErrorCode(settings.ErrorGroup, OUTPUT_ERROR_INVALID_CHANNEL);
@@ -23,36 +23,33 @@ uint8_t ValidateChannel(const OutputCommand_t settings, void *v)
     return (uint8_t)(channel + settings.ChannelsOffset);
 }
 
-void OutputChannelModeCommand(CliBuffer_t *buffer, const OutputCommand_t settings, void *v)
+void OutputChannelModeCommand(CliHandle_t *handle, const OutputCommand_t settings, void *v)
 {
 
-    if (*buffer->InputPnt == '?')
+    if (handle->LastRead == '?')
     {
-        ++buffer->InputPnt;
         uint8_t channel = ValidateChannel(settings, v);
-        
+
         OutputMode_e mode = GetOutputMode(channel);
-        
-        const char* word = OutputModeToString(mode);
-        
-        CopyWordToOutBuffer(buffer, word);
+
+        const char *word = OutputModeToString(mode);
+
+        WriteString(handle, word);
     }
-    else if (*buffer->InputPnt == ' ')
+    else if (handle->LastRead == ' ')
     {
-        ++buffer->InputPnt;
-        
         uint8_t channel = ValidateChannel(settings, v);
         uint8_t error;
 
-        if (SCPICompare(PWMWord, buffer->InputPnt))
+        if (SCPICompare(PWMWord, &handle->LastWord))
         {
             error = SetOutputMode(channel, OUT_PWM);
         }
-        else if (SCPICompare(ServoWord, buffer->InputPnt))
+        else if (SCPICompare(ServoWord, &handle->LastWord))
         {
             error = SetOutputMode(channel, OUT_SERVO);
         }
-        else if (SCPICompare(DISCREETWord, buffer->InputPnt))
+        else if (SCPICompare(DISCREETWord, &handle->LastWord))
         {
             error = SetOutputMode(channel, OUT_DISCREET);
         }
@@ -60,8 +57,6 @@ void OutputChannelModeCommand(CliBuffer_t *buffer, const OutputCommand_t setting
         {
             error = OUTPUT_ERROR_INVALID_MODE_SELECTION;
         }
-        
-        FFTilPunctuation(&buffer->InputPnt);
 
         if (error != OUTPUT_ERROR_NO_ERROR)
         {
@@ -70,22 +65,21 @@ void OutputChannelModeCommand(CliBuffer_t *buffer, const OutputCommand_t setting
     }
 }
 
-void OutputChannelValueCommand(CliBuffer_t *buffer, const OutputCommand_t settings, void *v)
+void OutputChannelValueCommand(CliHandle_t *handle, const OutputCommand_t settings, void *v)
 {
-    if (*buffer->InputPnt == ' ')
+    if (handle->LastRead == ' ')
     {
-        ++buffer->InputPnt;
         uint8_t channel = ValidateChannel(settings, v);
 
         OutputMode_e mode = GetOutputMode(channel);
         if (mode == OUT_DISCREET)
         {
-            bool value = ParseBool(&buffer->InputPnt);
+            bool value = ReadBool(handle);
             SetOutputValue(channel, (uint16_t)value);
         }
         else
         {
-            int16_t value = ParseInt(&buffer->InputPnt);
+            int16_t value = ReadInt(handle);
             if (value >= 0 && value < 1024)
             {
                 SetOutputValue(channel, (uint16_t)value);
@@ -96,12 +90,10 @@ void OutputChannelValueCommand(CliBuffer_t *buffer, const OutputCommand_t settin
             }
         }
     }
-    else if (*buffer->InputPnt == '?')
+    else if (handle->LastRead == '?')
     {
-        ++buffer->InputPnt;
         uint8_t channel = ValidateChannel(settings, v);
         uint16_t value = GetOutputValue(channel);
-        NumberToString(buffer, value);
+        PrintNumber(handle, value);
     }
 }
-

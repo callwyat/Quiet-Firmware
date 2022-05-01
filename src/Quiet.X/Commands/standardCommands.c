@@ -3,44 +3,35 @@
 #include "../CLI/cli.h"
 #include "../settings.h"
 
-void IDNCommand(CliBuffer_t *buffer, void* v)
+void IDNCommand(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == '?')
+    if (handle->LastRead == '?')
     {
-        //Progress the pointer past the query
-        ++buffer->InputPnt;
-        
-        const char *cc = MakeString;
-        while (*cc != 0x00) *buffer->OutputPnt++ = *cc++;
-        *buffer->OutputPnt++ = ',';
+        WriteString(handle, MakeString);
+        WriteChar(handle, ',');
 
-        cc = ModelString;
-        while (*cc != 0x00) *buffer->OutputPnt++ = *cc++;
-        *buffer->OutputPnt++ = ',';
+        WriteString(handle, ModelString);
+        WriteChar(handle, ',');
 
         QuietSettings_t settings = GetSettings();
         char *snc = settings.SerialNumber;
-        while (*snc != 0x00) *buffer->OutputPnt++ = *snc++;
-        *buffer->OutputPnt++ = ',';
+        while (*snc != 0x00)
+            handle->Write(*snc++);
+        WriteChar(handle, ',');
 
-        cc = VersionString;
-        while (*cc != 0x00) *buffer->OutputPnt++ = *cc++;   
+        WriteString(handle, VersionString);
     }
 }
 
-void RSTCommand(CliBuffer_t *buffer, void* v)
+void RSTCommand(CliHandle_t *handle, void *v)
 {
     ClearAllErrors();
     RestoreSettings(false);
-    FFTilPunctuation(&buffer->InputPnt);
-    
-    // Convince the parser this there is no command error.
-    --buffer->InputPnt;
 }
 
 CommandDefinition_t starCommands[] = {
-  DEFINE_COMMAND("IDN", IDNCommand),
-  DEFINE_COMMAND("RST", RSTCommand),
+    DEFINE_COMMAND("IDN", IDNCommand),
+    DEFINE_COMMAND("RST", RSTCommand),
 };
 
 CommandDefinition_t StarCommand = DEFINE_BRANCH("*", starCommands);

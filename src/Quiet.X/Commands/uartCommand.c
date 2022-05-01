@@ -4,85 +4,39 @@
 #include "../uart.h"
 #include "../constants.h"
 
-void UARTReadCommand(CliBuffer_t *buffer, void* v)
+void UARTReadCommand(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == '?')
+    if (handle->LastRead == '?')
     {
-        ++buffer->InputPnt;
-        
-        uint8_t receivedData = UART_get_rx_count();
-        
-        uint8_t maxSendSize = (uint8_t)(&buffer->OutputBuffer[sizeof(buffer->OutputBuffer)] - buffer->OutputPnt) - 4;
-        
-        if (receivedData > maxSendSize)
+        uint8_t receivedCount = UART_get_rx_count();
+        GenerateIEEEHeader(handle, receivedCount);
+
+        while (receivedCount-- > 0)
         {
-            receivedData = maxSendSize;
-        }
-        
-        GenerateIEEEHeader(buffer, receivedData);
-        
-        while (receivedData-- > 0)
-        {
-            *buffer->OutputPnt++ = UART_Read();
+            handle->Write(UART_Read());
         }
     }
 }
 
-uint16_t uartWriteSize = 0;
-
-void UARTLargeWrite(CliBuffer_t *buffer, void *v)
+void UARTWriteCommand(CliHandle_t *handle, void *v)
 {
-    uint8_t bufferRemaining = (uint8_t)(&buffer->InputBuffer[buffer->InputLength] - buffer->InputPnt);
-
-    if (uartWriteSize <= bufferRemaining)
+    if (handle->LastRead == ' ')
     {
-        // Read out the data in this buffer
-        do
+        ReadChar(handle);
+        if (handle->LastRead == '#')
         {
-            UART_Write((uint8_t)*buffer->InputPnt++);
-        } while (--uartWriteSize > 0);
-        
-        ClearLargeDataHandle(buffer);
-    }
-    else
-    {
-        uartWriteSize -= bufferRemaining;
+            uint16_t uartWriteSize = ParseIEEEHeader(handle);
 
-        // Read out the data until all the data is read
-        do 
-        {
-            UART_Write((uint8_t)*buffer->InputPnt++);
-        }   while (--bufferRemaining > 0);
-
-        if (buffer->DataHandle)
-        {
-            return;
-        }
-        else
-        {
-            SetLargeDataHandle(buffer, UARTLargeWrite);
-        }
-    }
-}
-
-void UARTWriteCommand(CliBuffer_t *buffer, void* v)
-{
-    if (*buffer->InputPnt == ' ')
-    {        
-        ++buffer->InputPnt;
-        
-        if (*buffer->InputPnt == '#')
-        {
-            ++buffer->InputPnt;
-            
-            uartWriteSize = ParseIEEEHeader(buffer);
-            
             // Check for an invalid number
             if (UART_get_mode() == UMODE_USBUART)
             {
                 if (uartWriteSize != 0)
                 {
-                    UARTLargeWrite(buffer, v);
+                    while (uartWriteSize > 0)
+                    {
+                        UART_Write(handle->Read());
+                        --uartWriteSize;
+                    }
                 }
                 else
                 {
@@ -97,22 +51,18 @@ void UARTWriteCommand(CliBuffer_t *buffer, void* v)
     }
 }
 
-void UARTBaudCommand(CliBuffer_t *buffer, void* v)
+void UARTBaudCommand(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == '?')
+    if (handle->LastRead == '?')
     {
-        ++buffer->InputPnt;
-        
         uint24_t baudRate = UART_get_baud_rate();
-        
-        NumberToString(buffer, baudRate);
+
+        PrintNumber(handle, baudRate);
     }
-    else if (*buffer->InputPnt == ' ')
+    else if (handle->LastRead == ' ')
     {
-        ++buffer->InputPnt;
-        
-        uint24_t baudRate = ParseInt24(&buffer->InputPnt);
-        
+        uint24_t baudRate = ReadInt24(handle);
+
         // BaudRates below 60 cannot be generated with this the system clock
         if (baudRate > 60 && baudRate <= 1000000)
         {
@@ -125,46 +75,42 @@ void UARTBaudCommand(CliBuffer_t *buffer, void* v)
     }
 }
 
-const char* USBUartWord = "USBU";
-const char* SCPIUartWord = "SCPI";
-const char* MODBusWord = "MODB";
+const char *USBUartWord = "USBU";
+const char *SCPIUartWord = "SCPI";
+const char *MODBusWord = "MODB";
 
-void UARTModeCommand(CliBuffer_t *buffer, void* v)
+void UARTModeCommand(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == '?')
+    if (handle->LastRead == '?')
     {
-        ++buffer->InputPnt;
+        const char *word;
 
-        const char* word;
-        
         switch (UART_get_mode())
         {
-            case UMODE_USBUART:
-                word = USBUartWord;
+        case UMODE_USBUART:
+            word = USBUartWord;
             break;
-            case UMODE_SCPI:
-                word = SCPIUartWord;
+        case UMODE_SCPI:
+            word = SCPIUartWord;
             break;
-            case UMODE_MODBus:
-                word = MODBusWord;
+        case UMODE_MODBus:
+            word = MODBusWord;
             break;
         }
-        
-        CopyWordToOutBuffer(buffer, word);
+
+        WriteString(handle, word);
     }
-    else if (*buffer->InputPnt == ' ')
+    else if (handle->LastRead == ' ')
     {
-        ++buffer->InputPnt;
-        
-        if (SCPICompare(USBUartWord, buffer->InputPnt))
+        if (SCPICompare(USBUartWord, &handle->LastWord))
         {
             UART_set_mode(UMODE_USBUART);
-        } 
-        else if (SCPICompare(SCPIUartWord, buffer->InputPnt))
+        }
+        else if (SCPICompare(SCPIUartWord, &handle->LastWord))
         {
             UART_set_mode(UMODE_SCPI);
         }
-        else if (SCPICompare(MODBusWord, buffer->InputPnt))
+        else if (SCPICompare(MODBusWord, &handle->LastWord))
         {
             UART_set_mode(UMODE_MODBus);
         }
@@ -175,34 +121,29 @@ void UARTModeCommand(CliBuffer_t *buffer, void* v)
     }
 }
 
-void UARTOverflowCommand(CliBuffer_t *buffer, void* v)
+void UARTOverflowCommand(CliHandle_t *handle, void *v)
 {
-    if (*buffer->InputPnt == '?')
+    if (handle->LastRead == '?')
     {
-        ++buffer->InputPnt;
-        
-        NumberToString(buffer, UART_RxBufferOverflow());
+        PrintNumber(handle, UART_RxBufferOverflow());
     }
 }
 
-void UARTClearOverflowCommand(CliBuffer_t *buffer, void* v)
+void UARTClearOverflowCommand(CliHandle_t *handle, void *v)
 {
     UART_ClearRxBufferOverflow();
-    
-    // Convince the parser this there is no command error.
-    --buffer->InputPnt;
 }
 
 CommandDefinition_t uartClearCommandChildren[] = {
-  DEFINE_COMMAND("CLEA", UARTOverflowCommand),
+    DEFINE_COMMAND("CLEA", UARTOverflowCommand),
 };
 
 CommandDefinition_t uartCommandChildren[] = {
-  DEFINE_COMMAND("READ", UARTReadCommand),
-  DEFINE_COMMAND("WRIT", UARTWriteCommand),
-  DEFINE_COMMAND("BAUD", UARTBaudCommand),
-  DEFINE_COMMAND("MODE", UARTModeCommand),
-  DEFINE_COMMAND_W_BRANCH("OVER", UARTOverflowCommand, uartClearCommandChildren),
+    DEFINE_COMMAND("READ", UARTReadCommand),
+    DEFINE_COMMAND("WRIT", UARTWriteCommand),
+    DEFINE_COMMAND("BAUD", UARTBaudCommand),
+    DEFINE_COMMAND("MODE", UARTModeCommand),
+    DEFINE_COMMAND_W_BRANCH("OVER", UARTOverflowCommand, uartClearCommandChildren),
 };
- 
+
 CommandDefinition_t UARTCommand = DEFINE_BRANCH("UART", uartCommandChildren);

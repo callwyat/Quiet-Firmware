@@ -11,14 +11,14 @@
 
 const OutputCommand_t pwmCommandSettings = DEFINE_OUTPUT_COMMAND_T(PWM_CHANNELS, PWM_OFFSET, PWM_ERROR_GROUP);
 
-void PWMChannelModeCommand(CliBuffer_t *buffer, void *channel)
+void PWMChannelModeCommand(CliHandle_t *handle, void *channel)
 {
-    OutputChannelModeCommand(buffer, pwmCommandSettings, channel);
+    OutputChannelModeCommand(handle, pwmCommandSettings, channel);
 }
 
-void PWMChannelValueCommand(CliBuffer_t *buffer, void *channel)
+void PWMChannelValueCommand(CliHandle_t *handle, void *channel)
 {
-    OutputChannelValueCommand(buffer, pwmCommandSettings, channel);
+    OutputChannelValueCommand(handle, pwmCommandSettings, channel);
 }
 
 CommandDefinition_t pwmChanCommands[] = {
@@ -31,4 +31,3 @@ CommandDefinition_t pwmCommands[] = {
 };
 
 CommandDefinition_t PWMCommand = DEFINE_BRANCH("PWM", pwmCommands);
-

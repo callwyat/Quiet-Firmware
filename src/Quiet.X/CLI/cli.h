@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   i.h
  * Author: callwyat
  *
@@ -6,110 +6,118 @@
  */
 
 #ifndef CLI_H
-#define	CLI_H
+#define CLI_H
 
-#ifdef	__cplusplus
-extern "C" {
+#ifdef __cplusplus
+extern "C"
+{
 #endif
-    
+
 #include <stdint.h>
 #include <stdbool.h>
-    
-#define CLI_BUFFER_SIZE 64
+
+#define CLI_WORD_SIZE 24
     typedef enum
     {
         HexFormat,
         DecimalFormat,
     } NumberFormat_e;
-    
-    typedef struct CliBuffer
+
+    typedef union CliHandle_t
     {
-        char *InputPnt;
-        char *OutputPnt;
-        uint8_t InputLength;
-        void(*DataHandle)(struct CliBuffer *buffer, void *v);
-        char InputBuffer[CLI_BUFFER_SIZE];
-        unsigned : 8;  // Make sure there is a null after the input buffer       
-        char OutputBuffer[CLI_BUFFER_SIZE];
-        unsigned : 8;  // Make sure there is a null after the output buffer
-    } CliBuffer_t;
-    
-    
-    typedef void(*CommandHandle)(CliBuffer_t *buffer, void *channel);
-        
+        struct
+        {
+            char LastRead;
+            char LastWord[CLI_WORD_SIZE];
+            char (*Read)(void);
+            void (*Write)(char);
+            uint8_t (*GetReceivedCount)(void);
+            char *ReceivePnt;
+        };
+    } CliHandle_t;
+
+#define DEFINE_CLI_HANDLE(getRxCount, read, write)   \
+{                                                    \
+    .Read = read,                                    \
+    .Write = write,                                  \
+    .GetReceivedCount = getRxCount,                  \
+}
+
+    typedef void (*CommandHandle)(CliHandle_t *handle, void *channel);
+
     typedef struct CommandDefinition
     {
-        const char Command[5];      // Needs to hold four letters and a null
-        
-        struct CommandDefinition* Children;
-        uint8_t ChildrenCount;
-        
-        CommandHandle Handle;
-        
-    } CommandDefinition_t;
-    
-#define DEFINE_COMMAND(command, handle) { \
-            .Command = command,           \
-            .Handle = handle,             \
-            .Children = 0x0000,           \
-            .ChildrenCount = 0,           \
-        }
-    
-#define DEFINE_BRANCH(command, children) { \
-            .Command = command,            \
-            .Handle = 0x0000,              \
-            .Children = &children[0],      \
-            .ChildrenCount =  sizeof(children) / sizeof(children[0]),    \
-        }
-    
-#define DEFINE_COMMAND_W_BRANCH(command, handle, children) { \
-            .Command = command,            \
-            .Handle = handle,              \
-            .Children = &children[0],      \
-            .ChildrenCount =  sizeof(children) / sizeof(children[0]),    \
-        }                                          
+        const char Command[5]; // Needs to hold four letters and a null
 
-    uint8_t PopCLIErrorCode(void);
+        struct CommandDefinition *Children;
+        uint8_t ChildrenCount;
+
+        CommandHandle Handle;
+
+    } CommandDefinition_t;
+
+#define DEFINE_COMMAND(command, handle) \
+    {                                   \
+        .Command = command,             \
+        .Handle = handle,               \
+        .Children = 0x0000,             \
+        .ChildrenCount = 0,             \
+    }
+
+#define DEFINE_BRANCH(command, children)                         \
+    {                                                            \
+        .Command = command,                                      \
+        .Handle = 0x0000,                                        \
+        .Children = &children[0],                                \
+        .ChildrenCount = sizeof(children) / sizeof(children[0]), \
+    }
+
+#define DEFINE_COMMAND_W_BRANCH(command, handle, children)       \
+    {                                                            \
+        .Command = command,                                      \
+        .Handle = handle,                                        \
+        .Children = &children[0],                                \
+        .ChildrenCount = sizeof(children) / sizeof(children[0]), \
+    }
 
     bool SCPICompare(const char *reference, char *input);
-    
-    void FFTilPunctuation(char **input);
-    
-    void ProcessCLI(CliBuffer_t *buffer, CommandDefinition_t* commands);
-    
-    void ProcessCommand(CliBuffer_t *buffer, CommandDefinition_t* commands);
-    
-    void SetNumberFormat(NumberFormat_e format);
-    
-    NumberFormat_e GetNumberFormat(void);
-    
-    void NumberToString(CliBuffer_t *buffer, uint24_t input);
-    
-    bool ParseBool(char** str);
 
-    int16_t ParseInt(char** str);
-    
-    uint24_t ParseInt24(char** str);
-    
-    uint16_t ParseIEEEHeader(CliBuffer_t *buffer);
-    
-    void GenerateIEEEHeader(CliBuffer_t *buffer, uint16_t dataSize);
-    
+    void ProcessCLI(CliHandle_t *handle, CommandDefinition_t *commands);
+
+    void ProcessCommand(CliHandle_t *handle, CommandDefinition_t *commands);
+
+    void SetNumberFormat(NumberFormat_e format);
+
+    NumberFormat_e GetNumberFormat(void);
+
+    void PrintNumber(CliHandle_t *handle, uint24_t input);
+
+    char inline ReadChar(CliHandle_t *handle);
+
+    char *ReadWord(CliHandle_t *handle);
+
+    bool ReadBool(CliHandle_t *handle);
+
+    uint16_t ReadInt(CliHandle_t *handle);
+
+    uint24_t ReadInt24(CliHandle_t *handle);
+
+    uint16_t ParseIEEEHeader(CliHandle_t *handle);
+
+    void GenerateIEEEHeader(CliHandle_t *handle, uint16_t dataSize);
+
     void QueueErrorCode(uint16_t);
 
     uint16_t DequeueErrorCode(void);
 
     void ClearAllErrors(void);
 
-    void CopyWordToOutBuffer(CliBuffer_t *buffer, const char* word);
-    
-    void SetLargeDataHandle(CliBuffer_t *buffer, void(*handle)(CliBuffer_t *buffer, void *v));
-    
-    void ClearLargeDataHandle(CliBuffer_t *buffer);
+    void WriteChar(CliHandle_t *handle, char c);
 
-#ifdef	__cplusplus
+    void WriteString(CliHandle_t *handle, const char *word);
+
+#ifdef __cplusplus
 }
 #endif
 
-#endif	/* CLI_H */
-
+#endif /* CLI_H */

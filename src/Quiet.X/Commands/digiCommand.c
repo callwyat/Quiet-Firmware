@@ -2,26 +2,25 @@
 #include "../CLI/cli.h"
 #include "../constants.h"
 
-void DIGIDiscreetCommand(CliBuffer_t *buffer, void* v) {
-    if (*buffer->InputPnt == '?') {
-        //Progress the pointer past the query
-        ++buffer->InputPnt;
-        NumberToString(buffer, DIN);
+void DIGIDiscreetCommand(CliHandle_t *handle, void *v)
+{
+    if (handle->LastRead == '?')
+    {
+        PrintNumber(handle, DIN);
     }
 }
 
-void DIGIChannelValueCommand(CliBuffer_t *buffer, void* v) {
+void DIGIChannelValueCommand(CliHandle_t *handle, void *v)
+{
 
-    if (*buffer->InputPnt == '?')
+    if (handle->LastRead == '?')
     {
-        ++buffer->InputPnt;
-
-        uint8_t channel = *((uint8_t*)v);
+        uint8_t channel = *((uint8_t *)v);
 
         if (channel >= 1 && channel <= 8)
         {
-            uint8_t value = (DIN & (1 << ((channel) - 1))) > 0;
-            NumberToString(buffer, value);
+            uint8_t value = (DIN & (1 << ((channel)-1))) > 0;
+            PrintNumber(handle, value);
         }
         else
         {
@@ -29,7 +28,6 @@ void DIGIChannelValueCommand(CliBuffer_t *buffer, void* v) {
         }
     }
 }
-    
 
 CommandDefinition_t digiChanCommands[] = {
     DEFINE_COMMAND("VALU", DIGIChannelValueCommand),

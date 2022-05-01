@@ -3,20 +3,17 @@
 
 uint24_t value = 0;
 
-void TestParserCommand(CliBuffer_t *buffer, void *channel)
+void TestParserCommand(CliHandle_t *handle, void *channel)
 {
-    if (*buffer->InputPnt == '?')
+    if (handle->LastRead == '?')
     {
-        ++buffer->InputPnt;
-        NumberToString(buffer, value);
+        PrintNumber(handle, value);
     }
-    else if (*buffer->InputPnt == ' ')
+    else if (handle->LastRead == ' ')
     {
-        ++buffer->InputPnt;
-        value = (uint24_t)ParseInt(&buffer->InputPnt);
+        value = (uint24_t)ReadInt(handle);
     }
 }
-
 
 CommandDefinition_t testCommands[] = {
     DEFINE_COMMAND("PARS", TestParserCommand),
