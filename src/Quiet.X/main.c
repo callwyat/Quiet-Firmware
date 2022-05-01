@@ -112,6 +112,9 @@ void CliInit(void)
     *pnt++ = DIGICommand;
     *pnt++ = SYSTemCommand;
     *pnt++ = DIAGnosticsCommand;
+
+    usbHandle.ReceivePnt = usbHandle.LastWord;
+    uartHandle.ReceivePnt = uartHandle.LastWord;
 }
 
 uint8_t USB_get_read_count(void)
@@ -127,7 +130,7 @@ char USB_Read(void)
         usbInPnt = usbInBuffer;
     }
 
-    --usbInPnt;
+    --usbInCount;
     return *usbInPnt++;
 }
 
@@ -172,9 +175,13 @@ void USB_CDC_Tasks(void)
 
         if (usbInCount != 0)
         {
+            usbInPnt = usbInBuffer;
+
             USBLED = 0;
             ProcessCLI(&usbHandle, allCommands);
             USBLED = 1;
+
+            USB_Flush_Write();
         }
     }
 

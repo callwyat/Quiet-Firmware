@@ -15,7 +15,7 @@ void QueryANAI(CliHandle_t *handle, void *v)
         {
             // Get the value from the analog buffer
             uint16_t value = GetADCValue(channel - 1);
-            PrintNumber(handle, value);
+            WriteNumber(handle, value);
         }
         else
         {

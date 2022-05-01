@@ -6,7 +6,7 @@ void DIGIDiscreetCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
-        PrintNumber(handle, DIN);
+        WriteNumber(handle, DIN);
     }
 }
 
@@ -20,7 +20,7 @@ void DIGIChannelValueCommand(CliHandle_t *handle, void *v)
         if (channel >= 1 && channel <= 8)
         {
             uint8_t value = (DIN & (1 << ((channel)-1))) > 0;
-            PrintNumber(handle, value);
+            WriteNumber(handle, value);
         }
         else
         {

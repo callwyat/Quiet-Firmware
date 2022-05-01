@@ -90,7 +90,7 @@ extern "C"
 
     NumberFormat_e GetNumberFormat(void);
 
-    void PrintNumber(CliHandle_t *handle, uint24_t input);
+    void WriteNumber(CliHandle_t *handle, uint24_t input);
 
     char inline ReadChar(CliHandle_t *handle);
 
@@ -102,9 +102,9 @@ extern "C"
 
     uint24_t ReadInt24(CliHandle_t *handle);
 
-    uint16_t ParseIEEEHeader(CliHandle_t *handle);
+    uint16_t ReadIEEEHeader(CliHandle_t *handle);
 
-    void GenerateIEEEHeader(CliHandle_t *handle, uint16_t dataSize);
+    void WriteIEEEHeader(CliHandle_t *handle, uint16_t dataSize);
 
     void QueueErrorCode(uint16_t);
 

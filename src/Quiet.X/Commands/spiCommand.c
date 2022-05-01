@@ -15,10 +15,10 @@ void SPIExchangeCommand(CliHandle_t *handle, void *v)
         if (handle->LastRead == '#')
         {
             // Parse the number of bytes to write
-            uint16_t spiExchangeSize = ParseIEEEHeader(handle);
+            uint16_t spiExchangeSize = ReadIEEEHeader(handle);
 
             // Echo back how many bytes we are going to read
-            GenerateIEEEHeader(handle, spiExchangeSize);
+            WriteIEEEHeader(handle, spiExchangeSize);
 
             while (spiExchangeSize > 0)
             {
@@ -63,7 +63,7 @@ void SPIBaudCommand(CliHandle_t *handle, void *v)
             break;
         }
 
-        PrintNumber(handle, baudRate);
+        WriteNumber(handle, baudRate);
     }
     else if (handle->LastRead == ' ')
     {

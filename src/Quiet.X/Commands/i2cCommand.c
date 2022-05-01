@@ -27,6 +27,7 @@ void I2CModeCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == ' ')
     {
+        ReadWord(handle);
         if (SCPICompare(OFFWord, handle->LastWord))
         {
             I2C1_SetEnabled(false);
@@ -54,7 +55,7 @@ void I2CTimeoutCommand(CliHandle_t *handle, void *v)
     {
         uint24_t timeout = I2C1_GetTimeout();
 
-        PrintNumber(handle, timeout);
+        WriteNumber(handle, timeout);
     }
     else if (handle->LastRead == ' ')
     {
@@ -77,7 +78,7 @@ void I2CBaudCommand(CliHandle_t *handle, void *v)
     {
         uint24_t baudRate = I2C1GetBaudRate();
 
-        PrintNumber(handle, baudRate);
+        WriteNumber(handle, baudRate);
     }
     else if (handle->LastRead == ' ')
     {
@@ -99,7 +100,7 @@ void I2CAddressCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
-        PrintNumber(handle, i2cTargetAddress);
+        WriteNumber(handle, i2cTargetAddress);
     }
     else if (handle->LastRead == ' ')
     {
@@ -123,7 +124,7 @@ void I2CWriteCommand(CliHandle_t *handle, void *v)
         if (handle->LastRead == '#')
         {
             // Parse the number of bytes to write
-            uint16_t writeCount = ParseIEEEHeader(handle);
+            uint16_t writeCount = ReadIEEEHeader(handle);
 
             // Check for an invalid number
             if (!I2C1_GetEnabled())
@@ -167,7 +168,7 @@ void I2CReadCommand(CliHandle_t *handle, void *v)
             }
             else if (readCount > 0)
             {
-                GenerateIEEEHeader(handle, (uint16_t)readCount);
+                WriteIEEEHeader(handle, (uint16_t)readCount);
 
                 // Whip out any left over data in the buffer
                 uint8_t clearCount = (uint8_t)readCount;
@@ -200,7 +201,7 @@ void I2CACKedCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
-        PrintNumber(handle, !I2C1_LastOperationNACKed());
+        WriteNumber(handle, !I2C1_LastOperationNACKed());
     }
 }
 
@@ -260,7 +261,7 @@ void I2CRegisterReadCommand(CliHandle_t *handle, void *v)
                 QueueErrorCode(I2C_ERROR_INVALID_RSIZE);
             }
 
-            PrintNumber(handle, data);
+            WriteNumber(handle, data);
         }
         else
         {
@@ -273,7 +274,7 @@ void I2CRegisterAddressCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
-        PrintNumber(handle, i2cRegisterAddress);
+        WriteNumber(handle, i2cRegisterAddress);
     }
     else if (handle->LastRead == ' ')
     {
@@ -294,7 +295,7 @@ void I2CRegisterRegisterSizeCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
-        PrintNumber(handle, i2cRegisterSize);
+        WriteNumber(handle, i2cRegisterSize);
     }
     else if (handle->LastRead == ' ')
     {

@@ -7,7 +7,7 @@ void TestParserCommand(CliHandle_t *handle, void *channel)
 {
     if (handle->LastRead == '?')
     {
-        PrintNumber(handle, value);
+        WriteNumber(handle, value);
     }
     else if (handle->LastRead == ' ')
     {

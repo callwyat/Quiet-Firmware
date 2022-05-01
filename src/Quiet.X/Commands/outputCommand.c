@@ -41,15 +41,16 @@ void OutputChannelModeCommand(CliHandle_t *handle, const OutputCommand_t setting
         uint8_t channel = ValidateChannel(settings, v);
         uint8_t error;
 
-        if (SCPICompare(PWMWord, &handle->LastWord))
+        ReadWord(handle);
+        if (SCPICompare(PWMWord, handle->LastWord))
         {
             error = SetOutputMode(channel, OUT_PWM);
         }
-        else if (SCPICompare(ServoWord, &handle->LastWord))
+        else if (SCPICompare(ServoWord, handle->LastWord))
         {
             error = SetOutputMode(channel, OUT_SERVO);
         }
-        else if (SCPICompare(DISCREETWord, &handle->LastWord))
+        else if (SCPICompare(DISCREETWord, handle->LastWord))
         {
             error = SetOutputMode(channel, OUT_DISCREET);
         }
@@ -79,10 +80,10 @@ void OutputChannelValueCommand(CliHandle_t *handle, const OutputCommand_t settin
         }
         else
         {
-            int16_t value = ReadInt(handle);
+            uint16_t value = ReadInt(handle);
             if (value >= 0 && value < 1024)
             {
-                SetOutputValue(channel, (uint16_t)value);
+                SetOutputValue(channel, value);
             }
             else
             {
@@ -94,6 +95,6 @@ void OutputChannelValueCommand(CliHandle_t *handle, const OutputCommand_t settin
     {
         uint8_t channel = ValidateChannel(settings, v);
         uint16_t value = GetOutputValue(channel);
-        PrintNumber(handle, value);
+        WriteNumber(handle, value);
     }
 }

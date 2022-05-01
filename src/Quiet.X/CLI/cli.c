@@ -12,18 +12,87 @@
 
 #define IS_NUMBER(c) (c >= '0' && c <= '9')
 
+extern CommandDefinition_t StarCommand;
+
 uint16_t lastExecutionTime = 0;
 bool wrote;
 void DIAGnostics(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
-        PrintNumber(handle, lastExecutionTime);
+        WriteNumber(handle, lastExecutionTime);
     }
 }
 
-CommandDefinition_t DIAGnosticsCommand = DEFINE_COMMAND("DIAG", DIAGnostics);
-extern CommandDefinition_t StarCommand;
+#define CLI_ERROR_BUFFER_SIZE 16
+uint16_t cliErrorBuffer[CLI_ERROR_BUFFER_SIZE];
+uint16_t *cliErrorInPnt = cliErrorBuffer;
+uint16_t *cliErrorOutPnt = cliErrorBuffer;
+unsigned cliErrorBufferOverflow = false;
+
+void QueueErrorCode(uint16_t error)
+{
+    if (!cliErrorBufferOverflow)
+    {
+        *cliErrorInPnt++ = error;
+
+        // Handle pointer rollover
+        if (cliErrorInPnt >= &cliErrorBuffer[CLI_ERROR_BUFFER_SIZE])
+        {
+            cliErrorInPnt = cliErrorBuffer;
+        }
+
+        if (cliErrorInPnt == cliErrorOutPnt)
+        {
+            cliErrorBufferOverflow = true;
+        }
+    }
+}
+
+uint16_t DequeueErrorCode(void)
+{
+    if (cliErrorOutPnt == cliErrorInPnt)
+    {
+        if (cliErrorBufferOverflow)
+        {
+            cliErrorBufferOverflow = false;
+            return ERROR_CODE_ERROR_BUFFER_OVERFLOW;
+        }
+
+        return ERROR_CODE_NO_ERROR;
+    }
+    else
+    {
+        uint16_t result = *cliErrorOutPnt;
+        *cliErrorOutPnt++ = ERROR_CODE_NO_ERROR;
+
+        // Handle pointer rollover
+        if (cliErrorOutPnt >= &cliErrorBuffer[CLI_ERROR_BUFFER_SIZE])
+        {
+            cliErrorOutPnt = cliErrorBuffer;
+        }
+
+        return result;
+    }
+}
+
+void ClearAllErrors(void)
+{
+    cliErrorOutPnt = cliErrorInPnt = cliErrorBuffer;
+    cliErrorBufferOverflow = false;
+    *cliErrorInPnt = ERROR_CODE_NO_ERROR;
+}
+
+volatile NumberFormat_e NumberFormat;
+void SetNumberFormat(NumberFormat_e format)
+{
+    NumberFormat = format;
+}
+
+NumberFormat_e GetNumberFormat(void)
+{
+    return NumberFormat;
+}
 
 bool IsSCPIPunctuation(char c)
 {
@@ -40,13 +109,13 @@ bool IsSCPIPunctuation(char c)
     }
     else
     {
-        if (c <= '?')
+        if (c <= ':')
         {
-            return c == '?' || c == '#';
+            return c == ':' || c == '#';
         }
         else
         {
-            return c == ':' || c == ';';
+            return c == '?' || c == ';';
         }
     }
 }
@@ -75,106 +144,6 @@ bool SCPICompare(const char *reference, char *input)
     return true;
 }
 
-void ProcessCommand(CliHandle_t *handle, CommandDefinition_t *rootCommand)
-{
-    CommandDefinition_t *forkCommand, *command;
-
-    command = forkCommand = rootCommand;
-
-    bool indexLock = false;
-    uint8_t commandIndex;
-
-    while (true)
-    {
-        if (handle->LastWord[0] == '*')
-        {
-            forkCommand = StarCommand.Children;
-        }
-
-        if (!indexLock)
-        {
-            // Only parse the commandIndex once per command string.
-            commandIndex = 0;
-        }
-
-        if (SCPICompare(command->Command, handle->LastWord))
-        {
-            while (true)
-            {
-                char c = handle->LastRead;
-                //      0x3A
-                if (c == ':') // Branch Deeper
-                {
-                    if (commandIndex > 0)
-                        indexLock = true;
-
-                    if (command->Children)
-                    {
-                        command = forkCommand = command->Children;
-                    }
-                    else
-                    {
-                        QueueErrorCode(CLI_ERROR_INVALID_BRANCH);
-                    }
-                    break;
-                }
-                else if (IsSCPIPunctuation(c)) // Get a value
-                {
-                    if (command->Handle)
-                    {
-                        command->Handle(handle, &commandIndex);
-
-                        // Check for end conditions
-                        // 0x00         0x0D        0x0A
-                        if (c == '\x00' || c == '\r' || c == '\n')
-                        {
-                            return;
-                        }
-
-                        ReadWord(handle);
-
-                        if (handle->LastWord[0] == ';')
-                        {
-                            WriteChar(handle, ';');
-
-                            ReadWord(handle);
-                            if (handle->LastWord[0] == ':')
-                            {
-                                ReadWord(handle);
-                                command = forkCommand = rootCommand;
-                                indexLock = false;
-                            }
-                            else
-                            {
-                                command = forkCommand;
-                            }
-
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        QueueErrorCode(CLI_ERROR_INVALID_COMMAND);
-                    }
-                }
-                else if (IS_NUMBER(c)) // Parse a number
-                {
-                    commandIndex *= 10;
-                    commandIndex += c - '0';
-                }
-            }
-        }
-        else
-        {
-            ++command;
-            if (command->Command[0] == '\x00')
-            {
-                break;
-            }
-        }
-    }
-}
-
 void CheckValidNumberEnd(char c)
 {
     if (c == ';' || c == '\r' || c == '\n' || c == '\x00')
@@ -190,22 +159,6 @@ void CheckValidNumberEnd(char c)
     }
 }
 
-void WriteString(CliHandle_t *handle, const char *word)
-{
-    while (*word)
-    {
-        handle->Write(*word++);
-    }
-
-    wrote = true;
-}
-
-void WriteChar(CliHandle_t *handle, char c)
-{
-    handle->Write(c);
-    wrote = true;
-}
-
 char inline ReadChar(CliHandle_t *handle)
 {
     return handle->LastRead = handle->Read();
@@ -217,9 +170,9 @@ char *ReadWord(CliHandle_t *handle)
     uint8_t i;
     for (i = 0; i < CLI_WORD_SIZE; ++i)
     {
-        *c++ = handle->Read();
+        *c = handle->Read();
 
-        if (IsSCPIPunctuation(*c))
+        if (IsSCPIPunctuation(*c++))
         {
             break;
         }
@@ -235,6 +188,41 @@ char *ReadWord(CliHandle_t *handle)
     handle->LastRead = *c;
 
     return handle->LastWord;
+}
+
+int8_t ReadWordWithNumber(CliHandle_t *handle)
+{
+    char *c = handle->LastWord;
+    uint8_t i;
+    int8_t number = -1;
+    for (i = 0; i < CLI_WORD_SIZE; ++i)
+    {
+        *c = handle->Read();
+
+        if (IsSCPIPunctuation(*c))
+        {
+            break;
+        }
+        else if (IS_NUMBER(*c))
+        {
+            number = number < 0 ? 0 : number * 10;
+            number += (*c - '0');
+        }
+        
+        ++c;
+    }
+
+    if (i >= CLI_WORD_SIZE)
+    {
+        QueueErrorCode(CLI_INVALID_WORD);
+        __asm("pop");
+    }
+
+    ++c;
+    *c-- = '\x00';
+    handle->LastRead = *c;
+
+    return number;
 }
 
 bool ReadBool(CliHandle_t *handle)
@@ -360,7 +348,7 @@ uint24_t ReadInt24(CliHandle_t *handle)
     return result;
 }
 
-uint16_t ParseIEEEHeader(CliHandle_t *handle)
+uint16_t ReadIEEEHeader(CliHandle_t *handle)
 {
     char c = handle->Read();
 
@@ -397,109 +385,23 @@ uint16_t ParseIEEEHeader(CliHandle_t *handle)
     }
 }
 
-#define CLI_ERROR_BUFFER_SIZE 16
-uint16_t cliErrorBuffer[CLI_ERROR_BUFFER_SIZE];
-uint16_t *cliErrorInPnt = cliErrorBuffer;
-uint16_t *cliErrorOutPnt = cliErrorBuffer;
-unsigned cliErrorBufferOverflow = false;
-
-void QueueErrorCode(uint16_t error)
+void WriteChar(CliHandle_t *handle, char c)
 {
-    if (!cliErrorBufferOverflow)
+    handle->Write(c);
+    wrote = true;
+}
+
+void WriteString(CliHandle_t *handle, const char *word)
+{
+    while (*word)
     {
-        *cliErrorInPnt++ = error;
-
-        // Handle pointer rollover
-        if (cliErrorInPnt >= &cliErrorBuffer[CLI_ERROR_BUFFER_SIZE])
-        {
-            cliErrorInPnt = cliErrorBuffer;
-        }
-
-        if (cliErrorInPnt == cliErrorOutPnt)
-        {
-            cliErrorBufferOverflow = true;
-        }
+        handle->Write(*word++);
     }
+
+    wrote = true;
 }
 
-uint16_t DequeueErrorCode(void)
-{
-    if (cliErrorOutPnt == cliErrorInPnt)
-    {
-        if (cliErrorBufferOverflow)
-        {
-            cliErrorBufferOverflow = false;
-            return ERROR_CODE_ERROR_BUFFER_OVERFLOW;
-        }
-
-        return ERROR_CODE_NO_ERROR;
-    }
-    else
-    {
-        uint16_t result = *cliErrorOutPnt;
-        *cliErrorOutPnt++ = ERROR_CODE_NO_ERROR;
-
-        // Handle pointer rollover
-        if (cliErrorOutPnt >= &cliErrorBuffer[CLI_ERROR_BUFFER_SIZE])
-        {
-            cliErrorOutPnt = cliErrorBuffer;
-        }
-
-        return result;
-    }
-}
-
-void ClearAllErrors(void)
-{
-    cliErrorOutPnt = cliErrorInPnt = cliErrorBuffer;
-    cliErrorBufferOverflow = false;
-    *cliErrorInPnt = ERROR_CODE_NO_ERROR;
-}
-
-volatile uint8_t stackPnt;
-void ProcessCLI(CliHandle_t *handle, CommandDefinition_t *commands)
-{
-    while (handle->GetReceivedCount() > 0)
-    {
-        char c = *handle->ReceivePnt++ = handle->Read();
-
-        if (IsSCPIPunctuation(c))
-        {
-            handle->LastRead = c;
-            handle->ReceivePnt = handle->LastWord;
-            wrote = false;
-
-            TMR1_WriteTimer(0x0000);
-            TMR1_StartTimer();
-
-            ProcessCommand(handle, commands);
-
-            TMR1_StopTimer();
-
-            // If something was written, make sure it is terminated
-            if (wrote)
-            {
-                handle->Write('\r');
-                handle->Write('\n');
-            }
-
-            lastExecutionTime = TMR1_ReadTimer();
-        }
-    }
-}
-
-volatile NumberFormat_e NumberFormat;
-void SetNumberFormat(NumberFormat_e format)
-{
-    NumberFormat = format;
-}
-
-NumberFormat_e GetNumberFormat(void)
-{
-    return NumberFormat;
-}
-
-void PrintHex24(CliHandle_t *handle, uint24_t input)
+void WriteHex24(CliHandle_t *handle, uint24_t input)
 {
     wrote = true;
 
@@ -543,7 +445,7 @@ void PrintHex24(CliHandle_t *handle, uint24_t input)
 const uint16_t decades14[] = {1000, 100, 10, 1};
 #define DECADES14_LENGTH sizeof(decades14) / sizeof(decades14[0])
 
-void PrintInt14(CliHandle_t *handle, uint16_t input)
+void WriteInt14(CliHandle_t *handle, uint16_t input)
 {
     wrote = true;
     if (input == 0)
@@ -579,7 +481,7 @@ void PrintInt14(CliHandle_t *handle, uint16_t input)
 
 const uint24_t decades24[] = {10000000, 1000000, 100000, 10000, 1000, 100, 10, 1};
 #define DECADES24_LENGTH sizeof(decades24) / sizeof(decades24[0])
-void PrintInt24(CliHandle_t *handle, uint24_t input)
+void WriteInt24(CliHandle_t *handle, uint24_t input)
 {
     wrote = true;
     if (input == 0)
@@ -611,19 +513,19 @@ void PrintInt24(CliHandle_t *handle, uint24_t input)
     }
 }
 
-void PrintNumber(CliHandle_t *handle, uint24_t input)
+void WriteNumber(CliHandle_t *handle, uint24_t input)
 {
     switch (NumberFormat)
     {
     case HexFormat:
-        PrintHex24(handle, input);
+        WriteHex24(handle, input);
         break;
     case DecimalFormat:
 
         if (input < 10000)
-            PrintInt14(handle, (uint16_t)input);
+            WriteInt14(handle, (uint16_t)input);
         else
-            PrintInt24(handle, input);
+            WriteInt24(handle, input);
 
         break;
     default:
@@ -632,7 +534,7 @@ void PrintNumber(CliHandle_t *handle, uint24_t input)
     }
 }
 
-void GenerateIEEEHeader(CliHandle_t *handle, uint16_t dataSize)
+void WriteIEEEHeader(CliHandle_t *handle, uint16_t dataSize)
 {
     wrote = true;
     handle->Write('#');
@@ -647,5 +549,158 @@ void GenerateIEEEHeader(CliHandle_t *handle, uint16_t dataSize)
 
     handle->Write(headerSize + '0');
 
-    PrintInt14(handle, dataSize);
+    WriteInt14(handle, dataSize);
 }
+
+void ProcessCommand(CliHandle_t *handle, CommandDefinition_t *rootCommand)
+{
+    CommandDefinition_t *forkCommand, *command;
+
+    command = forkCommand = rootCommand;
+
+    bool indexLock = false;
+    uint8_t commandIndex;
+    
+    while (true)
+    {
+        if (!indexLock)
+        {
+            // Only parse the commandIndex once per command string.
+            commandIndex = 0;
+        }
+
+        if (SCPICompare(command->Command, handle->LastWord))
+        {
+            while (true)
+            {
+                char c = handle->LastRead;
+                //      0x3A
+                if (c == ':') // Branch Deeper
+                {
+                    if (command->Children)
+                    {
+                        command = forkCommand = command->Children;
+                    }
+                    else
+                    {
+                        QueueErrorCode(CLI_ERROR_INVALID_BRANCH);
+                    }
+
+                    if (!indexLock)
+                    {
+                        int8_t number = ReadWordWithNumber(handle);
+                        if (number > 0)
+                        {
+                            commandIndex = (uint8_t)number;
+                            indexLock = true;
+                        }
+                    }
+                    else
+                    {
+                        ReadWord(handle);
+                    }
+                    break;
+                }
+                else if (IsSCPIPunctuation(c)) // Get a value
+                {
+                    if (command->Handle)
+                    {
+                        command->Handle(handle, &commandIndex);
+
+                        ReadWord(handle);
+
+                        c = handle->LastRead;
+                        
+                        // Check for end conditions
+                        // 0x00         0x0D        0x0A
+                        if (c == '\x00' || c == '\r' || c == '\n')
+                        {
+                            return;
+                        }
+
+                        if (handle->LastWord[0] == ';')
+                        {
+                            WriteChar(handle, ';');
+
+                            ReadWord(handle);
+                            if (handle->LastWord[0] == ':')
+                            {
+                                ReadWord(handle);
+                                command = forkCommand = rootCommand;
+                                indexLock = false;
+                            }
+                            else
+                            {
+                                command = forkCommand;
+                            }
+
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        QueueErrorCode(CLI_ERROR_INVALID_COMMAND);
+                    }
+                }
+            }
+        }
+        else
+        {
+            ++command;
+            if (command->Command[0] == '\x00')
+            {
+                if (handle->LastWord[0] == '*')
+                {
+                    command = forkCommand = StarCommand.Children;
+
+                    // Shift the whole word left one.
+                    char *shift1 = handle->LastWord;
+                    char *shift2 = &handle->LastWord[1];
+                    while (*shift2)
+                    {
+                        *shift1++ = *shift2++;
+                    }
+                    *shift1 = '\x00';
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void ProcessCLI(CliHandle_t *handle, CommandDefinition_t *commands)
+{
+    while (handle->GetReceivedCount() > 0)
+    {
+        char c = *handle->ReceivePnt++ = handle->Read();
+
+        if (IsSCPIPunctuation(c))
+        {
+            *handle->ReceivePnt = '\x00';
+            handle->LastRead = c;
+            handle->ReceivePnt = handle->LastWord;
+            wrote = false;
+
+            TMR1_WriteTimer(0x0000);
+            TMR1_StartTimer();
+
+            ProcessCommand(handle, commands);
+
+            TMR1_StopTimer();
+
+            // If something was written, make sure it is terminated
+            if (wrote)
+            {
+                handle->Write('\r');
+                handle->Write('\n');
+            }
+
+            lastExecutionTime = TMR1_ReadTimer();
+        }
+    }
+}
+
+CommandDefinition_t DIAGnosticsCommand = DEFINE_COMMAND("DIAG", DIAGnostics);

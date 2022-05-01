@@ -13,7 +13,7 @@ void SYSTErrorCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
-        PrintNumber(handle, DequeueErrorCode());
+        WriteNumber(handle, DequeueErrorCode());
     }
 }
 
@@ -103,6 +103,7 @@ void SYSTNumberCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == ' ')
     {
+        ReadWord(handle);
         if (SCPICompare(DECIString, handle->LastWord))
         {
             SetNumberFormat(DecimalFormat);
@@ -169,7 +170,7 @@ void BUILdVersion(CliHandle_t *handle, void *v)
     if (handle->LastRead == '?')
     {
         WriteChar(handle, '"');
-        PrintNumber(handle, __XC8_VERSION);
+        WriteNumber(handle, __XC8_VERSION);
         WriteChar(handle, '"');
     }
 }

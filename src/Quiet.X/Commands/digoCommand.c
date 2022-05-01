@@ -32,7 +32,7 @@ void DIGODiscreetCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
-        PrintNumber(handle, DOUT);
+        WriteNumber(handle, DOUT);
     }
     else if (handle->LastRead == ' ')
     {

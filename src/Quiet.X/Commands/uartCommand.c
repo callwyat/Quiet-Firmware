@@ -9,7 +9,7 @@ void UARTReadCommand(CliHandle_t *handle, void *v)
     if (handle->LastRead == '?')
     {
         uint8_t receivedCount = UART_get_rx_count();
-        GenerateIEEEHeader(handle, receivedCount);
+        WriteIEEEHeader(handle, receivedCount);
 
         while (receivedCount-- > 0)
         {
@@ -25,7 +25,7 @@ void UARTWriteCommand(CliHandle_t *handle, void *v)
         ReadChar(handle);
         if (handle->LastRead == '#')
         {
-            uint16_t uartWriteSize = ParseIEEEHeader(handle);
+            uint16_t uartWriteSize = ReadIEEEHeader(handle);
 
             // Check for an invalid number
             if (UART_get_mode() == UMODE_USBUART)
@@ -57,7 +57,7 @@ void UARTBaudCommand(CliHandle_t *handle, void *v)
     {
         uint24_t baudRate = UART_get_baud_rate();
 
-        PrintNumber(handle, baudRate);
+        WriteNumber(handle, baudRate);
     }
     else if (handle->LastRead == ' ')
     {
@@ -102,15 +102,16 @@ void UARTModeCommand(CliHandle_t *handle, void *v)
     }
     else if (handle->LastRead == ' ')
     {
-        if (SCPICompare(USBUartWord, &handle->LastWord))
+        ReadWord(handle);
+        if (SCPICompare(USBUartWord, handle->LastWord))
         {
             UART_set_mode(UMODE_USBUART);
         }
-        else if (SCPICompare(SCPIUartWord, &handle->LastWord))
+        else if (SCPICompare(SCPIUartWord, handle->LastWord))
         {
             UART_set_mode(UMODE_SCPI);
         }
-        else if (SCPICompare(MODBusWord, &handle->LastWord))
+        else if (SCPICompare(MODBusWord, handle->LastWord))
         {
             UART_set_mode(UMODE_MODBus);
         }
@@ -125,7 +126,7 @@ void UARTOverflowCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
-        PrintNumber(handle, UART_RxBufferOverflow());
+        WriteNumber(handle, UART_RxBufferOverflow());
     }
 }
 
