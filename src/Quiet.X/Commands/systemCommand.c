@@ -76,6 +76,7 @@ void SYSTRestore(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == ' ')
     {
+        ReadWord(handle);
         if (SCPICompare("FACT", handle->LastWord))
         {
             RestoreSettings(true);
