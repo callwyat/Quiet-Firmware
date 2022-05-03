@@ -13,8 +13,8 @@ if 'VERBOSE' not in locals():
 
 class QuietUART(QuietTester):
 
-    def __init__(self, coms) -> None:
-        QuietTester.__init__(self, coms)
+    def __init__(self, coms, **kargs) -> None:
+        QuietTester.__init__(self, coms, **kargs)
 
     def set_uart_baud_rate(self, rate:int):
 
@@ -172,8 +172,8 @@ if __name__ == "__main__":
             partner_port = p.device
 
     if partner_port:
-        uart_dual_test(QuietUART(port), partner_port)
+        uart_dual_test(QuietUART(port, log_path="usb_log.txt"), partner_port)
     else:
-        uart_loopback_test(QuietUART(port))
+        uart_loopback_test(QuietUART(port, log_path="usb_log.txt"))
 
     print('All Test Complete')
