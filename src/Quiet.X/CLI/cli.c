@@ -364,16 +364,15 @@ uint16_t ReadIEEEHeader(CliHandle_t *handle)
     {
         uint8_t headerSize = c - '0';
 
-        c = handle->Read();
-
         uint16_t result = 0;
         for (uint8_t i = 0; i < headerSize; ++i)
         {
+            c = handle->Read();
+
             if (IS_NUMBER(c))
             {
                 result *= 10;
                 result += c - '0';
-                c = handle->Read();
             }
             else
             {
@@ -545,19 +544,26 @@ void WriteNumber(CliHandle_t *handle, uint24_t input)
 void WriteIEEEHeader(CliHandle_t *handle, uint16_t dataSize)
 {
     wrote = true;
-    handle->Write('#');
-
-    char headerSize = 4;
-    const uint16_t *decadePnt = decades14;
-
-    while (dataSize < *decadePnt++)
+    if (dataSize > 0)
     {
-        --headerSize;
+        handle->Write('#');
+        
+        char headerSize = 4;
+        const uint16_t *decadePnt = decades14;
+
+        while (dataSize < *decadePnt++)
+        {
+            --headerSize;
+        }
+
+        handle->Write(headerSize + '0');
+
+        WriteInt14(handle, dataSize);
     }
-
-    handle->Write(headerSize + '0');
-
-    WriteInt14(handle, dataSize);
+    else
+    {
+        WriteString(handle, "#10");
+    }
 }
 
 void ProcessCommand(CliHandle_t *handle, CommandDefinition_t *rootCommand)
