@@ -37,6 +37,8 @@ void UARTWriteCommand(CliHandle_t *handle, void *v)
                         UART_Write(handle->Read());
                         --uartWriteSize;
                     }
+                    
+                    ReadWord(handle);
                 }
                 else
                 {
