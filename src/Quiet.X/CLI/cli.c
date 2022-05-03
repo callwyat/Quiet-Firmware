@@ -190,11 +190,11 @@ char *ReadWord(CliHandle_t *handle)
     return handle->LastWord;
 }
 
-int8_t ReadWordWithNumber(CliHandle_t *handle)
+bool ReadWordWithNumber(CliHandle_t *handle, uint8_t *output)
 {
     char *c = handle->LastWord;
     uint8_t i;
-    int8_t number = -1;
+    uint8_t number = 0xFF;
     for (i = 0; i < CLI_WORD_SIZE; ++i)
     {
         *c = handle->Read();
@@ -205,10 +205,10 @@ int8_t ReadWordWithNumber(CliHandle_t *handle)
         }
         else if (IS_NUMBER(*c))
         {
-            number = number < 0 ? 0 : number * 10;
+            number = number == 0xFF ? 0 : number * 10;
             number += (*c - '0');
         }
-        
+
         ++c;
     }
 
@@ -222,7 +222,15 @@ int8_t ReadWordWithNumber(CliHandle_t *handle)
     *c-- = '\x00';
     handle->LastRead = *c;
 
-    return number;
+    if (number != 0xFF)
+    {
+        *output = number;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 bool ReadBool(CliHandle_t *handle)
@@ -557,18 +565,10 @@ void ProcessCommand(CliHandle_t *handle, CommandDefinition_t *rootCommand)
     CommandDefinition_t *forkCommand, *command;
 
     command = forkCommand = rootCommand;
-
-    bool indexLock = false;
     uint8_t commandIndex;
-    
+
     while (true)
     {
-        if (!indexLock)
-        {
-            // Only parse the commandIndex once per command string.
-            commandIndex = 0;
-        }
-
         if (SCPICompare(command->Command, handle->LastWord))
         {
             while (true)
@@ -586,61 +586,53 @@ void ProcessCommand(CliHandle_t *handle, CommandDefinition_t *rootCommand)
                         QueueErrorCode(CLI_ERROR_INVALID_BRANCH);
                     }
 
-                    if (!indexLock)
-                    {
-                        int8_t number = ReadWordWithNumber(handle);
-                        if (number > 0)
-                        {
-                            commandIndex = (uint8_t)number;
-                            indexLock = true;
-                        }
-                    }
-                    else
-                    {
-                        ReadWord(handle);
-                    }
+                    ReadWordWithNumber(handle, &commandIndex);
+
                     break;
                 }
-                else if (IsSCPIPunctuation(c)) // Get a value
+                else if (command->Handle)
                 {
-                    if (command->Handle)
-                    {
-                        command->Handle(handle, &commandIndex);
+                    command->Handle(handle, &commandIndex);
+                    c = handle->LastRead;
 
-                        ReadWord(handle);
+                    if (c == '?')
+                    {
+                        ReadWordWithNumber(handle, &commandIndex);
+                        c = handle->LastRead;
+                    }
+
+                    // Check for command chaining
+                    if (c == ';')
+                    {
+                        WriteChar(handle, ';');
+                        ReadWordWithNumber(handle, &commandIndex);
+
+                        // Check for chain to root
+                        if (handle->LastRead == ':')
+                        {
+                            // Reset the CommandIndex
+                            commandIndex = 0;
+                            ReadWord(handle);
+                            command = forkCommand = rootCommand;
+                        }
+                        else
+                        {
+                            command = forkCommand;
+                        }
 
                         c = handle->LastRead;
-                        
-                        // Check for end conditions
-                        // 0x00         0x0D        0x0A
-                        if (c == '\x00' || c == '\r' || c == '\n')
-                        {
-                            return;
-                        }
-
-                        if (handle->LastWord[0] == ';')
-                        {
-                            WriteChar(handle, ';');
-
-                            ReadWord(handle);
-                            if (handle->LastWord[0] == ':')
-                            {
-                                ReadWord(handle);
-                                command = forkCommand = rootCommand;
-                                indexLock = false;
-                            }
-                            else
-                            {
-                                command = forkCommand;
-                            }
-
-                            break;
-                        }
+                        break;
                     }
-                    else
+                    // Check for end conditions
+                    // 0x00         0x0D        0x0A
+                    else if (c == '\x00' || c == '\r' || c == '\n')
                     {
-                        QueueErrorCode(CLI_ERROR_INVALID_COMMAND);
+                        return;
                     }
+                }
+                else
+                {
+                    QueueErrorCode(CLI_ERROR_INVALID_COMMAND);
                 }
             }
         }
