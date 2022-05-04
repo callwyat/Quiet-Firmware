@@ -30,20 +30,18 @@ void UARTWriteCommand(CliHandle_t *handle, void *v)
             // Check for an invalid number
             if (UART_get_mode() == UMODE_USBUART)
             {
-                if (uartWriteSize != 0)
-                {
-                    while (uartWriteSize > 0)
-                    {
-                        UART_Write(handle->Read());
-                        --uartWriteSize;
-                    }
-                    
-                    ReadWord(handle);
-                }
-                else
+                if (uartWriteSize == 0)
                 {
                     QueueErrorCode(UART_ERROR_INVALID_WRITE);
                 }
+                
+                while (uartWriteSize > 0)
+                {
+                    UART_Write(handle->Read());
+                    --uartWriteSize;
+                }
+
+                ReadWord(handle);
             }
             else
             {
