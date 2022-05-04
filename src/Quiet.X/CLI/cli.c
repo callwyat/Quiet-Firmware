@@ -547,7 +547,7 @@ void WriteIEEEHeader(CliHandle_t *handle, uint16_t dataSize)
     if (dataSize > 0)
     {
         handle->Write('#');
-        
+
         char headerSize = 4;
         const uint16_t *decadePnt = decades14;
 
@@ -577,69 +577,67 @@ void ProcessCommand(CliHandle_t *handle, CommandDefinition_t *rootCommand)
     {
         if (SCPICompare(command->Command, handle->LastWord))
         {
-            while (true)
+            char c = handle->LastRead;
+            //      0x3A
+            if (c == ':') // Branch Deeper
             {
-                char c = handle->LastRead;
-                //      0x3A
-                if (c == ':') // Branch Deeper
+                if (command->Children)
                 {
-                    if (command->Children)
-                    {
-                        command = forkCommand = command->Children;
-                    }
-                    else
-                    {
-                        QueueErrorCode(CLI_ERROR_INVALID_BRANCH);
-                    }
-
-                    ReadWordWithNumber(handle, &commandIndex);
-
-                    break;
-                }
-                else if (command->Handle)
-                {
-                    command->Handle(handle, &commandIndex);
-                    c = handle->LastRead;
-
-                    if (c == '?')
-                    {
-                        ReadWordWithNumber(handle, &commandIndex);
-                        c = handle->LastRead;
-                    }
-
-                    // Check for command chaining
-                    if (c == ';')
-                    {
-                        WriteChar(handle, ';');
-                        ReadWordWithNumber(handle, &commandIndex);
-
-                        // Check for chain to root
-                        if (handle->LastRead == ':')
-                        {
-                            // Reset the CommandIndex
-                            commandIndex = 0;
-                            ReadWord(handle);
-                            command = forkCommand = rootCommand;
-                        }
-                        else
-                        {
-                            command = forkCommand;
-                        }
-
-                        c = handle->LastRead;
-                        break;
-                    }
-                    // Check for end conditions
-                    // 0x00         0x0D        0x0A
-                    else if (c == '\x00' || c == '\r' || c == '\n')
-                    {
-                        return;
-                    }
+                    command = forkCommand = command->Children;
                 }
                 else
                 {
-                    QueueErrorCode(CLI_ERROR_INVALID_COMMAND);
+                    QueueErrorCode(CLI_ERROR_INVALID_BRANCH);
                 }
+
+                ReadWordWithNumber(handle, &commandIndex);
+            }
+            else if (command->Handle)
+            {
+                command->Handle(handle, &commandIndex);
+                c = handle->LastRead;
+
+                if (c == '?')
+                {
+                    ReadWordWithNumber(handle, &commandIndex);
+                    c = handle->LastRead;
+                }
+
+                // Check for command chaining
+                if (c == ';')
+                {
+                    WriteChar(handle, ';');
+                    ReadWordWithNumber(handle, &commandIndex);
+
+                    // Check for chain to root
+                    if (handle->LastRead == ':')
+                    {
+                        // Reset the CommandIndex
+                        commandIndex = 0;
+                        ReadWord(handle);
+                        command = forkCommand = rootCommand;
+                    }
+                    else
+                    {
+                        command = forkCommand;
+                    }
+
+                    c = handle->LastRead;
+                }
+                // Check for end conditions
+                // 0x00         0x0D        0x0A
+                else if (c == '\x00' || c == '\r' || c == '\n')
+                {
+                    return;
+                }
+                else
+                {
+                    ReadWordWithNumber(handle, &commandIndex);
+                }
+            }
+            else
+            {
+                QueueErrorCode(CLI_ERROR_INVALID_COMMAND);
             }
         }
         else
