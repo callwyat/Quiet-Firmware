@@ -1,22 +1,41 @@
 
 #include "../CLI/cli.h"
 
-uint24_t value = 0;
 
-void TestParserCommand(CliHandle_t *handle, void *channel)
+void TestParserCommand(CliHandle_t *handle, void *v)
 {
+    static uint24_t testParserValue = 0;
+    
     if (handle->LastRead == '?')
     {
-        WriteNumber(handle, value);
+        WriteNumber(handle, testParserValue);
     }
     else if (handle->LastRead == ' ')
     {
-        value = (uint24_t)ReadInt(handle);
+        testParserValue = (uint24_t)ReadInt(handle);
+    }
+}
+
+void TestLongWriteCommand(CliHandle_t *handle, void *v)
+{
+    static uint16_t longWriteCount = 4096;
+
+    if (handle->LastRead == '?')
+    {
+        for (uint16_t i = 0; i < longWriteCount; ++i)
+        {
+            handle->Write('L');
+        }
+    }
+    else if (handle->LastRead == ' ')
+    {
+        longWriteCount = (uint24_t)ReadInt(handle);
     }
 }
 
 CommandDefinition_t testCommands[] = {
     DEFINE_COMMAND("PARS", TestParserCommand),
+    DEFINE_COMMAND("LWRI", TestLongWriteCommand),
 };
 
 CommandDefinition_t TESTCommand = DEFINE_BRANCH("TEST", testCommands);

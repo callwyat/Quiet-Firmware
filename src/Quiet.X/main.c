@@ -136,10 +136,18 @@ char USB_Read(void)
 
 void USB_Flush_Write()
 {
-    putUSBUSART((uint8_t*)usbOutBuffer, usbOutCount);
-    CDCTxService();
-    usbOutPnt = usbOutBuffer;
-    usbOutCount = 0;
+    if (usbOutCount > 0)
+    {
+        while (!USBUSARTIsTxTrfReady())
+        {
+            CDCTxService();
+        }
+        
+        putUSBUSART((uint8_t*)usbOutBuffer, usbOutCount);
+        CDCTxService();
+        usbOutPnt = usbOutBuffer;
+        usbOutCount = 0;   
+    }
 }
 
 void USB_Write(char c)

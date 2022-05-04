@@ -124,7 +124,7 @@ def uart_loopback_test(quiet:QuietUART, baud:int=57600, partner_port:str=None):
     quiet.set_uart_baud_rate(baud)
     
     # TODO: Get the UART to work with 51 or more bytes
-    for i in range(0, 51):
+    for i in range(0, 65):
 
         data = 'U' * i
 
