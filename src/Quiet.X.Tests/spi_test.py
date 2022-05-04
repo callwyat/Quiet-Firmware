@@ -1,106 +1,100 @@
 
+from quiet_tester import QuietTester
 
-import serial
-import serial.tools.list_ports
+class QuietSPI(QuietTester):
+    def __init__(self, coms, **kargs) -> None:
 
-def spi_exchange(com, data):
+        QuietTester.__init__(self, coms, **kargs)
 
-    # Assert the Chip Select
-    com.write('SPI:CS 0;CS?\r\n'.encode())
-    # Verify Assertion
-    response = com.read_until().decode()
-    if response != ',0\r\n':
-        raise Exception('Chip Selection failed')
+    def set_spi_cs(self, value:bool):
 
-    # Generate the header
-    data_size = str(len(data))
-    header_size = str(len(data_size))
+        bString = '1' if value else '0'
 
-    ieee_header = f'#{header_size}{data_size}'
+        # Assert the Chip Select
+        response = self.query(f'SPI:CS {bString};CS?')
+        # Verify Assertion
+        if not value and response != f';{bString}':
+            raise Exception('Failed to set Chip Select')
 
-    # Send header and data
-    com.write(f'SPI:EXCH {ieee_header}'.encode() + bytearray(data))
+    def spi_exchange(self, data):
 
-    # Get the response
-    com.timeout = None
-    result = com.read(len(ieee_header) + len(data) + 2)
+        # Assert the Chip Select
+        self.set_spi_cs(False)
 
-    com.write('SPI:CS 1;CS?\r\n'.encode())
+        # Send data
+        self.writeIEEE('SPI:EXCH', data)
 
-    # Verify Assertion
-    response = com.read_until().decode()
-    # if response != ',1':
-    #     raise Exception('Chip Selection failed')
+        # Get the response
+        self.com.timeout = None
+        result = self.readIEEE()
 
-    # Return all but the header
-    return result[len(ieee_header):]
+        # De-assert Chip Select Assertion
+        self.set_spi_cs(True)
 
-def sd_card_exchange(com, data, response_length):
+        # Return all but the header
+        return result
 
-    response_raw = spi_exchange(com, data + [0xFF] * (response_length + 1))
+    def sd_card_exchange(self, data, response_length):
 
-    return response_raw[len(data) + 1:]
+        response_raw = self.spi_exchange(data + [0xFF] * (response_length + 1))
 
+        return response_raw[len(data) + 1:]
 
 
-def spi_test(com):
 
-    com.write('SPI:BAUD 250000;BAUD?\r\n'.encode())
-    response = com.read_until()
+def spi_test(quiet:QuietSPI):
+
+    quiet.set_and_verify('SPI:BAUD', 250000)
 
     # Init the SD Card
     # 80 Clocks while deselected
-    com.write('SPI:CS 1\r\n'.encode())
-    com.write('SPI:EXCH #216\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF'.encode())
-    com.timeout = 5000
-    response = com.read(22)
+    quiet.set_spi_cs(True)
+    quiet.writeIEEE('SPI:EXCH', [0xFF] * 16)
+    quiet.timeout = 5000
+    response = quiet.readIEEE()
 
     # More clocks while selected
-    response = spi_exchange(com, [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+    response = quiet.spi_exchange([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
 
     # COM_0 -> Reset?
-    response = sd_card_exchange(com, [0x40, 0x00, 0x00, 0x00, 0x00, 0x95], 1)
+    response = quiet.sd_card_exchange([0x40, 0x00, 0x00, 0x00, 0x00, 0x95], 1)
 
     # COM_8 -> Wait for the card to be ready
+    attempt = 0
     while True:
-        response = sd_card_exchange(com, [0x48, 0x00, 0x00, 0x01, 0xAA, 0x86], 1)
+        attempt += 1
+        response = quiet.sd_card_exchange([0x48, 0x00, 0x00, 0x01, 0xAA, 0x86], 1)
 
         if response[0] == 1:
             break
+        elif (attempt > 100):
+            raise Exception('SD Card does not want to be ready')
 
     # COM_58 -> Check the supported voltage levels of the card
-    response = sd_card_exchange(com, [0x7A, 0x00, 0x00, 0x00, 0x00, 0x95], 4)
+    response = quiet.sd_card_exchange([0x7A, 0x00, 0x00, 0x00, 0x00, 0x95], 4)
 
     # TODO: Maybe actually look at the supported levels...
 
     
     while True:
         # COM_55 -> Prepare for the app command
-        response = sd_card_exchange(com, [0x77, 0x00, 0x00, 0x00, 0x00, 0x7A], 1)
+        response = quiet.sd_card_exchange([0x77, 0x00, 0x00, 0x00, 0x00, 0x7A], 1)
 
         # COM_41 -> Leave Idle Mode
-        response = sd_card_exchange(com, [0x69, 0x40, 0x00, 0x00, 0x00, 0x95], 1)
+        response = quiet.sd_card_exchange([0x69, 0x40, 0x00, 0x00, 0x00, 0x95], 1)
 
         if response[0] == 1:
             break
 
     # Full Speed AHEAD!!!!!
-    com.write('SPI:BAUD 4000000;BAUD?\r\n'.encode())
-    response = com.read_until()
+    quiet.set_and_verify('SPI:BAUD', 4000000)
 
     # Read the MBR
-    response = sd_card_exchange(com, [0x51, 0x00, 0x00, 0x00, 0x00, 0x95], 515)
+    response = quiet.sd_card_exchange([0x51, 0x00, 0x00, 0x00, 0x00, 0x95], 515)
 
     print(response)
 
 
 if __name__ == "__main__":
-    ports = list(serial.tools.list_ports.comports())
-    for p in ports:        
-        if p.product and 'Qy@ Board' in p.product:
-            qPort = p.device
-            break
 
-    com = serial.Serial(port=qPort, timeout=5)
-
-    spi_test(com)
+    spi_test(QuietSPI(None, log_path='usb_log.txt'))

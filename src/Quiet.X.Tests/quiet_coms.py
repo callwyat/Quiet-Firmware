@@ -129,6 +129,23 @@ class QuietComs():
         # Send header and data
         self.com.write(f'{command} {ieee_header}'.encode() + bytearray(data) + '\r\n'.encode())
 
+    def readIEEE(self) -> bytearray:
+        """Read an IEEE data block from the device
+
+        Returns:
+            bytearray: The datablock
+        """
+
+        val = ''
+        while not '#' in val: 
+            val = self.com.read(1).decode()
+
+        headerSize = int(self.com.read(1).decode())
+
+        dataSize = int(self.com.read(headerSize).decode())
+
+        return self.com.read(dataSize)
+
     def queryIEEE(self, command:str) -> bytearray:
         """ Writes the given command to the quiet board and attempts to read the IEEE
         data block back
@@ -141,16 +158,7 @@ class QuietComs():
         """
         self.com.flushInput()
         self.write(command)
-
-        val = ''
-        while not '#' in val: 
-            val = self.com.read(1).decode()
-
-        headerSize = int(self.com.read(1).decode())
-
-        dataSize = int(self.com.read(headerSize).decode())
-
-        return self.com.read(dataSize)
+        return self.readIEEE()
         
 def find_quiet_ports() -> list:
     """ Scans the computer ports for a port that is a quiet board
