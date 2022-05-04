@@ -678,21 +678,27 @@ void ProcessCLI(CliHandle_t *handle, CommandDefinition_t *commands)
             *handle->ReceivePnt = '\x00';
             handle->LastRead = c;
             handle->ReceivePnt = handle->LastWord;
-            wrote = false;
-
-            TMR1_WriteTimer(0x0000);
-            TMR1_StartTimer();
-
-            ProcessCommand(handle, commands);
-
-            TMR1_StopTimer();
-
-            // If something was written, make sure it is terminated
-            if (wrote)
+            
+            // Don't process if the input is only one char
+            if (handle->LastRead != *handle->ReceivePnt)
             {
-                handle->Write('\r');
-                handle->Write('\n');
+                wrote = false;
+
+                TMR1_WriteTimer(0x0000);
+                TMR1_StartTimer();
+
+                ProcessCommand(handle, commands);
+
+                TMR1_StopTimer();
+
+                // If something was written, make sure it is terminated
+                if (wrote)
+                {
+                    handle->Write('\r');
+                    handle->Write('\n');
+                }
             }
+
 
             lastExecutionTime = TMR1_ReadTimer();
         }
