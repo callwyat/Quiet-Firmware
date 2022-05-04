@@ -22,9 +22,13 @@ void SPIExchangeCommand(CliHandle_t *handle, void *v)
 
             while (spiExchangeSize > 0)
             {
-                handle->Write(SPI2_ExchangeByte(handle->Read()));
+                char c = handle->Read();
+                c = SPI2_ExchangeByte(c);
+                handle->Write(c);
                 --spiExchangeSize;
             }
+            
+            ReadWord(handle);
         }
     }
 }
