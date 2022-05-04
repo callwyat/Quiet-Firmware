@@ -29,6 +29,7 @@ extern "C"
         {
             char LastRead;
             char LastWord[CLI_WORD_SIZE];
+            char;   // Put a null that can't be addressed at the end of the string
             char (*Read)(void);
             void (*Write)(char);
             uint8_t (*GetReceivedCount)(void);

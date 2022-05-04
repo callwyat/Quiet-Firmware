@@ -490,6 +490,7 @@ Code      | Meaning                                           |
 0x0B30    | IIC: Buffer overflow would occur                  |
 0x0B31    | IIC: Invalid number of bytes to write specified   |
 0x0B32    | IIC: Invalid number of bytes to read specified    |
+0x0B33    | IIC: Invalid read command syntax (IIC:READ? ##)   |
 
 #### Example
 ```

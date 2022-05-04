@@ -181,6 +181,17 @@ char *ReadWord(CliHandle_t *handle)
     if (i >= CLI_WORD_SIZE)
     {
         QueueErrorCode(CLI_INVALID_WORD);
+
+        // Attempt to read off the extra letters that don't fit
+        char over;
+        do
+        {
+            over = handle->Read();
+        } while (!IsSCPIPunctuation(over));
+
+        --c;
+        *c = over;
+
         __asm("pop");
     }
 
@@ -610,7 +621,7 @@ void ProcessCommand(CliHandle_t *handle, CommandDefinition_t *rootCommand)
                     ReadWordWithNumber(handle, &commandIndex);
 
                     // Check for chain to root
-                    if (handle->LastRead == ':')
+                    if (handle->LastWord[0] == ':')
                     {
                         // Reset the CommandIndex
                         commandIndex = 0;
@@ -621,8 +632,6 @@ void ProcessCommand(CliHandle_t *handle, CommandDefinition_t *rootCommand)
                     {
                         command = forkCommand;
                     }
-
-                    c = handle->LastRead;
                 }
                 // Check for end conditions
                 // 0x00         0x0D        0x0A
@@ -679,8 +688,8 @@ void ProcessCLI(CliHandle_t *handle, CommandDefinition_t *commands)
             handle->LastRead = c;
             handle->ReceivePnt = handle->LastWord;
             
-            // Don't process if the input is only one char
-            if (handle->LastRead != *handle->ReceivePnt)
+            // Don't process if the input is only new line
+            if (handle->LastWord[0] != '\n')
             {
                 wrote = false;
 
@@ -698,7 +707,6 @@ void ProcessCLI(CliHandle_t *handle, CommandDefinition_t *commands)
                     handle->Write('\n');
                 }
             }
-
 
             lastExecutionTime = TMR1_ReadTimer();
         }

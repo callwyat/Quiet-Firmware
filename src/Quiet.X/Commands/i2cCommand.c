@@ -121,6 +121,7 @@ void I2CWriteCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == ' ')
     {
+        ReadChar(handle);
         if (handle->LastRead == '#')
         {
             // Parse the number of bytes to write
@@ -138,12 +139,21 @@ void I2CWriteCommand(CliHandle_t *handle, void *v)
                 while (i > 0)
                 {
                     *nPnt++ = handle->Read();
+                    --i;
                 }
 
                 I2C1_WriteNBytes(i2cTargetAddress, nBuffer, writeCount);
             }
             else
             {
+                // Read off the data that was sent, but can't be used.
+                while (writeCount > 0)
+                {
+                    handle->Read();
+                    --writeCount;
+                }
+
+                ReadChar(handle);                
                 QueueErrorCode(I2C_ERROR_INVALID_WRITE_SIZE);
             }
         }
@@ -166,7 +176,7 @@ void I2CReadCommand(CliHandle_t *handle, void *v)
                 QueueErrorCode(I2C_ERROR_DISABLED_READ);
                 WriteString(handle, EmptyIEEEHeader);
             }
-            else if (readCount > 0)
+            else if (readCount > 0 && readCount <= I2C_N_BUFFER_SIZE)
             {
                 WriteIEEEHeader(handle, (uint16_t)readCount);
 
@@ -193,6 +203,10 @@ void I2CReadCommand(CliHandle_t *handle, void *v)
                 QueueErrorCode(I2C_ERROR_INVALID_READ_SIZE);
                 WriteString(handle, EmptyIEEEHeader);
             }
+        }
+        else
+        {
+            QueueErrorCode(I2C_ERROR_INVALID_READ_SYNTAX);
         }
     }
 }

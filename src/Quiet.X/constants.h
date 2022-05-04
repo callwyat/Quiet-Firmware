@@ -106,6 +106,7 @@ extern const char* EmptyIEEEHeader;
 #define I2C_ERROR_BUFFER_OVERFLOW           0x0B30
 #define I2C_ERROR_INVALID_WRITE_SIZE        0x0B31
 #define I2C_ERROR_INVALID_READ_SIZE         0x0B32
+#define I2C_ERROR_INVALID_READ_SYNTAX       0x0B33
 
 #ifdef	__cplusplus
 }

@@ -7,8 +7,8 @@ if 'EXIT_ON_FAIL' not in locals():
     EXIT_ON_FAIL = True
 class QuietI2C(Quiet):
 
-    def __init__(self, coms) -> None:
-        Quiet.__init__(self, coms)
+    def __init__(self, coms, **kargs) -> None:
+        Quiet.__init__(self, coms, **kargs)
 
     def raw_write(self, addr: int, data: bytearray):
 
@@ -207,12 +207,16 @@ def i2c_test_errors(i: QuietI2C) -> bool:
         i.write('IIC:WRIT #2520AAAAAAAAA1BBBBBBBBB2CCCCCCCCC3DDDDDDDDD4EEEEEEEEE5F')
         i.com.flushInput()
         time.sleep(0.1)
-        _i2c_check_error(i, 'I2C_ERROR_BUFFER_OVERFLOW', 0x0B30)
+        _i2c_check_error(i, 'I2C_ERROR_INVALID_WRITE_SIZE', 0x0B31)
 
         i.query('IIC:READ? 64')
         i.com.flushInput()
         time.sleep(0.1)
-        _i2c_check_error(i, 'I2C_ERROR_BUFFER_OVERFLOW', 0x0B30)
+        _i2c_check_error(i, 'I2C_ERROR_INVALID_READ_SIZE', 0x0B32)
+
+        i.write('IIC:READ?')
+        i.com.flushInput()
+        _i2c_check_error(i, 'I2C_ERROR_INVALID_READ_SYNTAX', 0x0B33)
 
         i.write('IIC:ADDR 0x10;WRIT #13ABC')
         time.sleep(0.1)
@@ -247,9 +251,7 @@ def i2c_test(i: QuietI2C) -> bool:
 
 if __name__ == "__main__":
 
-    qPorts = find_quiet_ports()
-
-    q2c = QuietI2C(qPorts[0])
+    q2c = QuietI2C(None, log_path='usb_log.txt')
 
     i2c_test(q2c)
 
