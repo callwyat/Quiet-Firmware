@@ -204,12 +204,12 @@ def i2c_test_errors(i: QuietI2C) -> bool:
         time.sleep(0.1)
         _i2c_check_error(i, 'I2C_ERROR_INVALID_READ_SIZE', 0x0B32)
 
-        i.write('IIC:WRIT #2520AAAAAAAAA1BBBBBBBBB2CCCCCCCCC3DDDDDDDDD4EEEEEEEEE5F')
+        i.write('IIC:WRIT #296' + '0123456789ABCDEF' * 6)
         i.com.flushInput()
         time.sleep(0.1)
         _i2c_check_error(i, 'I2C_ERROR_INVALID_WRITE_SIZE', 0x0B31)
 
-        i.query('IIC:READ? 64')
+        i.query('IIC:READ? 96')
         i.com.flushInput()
         time.sleep(0.1)
         _i2c_check_error(i, 'I2C_ERROR_INVALID_READ_SIZE', 0x0B32)

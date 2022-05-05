@@ -20,7 +20,7 @@ uint8_t i2cRegisterSize = 1;
 const char *OFFWord = "OFF";
 const char *MASTerWord = "MAST";
 
-#define I2C_N_BUFFER_SIZE 24
+#define I2C_N_BUFFER_SIZE 64
 uint8_t nBuffer[I2C_N_BUFFER_SIZE];
 
 void I2CModeCommand(CliHandle_t *handle, void *v)
