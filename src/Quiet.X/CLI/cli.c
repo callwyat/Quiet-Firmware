@@ -226,6 +226,17 @@ bool ReadWordWithNumber(CliHandle_t *handle, uint8_t *output)
     if (i >= CLI_WORD_SIZE)
     {
         QueueErrorCode(CLI_INVALID_WORD);
+
+        // Attempt to read off the extra letters that don't fit
+        char over;
+        do
+        {
+            over = handle->Read();
+        } while (!IsSCPIPunctuation(over));
+
+        --c;
+        *c = over;
+
         __asm("pop");
     }
 
@@ -707,6 +718,7 @@ void ProcessCLI(CliHandle_t *handle, CommandDefinition_t *commands)
                     handle->Write('\n');
                 }
             }
+
 
             lastExecutionTime = TMR1_ReadTimer();
         }
