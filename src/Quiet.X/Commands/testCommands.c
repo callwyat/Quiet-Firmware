@@ -8,6 +8,7 @@ void TestParserCommand(CliHandle_t *handle, void *v)
     
     if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         WriteNumber(handle, testParserValue);
     }
     else if (handle->LastRead == ' ')
@@ -22,6 +23,7 @@ void TestLongWriteCommand(CliHandle_t *handle, void *v)
 
     if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         for (uint16_t i = 0; i < longWriteCount; ++i)
         {
             handle->Write('L');

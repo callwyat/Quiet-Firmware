@@ -8,6 +8,7 @@ void UARTReadCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         uint8_t receivedCount = UART_get_rx_count();
         WriteIEEEHeader(handle, receivedCount);
 
@@ -55,6 +56,7 @@ void UARTBaudCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         uint24_t baudRate = UART_get_baud_rate();
 
         WriteNumber(handle, baudRate);
@@ -83,6 +85,7 @@ void UARTModeCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         const char *word;
 
         switch (UART_get_mode())
@@ -126,6 +129,7 @@ void UARTOverflowCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         WriteNumber(handle, UART_RxBufferOverflow());
     }
 }

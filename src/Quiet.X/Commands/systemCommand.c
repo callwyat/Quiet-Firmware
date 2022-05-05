@@ -13,6 +13,7 @@ void SYSTErrorCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         WriteNumber(handle, DequeueErrorCode());
     }
 }
@@ -61,6 +62,7 @@ void SYSTSerilalNumber(CliHandle_t *handle, void *v)
     }
     else if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         WriteChar(handle, '"');
         char *c = settings.SerialNumber;
 
@@ -120,6 +122,7 @@ void SYSTNumberCommand(CliHandle_t *handle, void *v)
     }
     else if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         const char *word = "";
 
         switch (GetNumberFormat())
@@ -141,6 +144,7 @@ void SYSTNumberCommand(CliHandle_t *handle, void *v)
     {                                       \
         if (handle->LastRead == '?')        \
         {                                   \
+            ReadChar(handle);               \
             WriteChar(handle, '"');         \
             const char *c = input;          \
                                             \
@@ -170,6 +174,7 @@ void BUILdVersion(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         WriteChar(handle, '"');
         WriteNumber(handle, __XC8_VERSION);
         WriteChar(handle, '"');

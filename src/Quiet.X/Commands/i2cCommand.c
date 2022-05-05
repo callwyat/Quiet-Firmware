@@ -43,6 +43,7 @@ void I2CModeCommand(CliHandle_t *handle, void *v)
     }
     else if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         const char *word = I2C1_GetEnabled() ? MASTerWord : OFFWord;
 
         WriteString(handle, word);
@@ -53,6 +54,7 @@ void I2CTimeoutCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         uint24_t timeout = I2C1_GetTimeout();
 
         WriteNumber(handle, timeout);
@@ -76,6 +78,7 @@ void I2CBaudCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         uint24_t baudRate = I2C1GetBaudRate();
 
         WriteNumber(handle, baudRate);
@@ -100,6 +103,7 @@ void I2CAddressCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         WriteNumber(handle, i2cTargetAddress);
     }
     else if (handle->LastRead == ' ')
@@ -215,6 +219,7 @@ void I2CACKedCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         WriteNumber(handle, !I2C1_LastOperationNACKed());
     }
 }
@@ -258,6 +263,7 @@ void I2CRegisterReadCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         if (I2C1_GetEnabled())
         {
             uint16_t data;
@@ -288,6 +294,7 @@ void I2CRegisterAddressCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         WriteNumber(handle, i2cRegisterAddress);
     }
     else if (handle->LastRead == ' ')
@@ -309,6 +316,7 @@ void I2CRegisterRegisterSizeCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         WriteNumber(handle, i2cRegisterSize);
     }
     else if (handle->LastRead == ' ')

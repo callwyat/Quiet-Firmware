@@ -7,6 +7,7 @@ void IDNCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         WriteString(handle, MakeString);
         WriteChar(handle, ',');
 

@@ -9,6 +9,7 @@ void QueryANAI(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         uint8_t channel = *((uint8_t *)v);
 
         if (channel >= 1 && channel <= 4)

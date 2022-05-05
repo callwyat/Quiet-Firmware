@@ -42,6 +42,7 @@ void SPIChipSelectCommand(CliHandle_t *handle, void *v)
     }
     else if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         WriteChar(handle, (SDDetect ? '1' : '0'));
     }
 }
@@ -50,6 +51,7 @@ void SPIBaudCommand(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         uint24_t baudRate;
         switch (SSP2CON1bits.SSPM)
         {

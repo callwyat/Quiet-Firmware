@@ -20,6 +20,7 @@ void DIAGnostics(CliHandle_t *handle, void *v)
 {
     if (handle->LastRead == '?')
     {
+        ReadWord(handle);
         WriteNumber(handle, lastExecutionTime);
     }
 }
@@ -618,12 +619,6 @@ void ProcessCommand(CliHandle_t *handle, CommandDefinition_t *rootCommand)
             {
                 command->Handle(handle, &commandIndex);
                 c = handle->LastRead;
-
-                if (c == '?')
-                {
-                    ReadWordWithNumber(handle, &commandIndex);
-                    c = handle->LastRead;
-                }
 
                 // Check for command chaining
                 if (c == ';')

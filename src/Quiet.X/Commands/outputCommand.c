@@ -28,6 +28,7 @@ void OutputChannelModeCommand(CliHandle_t *handle, const OutputCommand_t setting
 
     if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         uint8_t channel = ValidateChannel(settings, v);
 
         OutputMode_e mode = GetOutputMode(channel);
@@ -93,6 +94,7 @@ void OutputChannelValueCommand(CliHandle_t *handle, const OutputCommand_t settin
     }
     else if (handle->LastRead == '?')
     {
+        ReadChar(handle);
         uint8_t channel = ValidateChannel(settings, v);
         uint16_t value = GetOutputValue(channel);
         WriteNumber(handle, value);
